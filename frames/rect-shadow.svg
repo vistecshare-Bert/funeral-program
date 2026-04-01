@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 500" width="400" height="500">
+  <defs>
+    <filter id="drop-shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="8"/>
+      <feOffset dx="4" dy="6" result="shadow"/>
+      <feComposite in2="SourceGraphic"/>
+      <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <mask id="rect-shadow-mask">
+      <rect width="400" height="500" fill="white"/>
+      <rect x="22" y="22" width="356" height="456" rx="4" ry="4" fill="black"/>
+    </mask>
+  </defs>
+  <!-- Shadow layer -->
+  <rect x="28" y="30" width="356" height="456" rx="4" fill="rgba(0,0,0,0.30)" filter="url(#drop-shadow)"/>
+  <!-- White mat border -->
+  <rect x="14" y="14" width="372" height="472" rx="6" fill="none" stroke="#ffffff" stroke-width="10"/>
+  <!-- Thin outer line -->
+  <rect x="10" y="10" width="380" height="480" rx="8" fill="none" stroke="#cccccc" stroke-width="1.5"/>
+  <!-- Thin inner line -->
+  <rect x="22" y="22" width="356" height="456" rx="3" fill="none" stroke="#aaaaaa" stroke-width="1"/>
+</svg>

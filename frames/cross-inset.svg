@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 500" width="400" height="500">
+  <defs>
+    <linearGradient id="cross-gold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%"   stop-color="#e8c97e"/>
+      <stop offset="100%" stop-color="#a0823d"/>
+    </linearGradient>
+  </defs>
+  <!-- Outer rect border -->
+  <rect x="8" y="8" width="384" height="484" rx="4" fill="none" stroke="url(#cross-gold)" stroke-width="4"/>
+  <rect x="14" y="14" width="372" height="472" rx="3" fill="none" stroke="#ffffff" stroke-width="1" opacity="0.5"/>
+  <!-- Cross at top center -->
+  <g transform="translate(200,52)" fill="url(#cross-gold)">
+    <!-- Vertical bar -->
+    <rect x="-5" y="-28" width="10" height="52" rx="2"/>
+    <!-- Horizontal bar -->
+    <rect x="-20" y="-10" width="40" height="9" rx="2"/>
+    <!-- Small circle at base -->
+    <circle cx="0" cy="30" r="4"/>
+  </g>
+  <!-- Corner decorative lines -->
+  <line x1="8" y1="90" x2="8" y2="8" stroke="url(#cross-gold)" stroke-width="4"/>
+  <line x1="8" y1="8" x2="90" y2="8" stroke="url(#cross-gold)" stroke-width="4"/>
+  <line x1="310" y1="8" x2="392" y2="8" stroke="url(#cross-gold)" stroke-width="4"/>
+  <line x1="392" y1="8" x2="392" y2="90" stroke="url(#cross-gold)" stroke-width="4"/>
+  <line x1="8" y1="410" x2="8" y2="492" stroke="url(#cross-gold)" stroke-width="4"/>
+  <line x1="8" y1="492" x2="90" y2="492" stroke="url(#cross-gold)" stroke-width="4"/>
+  <line x1="310" y1="492" x2="392" y2="492" stroke="url(#cross-gold)" stroke-width="4"/>
+  <line x1="392" y1="410" x2="392" y2="492" stroke="url(#cross-gold)" stroke-width="4"/>
+</svg>

@@ -1,0 +1,30 @@
+{
+  "orderId": "test-order-001",
+  "deceased": {
+    "firstName": "Margaret",
+    "lastName": "Louise Johnson",
+    "dateOfBirth": "1942-03-15",
+    "dateOfDeath": "2025-11-28"
+  },
+  "service": {
+    "date": "2025-12-03",
+    "time": "2:00 PM",
+    "location": "Grace Baptist Church, Charlotte NC",
+    "officiant": "Pastor David Williams"
+  },
+  "obituary": "Margaret Louise Johnson was born on March 15, 1942, in Charlotte, North Carolina, to Robert and Edna Mae Williams. She was a devoted mother, grandmother, and faithful member of Grace Baptist Church for over fifty years. Margaret spent her career as a schoolteacher, touching the lives of hundreds of students across Mecklenburg County. She was known for her warm smile, her love of gospel music, and her famous sweet potato pie. She is survived by her three children, seven grandchildren, and a community of friends who loved her deeply. She will be greatly missed.",
+  "format": {
+    "size": "letter",
+    "fold": "bifold"
+  },
+  "preferences": {
+    "theme": "classic",
+    "fontFamily": "serif",
+    "frame": "oval-classic"
+  },
+  "photos": [
+    { "filename": "test1.jpg", "localPath": "./uploads/test/test1.jpg" },
+    { "filename": "test2.jpg", "localPath": "./uploads/test/test2.jpg" },
+    { "filename": "test3.jpg", "localPath": "./uploads/test/test3.jpg" }
+  ]
+}

@@ -1,0 +1,128 @@
+{
+  "format": "11x17-bifold",
+  "description": "11x17 bi-fold — 4 panels. Panel 1=front cover, 2=inside right, 3=inside left, 4=back cover.",
+  "panels": [
+    {
+      "id": 1,
+      "name": "front-cover",
+      "description": "Right panel on front side — full portrait with header overlay",
+      "zones": [
+        {
+          "type": "PORTRAIT",
+          "x": 0.05,
+          "y": 0.07,
+          "width": 0.90,
+          "height": 0.74,
+          "hasFrame": true
+        },
+        {
+          "type": "HEADER",
+          "x": 0.05,
+          "y": 0.83,
+          "width": 0.90,
+          "height": 0.13
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "name": "inside-right",
+      "description": "Right panel inside — service info, gallery",
+      "zones": [
+        {
+          "type": "SERVICE_INFO",
+          "x": 0.06,
+          "y": 0.05,
+          "width": 0.88,
+          "height": 0.40
+        },
+        {
+          "type": "GALLERY",
+          "x": 0.06,
+          "y": 0.47,
+          "width": 0.42,
+          "height": 0.28,
+          "hasFrame": true
+        },
+        {
+          "type": "GALLERY",
+          "x": 0.52,
+          "y": 0.47,
+          "width": 0.42,
+          "height": 0.28,
+          "hasFrame": true
+        },
+        {
+          "type": "ACCENT",
+          "x": 0.06,
+          "y": 0.78,
+          "width": 0.88,
+          "height": 0.015
+        },
+        {
+          "type": "TEXT_BODY",
+          "x": 0.06,
+          "y": 0.80,
+          "width": 0.88,
+          "height": 0.15
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "name": "inside-left",
+      "description": "Left panel inside — full obituary text",
+      "zones": [
+        {
+          "type": "TEXT_BODY",
+          "x": 0.06,
+          "y": 0.05,
+          "width": 0.88,
+          "height": 0.90
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "name": "back-cover",
+      "description": "Left panel front side — back matter",
+      "zones": [
+        {
+          "type": "HEADER",
+          "x": 0.06,
+          "y": 0.06,
+          "width": 0.88,
+          "height": 0.14
+        },
+        {
+          "type": "ACCENT",
+          "x": 0.15,
+          "y": 0.22,
+          "width": 0.70,
+          "height": 0.012
+        },
+        {
+          "type": "SERVICE_INFO",
+          "x": 0.10,
+          "y": 0.25,
+          "width": 0.80,
+          "height": 0.30
+        },
+        {
+          "type": "ACCENT",
+          "x": 0.15,
+          "y": 0.57,
+          "width": 0.70,
+          "height": 0.012
+        },
+        {
+          "type": "TEXT_BODY",
+          "x": 0.08,
+          "y": 0.60,
+          "width": 0.84,
+          "height": 0.28
+        }
+      ]
+    }
+  ]
+}

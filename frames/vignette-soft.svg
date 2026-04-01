@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 500" width="400" height="500">
+  <defs>
+    <radialGradient id="vignette-grad" cx="50%" cy="50%" r="70%">
+      <stop offset="55%" stop-color="rgba(0,0,0,0)"/>
+      <stop offset="100%" stop-color="rgba(0,0,0,0.55)"/>
+    </radialGradient>
+  </defs>
+  <!-- Soft vignette overlay — darkens corners, transparent center -->
+  <rect width="400" height="500" fill="url(#vignette-grad)" rx="0"/>
+</svg>

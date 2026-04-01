@@ -1,0 +1,1386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Vistec GraphX — Funeral Program Generator</title>
+  <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600;700&family=Great+Vibes&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --navy:   #1a2744;
+      --gold:   #c8a96e;
+      --cream:  #faf7f2;
+      --white:  #ffffff;
+      --border: #ddd5c8;
+      --text:   #2c2c2c;
+      --muted:  #6b6b6b;
+      --error:  #b91c1c;
+      --success:#166534;
+      --warn:   #92400e;
+      --radius: 6px;
+      --shadow: 0 2px 8px rgba(0,0,0,0.10);
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--cream);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    header {
+      background: var(--navy);
+      color: var(--white);
+      padding: 18px 32px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      border-bottom: 3px solid var(--gold);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    header .logo { font-size: 22px; font-weight: 700; letter-spacing: 0.5px; }
+    header .subtitle { font-size: 13px; opacity: 0.7; margin-top: 2px; }
+
+    /* Two-column layout */
+    .page-body {
+      display: grid;
+      grid-template-columns: 1fr 360px;
+      gap: 0;
+      max-width: 1200px;
+      margin: 0 auto;
+      align-items: start;
+    }
+    @media (max-width: 900px) {
+      .page-body { grid-template-columns: 1fr; }
+      .preview-panel { position: static !important; }
+    }
+
+    /* Form column */
+    .form-col { padding: 28px 24px 60px 28px; }
+
+    /* Preview column */
+    .preview-panel {
+      position: sticky;
+      top: 73px;
+      height: calc(100vh - 73px);
+      overflow-y: auto;
+      background: #f0ece6;
+      border-left: 1px solid var(--border);
+      padding: 20px 16px;
+    }
+    .preview-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--muted);
+      margin-bottom: 12px;
+      text-align: center;
+    }
+    .preview-tabs {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 14px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .preview-tab {
+      padding: 5px 12px;
+      font-size: 12px;
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      background: var(--white);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .preview-tab.active {
+      background: var(--navy);
+      color: var(--white);
+      border-color: var(--navy);
+      font-weight: 600;
+    }
+    .canvas-wrap {
+      text-align: center;
+      position: relative;
+    }
+    #previewCanvas {
+      max-width: 100%;
+      border-radius: 4px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.20);
+      background: white;
+      display: block;
+      margin: 0 auto;
+    }
+    .preview-hint {
+      font-size: 11px;
+      color: var(--muted);
+      text-align: center;
+      margin-top: 10px;
+      line-height: 1.5;
+    }
+
+    .card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      margin-bottom: 20px;
+      overflow: hidden;
+    }
+    .card-header {
+      background: var(--navy);
+      color: var(--white);
+      padding: 11px 18px;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+    }
+    .card-body { padding: 18px 20px; }
+
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    @media (max-width: 600px) { .grid-2 { grid-template-columns: 1fr; } }
+
+    .field { display: flex; flex-direction: column; gap: 5px; }
+    .field label {
+      font-size: 11px; font-weight: 600; color: var(--muted);
+      text-transform: uppercase; letter-spacing: 0.5px;
+    }
+    .field label .req { color: var(--error); margin-left: 2px; }
+    .field input, .field textarea, .field select {
+      border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 8px 11px; font-size: 14px; color: var(--text);
+      background: var(--white); transition: border-color 0.15s; font-family: inherit;
+    }
+    .field input:focus, .field textarea:focus, .field select:focus {
+      outline: none; border-color: var(--gold);
+      box-shadow: 0 0 0 3px rgba(200,169,110,0.15);
+    }
+    .field textarea { resize: vertical; min-height: 130px; line-height: 1.55; }
+
+    .radio-group { display: flex; gap: 10px; flex-wrap: wrap; }
+    .radio-option {
+      display: flex; align-items: center; gap: 7px; cursor: pointer;
+      padding: 7px 12px; border: 1px solid var(--border); border-radius: var(--radius);
+      font-size: 13px; transition: all 0.15s; user-select: none;
+    }
+    .radio-option:hover { border-color: var(--gold); background: #fdf8f0; }
+    .radio-option input[type=radio] { accent-color: var(--gold); }
+    .radio-option.selected { border-color: var(--gold); background: #fdf8f0; font-weight: 600; }
+    .radio-option.disabled { opacity: 0.4; cursor: not-allowed; pointer-events: none; }
+
+    .upload-area {
+      border: 2px dashed var(--border); border-radius: var(--radius);
+      padding: 28px 16px; text-align: center; cursor: pointer;
+      transition: border-color 0.15s, background 0.15s;
+    }
+    .upload-area:hover, .upload-area.dragover { border-color: var(--gold); background: #fdf8f0; }
+    .upload-area .icon { font-size: 30px; margin-bottom: 6px; }
+    .upload-area .hint { font-size: 12px; color: var(--muted); margin-top: 3px; }
+    #photoInput { display: none; }
+
+    .photo-list { margin-top: 12px; }
+    .photo-item {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 7px 10px; background: var(--cream); border: 1px solid var(--border);
+      border-radius: var(--radius); margin-bottom: 5px; font-size: 12px;
+    }
+    .photo-item .thumb {
+      width: 36px; height: 36px; object-fit: cover;
+      border-radius: 3px; margin-right: 8px; flex-shrink: 0;
+    }
+    .photo-item .info { flex: 1; min-width: 0; }
+    .photo-item .name { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .photo-item .size { color: var(--muted); font-size: 11px; }
+    .photo-item .remove-btn {
+      background: none; border: none; color: var(--error);
+      cursor: pointer; font-size: 16px; padding: 0 4px; flex-shrink: 0;
+    }
+
+    /* Portrait upload */
+    .portrait-zone {
+      border: 2px dashed var(--border); border-radius: var(--radius);
+      padding: 0; text-align: center; cursor: pointer;
+      transition: border-color 0.15s, background 0.15s;
+      position: relative; overflow: hidden; min-height: 160px;
+      display: flex; align-items: center; justify-content: center;
+      background: var(--cream);
+    }
+    .portrait-zone:hover, .portrait-zone.dragover { border-color: var(--gold); background: #fdf8f0; }
+    .portrait-zone .placeholder { padding: 32px 16px; }
+    .portrait-zone .placeholder .icon { font-size: 36px; margin-bottom: 8px; }
+    .portrait-zone img.portrait-thumb {
+      width: 100%; height: 200px; object-fit: cover; display: block; border-radius: 4px;
+    }
+    .portrait-zone .clear-btn {
+      position: absolute; top: 6px; right: 6px; background: rgba(0,0,0,0.55);
+      color: #fff; border: none; border-radius: 50%; width: 24px; height: 24px;
+      cursor: pointer; font-size: 13px; line-height: 24px; text-align: center;
+      display: none;
+    }
+    .portrait-zone.has-photo .clear-btn { display: block; }
+    .portrait-zone.has-photo .placeholder { display: none; }
+
+    /* Gallery section */
+    .gallery-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    @media (max-width: 700px) { .gallery-layout { grid-template-columns: 1fr; } }
+
+    .gallery-pool-wrap { display: flex; flex-direction: column; gap: 8px; }
+    .gallery-pool-label { font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
+    .gallery-upload-btn {
+      border: 1.5px dashed var(--border); border-radius: var(--radius);
+      padding: 10px; text-align: center; cursor: pointer; font-size: 12px;
+      color: var(--muted); transition: border-color 0.15s, background 0.15s;
+    }
+    .gallery-upload-btn:hover { border-color: var(--gold); background: #fdf8f0; color: var(--navy); }
+    .gallery-pool { display: flex; flex-wrap: wrap; gap: 6px; min-height: 50px; }
+    .pool-chip {
+      width: 56px; height: 56px; border-radius: 4px; object-fit: cover;
+      cursor: grab; border: 2px solid var(--border); transition: border-color 0.15s, transform 0.1s;
+      flex-shrink: 0;
+    }
+    .pool-chip:hover { border-color: var(--gold); transform: scale(1.05); }
+    .pool-chip.dragging { opacity: 0.4; transform: scale(0.95); }
+
+    .gallery-grid-wrap { display: flex; flex-direction: column; gap: 6px; }
+    .gallery-grid-label { font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
+    .gallery-slot-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px;
+    }
+    .gallery-slot {
+      aspect-ratio: 1; border: 2px solid var(--gold); border-radius: 5px;
+      background: rgba(200,169,110,0.06); display: flex; align-items: center;
+      justify-content: center; cursor: pointer; position: relative; overflow: hidden;
+      transition: border-color 0.15s, background 0.15s;
+    }
+    .gallery-slot.dragover { border-color: var(--navy); background: #eff6ff; }
+    .gallery-slot .slot-num {
+      font-size: 10px; color: #bbb; font-weight: 600; user-select: none;
+    }
+    .gallery-slot img {
+      position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
+    }
+    .gallery-slot .slot-remove {
+      position: absolute; top: 2px; right: 2px; background: rgba(0,0,0,0.55);
+      color: #fff; border: none; border-radius: 50%; width: 18px; height: 18px;
+      cursor: pointer; font-size: 10px; line-height: 18px; text-align: center;
+      display: none;
+    }
+    .gallery-slot.filled .slot-remove { display: block; }
+    .gallery-slot.filled .slot-num { display: none; }
+
+    .frame-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(95px, 1fr)); gap: 8px; }
+    .frame-option {
+      border: 2px solid var(--border); border-radius: var(--radius);
+      padding: 8px 4px; text-align: center; cursor: pointer;
+      transition: border-color 0.15s; font-size: 11px;
+    }
+    .frame-option:hover { border-color: var(--gold); }
+    .frame-option.selected { border-color: var(--gold); background: #fdf8f0; font-weight: 600; }
+    .frame-option img { width: 56px; height: 56px; object-fit: contain; margin-bottom: 3px; display: block; margin: 0 auto 4px; }
+    .frame-option input { display: none; }
+
+    .submit-area { text-align: center; margin-top: 8px; }
+    #submitBtn {
+      background: var(--navy); color: var(--white); border: none;
+      border-radius: var(--radius); padding: 13px 44px; font-size: 15px;
+      font-weight: 600; cursor: pointer; letter-spacing: 0.5px;
+      transition: background 0.15s, transform 0.1s;
+    }
+    #submitBtn:hover { background: #243660; transform: translateY(-1px); }
+    #submitBtn:active { transform: translateY(0); }
+    #submitBtn:disabled { background: #9ca3af; cursor: not-allowed; transform: none; }
+
+    #statusMsg {
+      margin-top: 18px; padding: 14px 18px; border-radius: var(--radius);
+      font-size: 14px; display: none;
+    }
+    #statusMsg.processing { display:block; background:#eff6ff; border:1px solid #bfdbfe; color:#1e40af; }
+    #statusMsg.success    { display:block; background:#f0fdf4; border:1px solid #bbf7d0; color:var(--success); }
+    #statusMsg.error      { display:block; background:#fef2f2; border:1px solid #fecaca; color:var(--error); }
+    #statusMsg.warning    { display:block; background:#fffbeb; border:1px solid #fde68a; color:var(--warn); }
+
+    .download-links { margin-top: 12px; display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+    .download-btn {
+      display: inline-block; padding: 9px 22px; background: var(--gold);
+      color: var(--navy); border-radius: var(--radius); text-decoration: none;
+      font-weight: 700; font-size: 13px; transition: opacity 0.15s;
+    }
+    .download-btn:hover { opacity: 0.85; }
+    .download-btn.secondary { background: var(--navy); color: var(--white); }
+
+    .preview-img {
+      max-width: 260px; border: 1px solid var(--border); border-radius: var(--radius);
+      margin: 14px auto 0; display: block; box-shadow: var(--shadow);
+    }
+    .warning-list { margin-top: 8px; padding-left: 16px; }
+    .warning-list li { font-size: 12px; margin-bottom: 3px; }
+
+    .spinner {
+      display: inline-block; width: 15px; height: 15px;
+      border: 2px solid rgba(30,64,175,0.3); border-top-color: #1e40af;
+      border-radius: 50%; animation: spin 0.8s linear infinite;
+      margin-right: 7px; vertical-align: middle;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+
+<header>
+  <div>
+    <div class="logo">Vistec GraphX</div>
+    <div class="subtitle">Funeral Program Generator — Staff Tool</div>
+  </div>
+  <a href="/admin" target="_blank" style="color:var(--gold);font-size:13px;font-weight:600;text-decoration:none;margin-left:auto;">⚙ Manage Templates</a>
+</header>
+
+<div class="page-body">
+
+  <!-- ── FORM COLUMN ─────────────────────────────────────────── -->
+  <div class="form-col">
+  <form id="programForm" novalidate>
+
+    <div class="card">
+      <div class="card-header">Deceased Information</div>
+      <div class="card-body">
+        <div class="grid-2">
+          <div class="field">
+            <label>First Name <span class="req">*</span></label>
+            <input type="text" name="firstName" required placeholder="Margaret" />
+          </div>
+          <div class="field">
+            <label>Last Name <span class="req">*</span></label>
+            <input type="text" name="lastName" required placeholder="Louise Johnson" />
+          </div>
+          <div class="field">
+            <label>Date of Birth <span class="req">*</span></label>
+            <input type="date" name="dateOfBirth" required />
+          </div>
+          <div class="field">
+            <label>Date of Death <span class="req">*</span></label>
+            <input type="date" name="dateOfDeath" required />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">Service Information</div>
+      <div class="card-body">
+        <div class="grid-2">
+          <div class="field">
+            <label>Service Date <span class="req">*</span></label>
+            <input type="date" name="serviceDate" required />
+          </div>
+          <div class="field">
+            <label>Service Time <span class="req">*</span></label>
+            <input type="text" name="serviceTime" required placeholder="2:00 PM" />
+          </div>
+          <div class="field" style="grid-column:span 2">
+            <label>Location <span class="req">*</span></label>
+            <input type="text" name="serviceLocation" required placeholder="Grace Baptist Church, Charlotte NC" />
+          </div>
+          <div class="field" style="grid-column:span 2">
+            <label>Officiant</label>
+            <input type="text" name="officiant" placeholder="Pastor David Williams (optional)" />
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- Portrait photo (cover) -->
+    <div class="card">
+      <div class="card-header">Main Portrait Photo</div>
+      <div class="card-body">
+        <div class="portrait-zone" id="portraitZone">
+          <div class="placeholder">
+            <div class="icon">🖼️</div>
+            <div><strong>Click or drop portrait photo here</strong></div>
+            <div class="hint" style="font-size:12px;color:var(--muted);margin-top:4px;">1 photo only · JPG or PNG · appears in the circular frame on the cover</div>
+          </div>
+          <img class="portrait-thumb" id="portraitThumb" src="" alt="" style="display:none" />
+          <button type="button" class="clear-btn" id="portraitClear" title="Remove">✕</button>
+        </div>
+        <input type="file" id="portraitInput" accept=".jpg,.jpeg,.png" style="display:none" />
+      </div>
+    </div>
+
+    <!-- Gallery photos (drag into slots) -->
+    <div class="card">
+      <div class="card-header">Gallery Photos — Drag into Slots</div>
+      <div class="card-body">
+        <div class="gallery-layout">
+          <div class="gallery-pool-wrap">
+            <div class="gallery-pool-label">Uploaded Photos</div>
+            <div class="gallery-upload-btn" id="galleryUploadBtn">+ Add Photos</div>
+            <input type="file" id="galleryInput" accept=".jpg,.jpeg,.png" multiple style="display:none" />
+            <div class="gallery-pool" id="galleryPool"></div>
+            <div style="font-size:11px;color:var(--muted);margin-top:4px;">Drag photos into the slots →</div>
+          </div>
+          <div class="gallery-grid-wrap">
+            <div class="gallery-grid-label">Gallery Grid (drag here)</div>
+            <div class="gallery-slot-grid" id="gallerySlotGrid"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">Template Selection</div>
+      <div class="card-body">
+        <div id="templatePickerGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;">
+          <div style="color:var(--muted);font-size:13px;">Loading templates…</div>
+        </div>
+        <div id="noTemplatesMsg" style="display:none;font-size:13px;color:var(--muted);padding:8px 0;">
+          No templates uploaded yet. <a href="/admin" target="_blank" style="color:var(--gold);font-weight:600;">Upload templates in the admin panel →</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">Format Selection</div>
+      <div class="card-body" style="display:flex;flex-direction:column;gap:14px;">
+        <div class="field">
+          <label>Size <span class="req">*</span></label>
+          <div class="radio-group" id="sizeGroup">
+            <label class="radio-option selected"><input type="radio" name="size" value="letter" checked /> Letter (8.5"×11")</label>
+            <label class="radio-option"><input type="radio" name="size" value="legal" /> Legal (8.5"×14")</label>
+            <label class="radio-option"><input type="radio" name="size" value="11x17" /> 11"×17"</label>
+          </div>
+        </div>
+        <div class="field">
+          <label>Fold <span class="req">*</span></label>
+          <div class="radio-group" id="foldGroup">
+            <label class="radio-option selected"><input type="radio" name="fold" value="bifold" checked /> Bi-fold (4 panels)</label>
+            <label class="radio-option" id="trifoldOption"><input type="radio" name="fold" value="trifold" /> Tri-fold (6 panels)</label>
+          </div>
+          <span id="letterNote" style="font-size:11px;color:var(--warn);margin-top:3px;display:none;">⚠ Letter size is bi-fold only.</span>
+        </div>
+      </div>
+    </div>
+
+
+    <div class="card">
+      <div class="card-header">Style &amp; Font</div>
+      <div class="card-body" style="display:flex;flex-direction:column;gap:14px;">
+        <div class="field">
+          <label>Font Style</label>
+          <div class="radio-group" style="flex-wrap:wrap;">
+            <label class="radio-option selected" style="flex-direction:column;gap:2px;min-width:90px;text-align:center;">
+              <input type="radio" name="fontFamily" value="serif" checked />
+              <span style="font-family:Georgia,serif;font-size:15px;">Aa</span>
+              <span>Serif</span>
+            </label>
+            <label class="radio-option" style="flex-direction:column;gap:2px;min-width:90px;text-align:center;">
+              <input type="radio" name="fontFamily" value="sans" />
+              <span style="font-family:Arial,sans-serif;font-size:15px;">Aa</span>
+              <span>Sans-Serif</span>
+            </label>
+            <label class="radio-option" style="flex-direction:column;gap:2px;min-width:90px;text-align:center;">
+              <input type="radio" name="fontFamily" value="garamond" />
+              <span style="font-family:'Garamond','Book Antiqua',Georgia,serif;font-size:15px;font-style:italic;">Aa</span>
+              <span>Garamond</span>
+            </label>
+            <label class="radio-option" style="flex-direction:column;gap:2px;min-width:90px;text-align:center;">
+              <input type="radio" name="fontFamily" value="palatino" />
+              <span style="font-family:'Palatino Linotype','Palatino',Georgia,serif;font-size:15px;">Aa</span>
+              <span>Palatino</span>
+            </label>
+            <label class="radio-option" style="flex-direction:column;gap:2px;min-width:90px;text-align:center;">
+              <input type="radio" name="fontFamily" value="trebuchet" />
+              <span style="font-family:'Trebuchet MS',Arial,sans-serif;font-size:15px;">Aa</span>
+              <span>Trebuchet</span>
+            </label>
+            <label class="radio-option" style="flex-direction:column;gap:2px;min-width:90px;text-align:center;">
+              <input type="radio" name="fontFamily" value="century" />
+              <span style="font-family:'Century Gothic','Futura',Arial,sans-serif;font-size:15px;">Aa</span>
+              <span>Century</span>
+            </label>
+            <label class="radio-option" style="flex-direction:column;gap:2px;min-width:90px;text-align:center;">
+              <input type="radio" name="fontFamily" value="cursive" />
+              <span style="font-family:'Dancing Script','Great Vibes',cursive;font-size:15px;">Aa</span>
+              <span>Cursive</span>
+            </label>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="submit-area">
+      <button type="submit" id="submitBtn">Generate Program PDF</button>
+    </div>
+    <div id="statusMsg"></div>
+
+  </form>
+  </div>
+
+  <!-- ── PREVIEW COLUMN ─────────────────────────────────────────── -->
+  <div class="preview-panel">
+    <div class="preview-label">Live Preview</div>
+    <div class="preview-tabs" id="previewTabs">
+      <button class="preview-tab active" data-panel="cover">Front Cover</button>
+      <button class="preview-tab" data-panel="inside">Inside</button>
+      <button class="preview-tab" data-panel="back">Back Cover</button>
+    </div>
+    <div class="canvas-wrap">
+      <canvas id="previewCanvas" width="320" height="400"></canvas>
+    </div>
+    <div class="preview-hint">Updates as you fill in the form.<br/>Final PDF may differ slightly.</div>
+  </div>
+
+</div><!-- end page-body -->
+
+<script>
+(function () {
+  'use strict';
+
+  // ── Helpers ──────────────────────────────────────────────────────────
+  function escHtml(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+  function formatBytes(b) {
+    if (b < 1024) return b + ' B';
+    if (b < 1024*1024) return (b/1024).toFixed(1) + ' KB';
+    return (b/(1024*1024)).toFixed(1) + ' MB';
+  }
+  function fmtDate(val) {
+    if (!val) return '';
+    try {
+      const [y,m,d] = val.split('-');
+      const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+      return `${months[parseInt(m)-1]} ${parseInt(d)}, ${y}`;
+    } catch { return val; }
+  }
+  function getVal(name) {
+    const el = document.querySelector(`[name="${name}"]`);
+    return el ? el.value.trim() : '';
+  }
+  function getRadio(name) {
+    const el = document.querySelector(`input[name="${name}"]:checked`);
+    return el ? el.value : '';
+  }
+
+  // ── Radio group visual state ─────────────────────────────────────────
+  document.querySelectorAll('.radio-group').forEach(group => {
+    group.querySelectorAll('input[type=radio]').forEach(radio => {
+      radio.addEventListener('change', () => {
+        group.querySelectorAll('.radio-option').forEach(o => o.classList.remove('selected'));
+        if (radio.checked) radio.closest('.radio-option').classList.add('selected');
+        schedulePreview();
+      });
+    });
+  });
+
+  // ── Letter → disable trifold ─────────────────────────────────────────
+  const trifoldOpt = document.getElementById('trifoldOption');
+  const trifoldRadio = trifoldOpt.querySelector('input');
+  const bifoldRadio  = document.querySelector('input[name="fold"][value="bifold"]');
+  const letterNote   = document.getElementById('letterNote');
+
+  document.querySelectorAll('input[name="size"]').forEach(r => {
+    r.addEventListener('change', () => {
+      const isLetter = r.value === 'letter' && r.checked;
+      trifoldOpt.classList.toggle('disabled', isLetter);
+      letterNote.style.display = isLetter ? 'block' : 'none';
+      if (isLetter && trifoldRadio.checked) {
+        bifoldRadio.checked = true;
+        bifoldRadio.dispatchEvent(new Event('change'));
+      }
+    });
+  });
+
+  // ── Text field change → update preview ──────────────────────────────
+  document.querySelectorAll('input[type=text], input[type=date], textarea').forEach(el => {
+    el.addEventListener('input', schedulePreview);
+  });
+
+  // ── Portrait photo ────────────────────────────────────────────────────
+  const portraitZone  = document.getElementById('portraitZone');
+  const portraitInput = document.getElementById('portraitInput');
+  const portraitThumb = document.getElementById('portraitThumb');
+  const portraitClear = document.getElementById('portraitClear');
+  let portraitFile    = null;
+  let portraitDataURL = null;
+
+  portraitZone.addEventListener('click', e => {
+    if (e.target === portraitClear) return;
+    portraitInput.click();
+  });
+  portraitZone.addEventListener('dragover', e => { e.preventDefault(); portraitZone.classList.add('dragover'); });
+  portraitZone.addEventListener('dragleave', () => portraitZone.classList.remove('dragover'));
+  portraitZone.addEventListener('drop', e => {
+    e.preventDefault(); portraitZone.classList.remove('dragover');
+    const f = e.dataTransfer.files[0];
+    if (f && f.name.match(/\.(jpg|jpeg|png)$/i)) setPortraitFile(f);
+  });
+  portraitInput.addEventListener('change', () => {
+    if (portraitInput.files[0]) setPortraitFile(portraitInput.files[0]);
+    portraitInput.value = '';
+  });
+  portraitClear.addEventListener('click', e => {
+    e.stopPropagation();
+    portraitFile = null; portraitDataURL = null;
+    portraitThumb.src = ''; portraitThumb.style.display = 'none';
+    portraitZone.classList.remove('has-photo');
+    schedulePreview();
+  });
+
+  function setPortraitFile(f) {
+    portraitFile = f;
+    const reader = new FileReader();
+    reader.onload = e => {
+      portraitDataURL = e.target.result;
+      portraitThumb.src = portraitDataURL;
+      portraitThumb.style.display = 'block';
+      portraitZone.classList.add('has-photo');
+      schedulePreview();
+    };
+    reader.readAsDataURL(f);
+  }
+
+  // ── Gallery drag-and-drop ─────────────────────────────────────────────
+  const galleryUploadBtn = document.getElementById('galleryUploadBtn');
+  const galleryInput     = document.getElementById('galleryInput');
+  const galleryPool      = document.getElementById('galleryPool');
+  const gallerySlotGrid  = document.getElementById('gallerySlotGrid');
+  const GALLERY_SLOTS    = 21; // 3 cols × 7 rows
+  let galleryPoolFiles   = []; // {file, dataURL}
+  let gallerySlots       = new Array(GALLERY_SLOTS).fill(null); // null or {file, dataURL}
+  let dragSource         = null; // {type:'pool'|'slot', index}
+
+  // Build slot grid
+  for (let i = 0; i < GALLERY_SLOTS; i++) {
+    const slot = document.createElement('div');
+    slot.className = 'gallery-slot';
+    slot.dataset.slot = i;
+    slot.innerHTML = `<span class="slot-num">${i+1}</span><button type="button" class="slot-remove" title="Remove">✕</button>`;
+    slot.addEventListener('dragover', e => { e.preventDefault(); slot.classList.add('dragover'); });
+    slot.addEventListener('dragleave', () => slot.classList.remove('dragover'));
+    slot.addEventListener('drop', e => {
+      e.preventDefault(); slot.classList.remove('dragover');
+      const idx = parseInt(slot.dataset.slot);
+      if (!dragSource) return;
+      if (dragSource.type === 'pool') {
+        const item = galleryPoolFiles[dragSource.index];
+        if (item) {
+          // If slot already filled, return that photo to pool
+          if (gallerySlots[idx]) galleryPoolFiles.push(gallerySlots[idx]);
+          gallerySlots[idx] = item;
+          galleryPoolFiles.splice(dragSource.index, 1);
+        }
+      } else if (dragSource.type === 'slot') {
+        const fromIdx = dragSource.index;
+        if (fromIdx !== idx) {
+          const tmp = gallerySlots[idx];
+          gallerySlots[idx] = gallerySlots[fromIdx];
+          gallerySlots[fromIdx] = tmp;
+        }
+      }
+      dragSource = null;
+      renderGallery();
+      schedulePreview();
+    });
+    slot.querySelector('.slot-remove').addEventListener('click', () => {
+      const idx = parseInt(slot.dataset.slot);
+      if (gallerySlots[idx]) {
+        galleryPoolFiles.push(gallerySlots[idx]);
+        gallerySlots[idx] = null;
+        renderGallery();
+        schedulePreview();
+      }
+    });
+    gallerySlotGrid.appendChild(slot);
+  }
+
+  galleryUploadBtn.addEventListener('click', () => galleryInput.click());
+  galleryInput.addEventListener('change', () => {
+    Array.from(galleryInput.files).forEach(f => {
+      if (!f.name.match(/\.(jpg|jpeg|png)$/i)) return;
+      const reader = new FileReader();
+      reader.onload = e => {
+        galleryPoolFiles.push({ file: f, dataURL: e.target.result });
+        renderGallery();
+        schedulePreview();
+      };
+      reader.readAsDataURL(f);
+    });
+    galleryInput.value = '';
+  });
+
+  function renderGallery() {
+    // Render pool chips
+    galleryPool.innerHTML = '';
+    galleryPoolFiles.forEach((item, i) => {
+      const img = document.createElement('img');
+      img.className = 'pool-chip';
+      img.src = item.dataURL;
+      img.draggable = true;
+      img.title = item.file.name;
+      img.addEventListener('dragstart', e => {
+        dragSource = { type: 'pool', index: i };
+        img.classList.add('dragging');
+        e.dataTransfer.effectAllowed = 'move';
+      });
+      img.addEventListener('dragend', () => img.classList.remove('dragging'));
+      galleryPool.appendChild(img);
+    });
+
+    // Render slots
+    gallerySlotGrid.querySelectorAll('.gallery-slot').forEach((slot, i) => {
+      const existing = slot.querySelector('img.slot-photo');
+      if (existing) existing.remove();
+      if (gallerySlots[i]) {
+        const img = document.createElement('img');
+        img.className = 'slot-photo';
+        img.src = gallerySlots[i].dataURL;
+        img.draggable = true;
+        img.addEventListener('dragstart', e => {
+          dragSource = { type: 'slot', index: i };
+          e.dataTransfer.effectAllowed = 'move';
+        });
+        slot.insertBefore(img, slot.querySelector('.slot-remove'));
+        slot.classList.add('filled');
+      } else {
+        slot.classList.remove('filled');
+      }
+    });
+  }
+
+  // ── Template picker ──────────────────────────────────────────────────
+  const templatePickerGrid = document.getElementById('templatePickerGrid');
+  const noTemplatesMsg     = document.getElementById('noTemplatesMsg');
+  let selectedTemplateId   = null;
+
+  fetch('/templates')
+    .then(r => r.json())
+    .then(list => {
+      if (list.length === 0) {
+        templatePickerGrid.style.display = 'none';
+        noTemplatesMsg.style.display = 'block';
+        return;
+      }
+      templatePickerGrid.innerHTML = '';
+
+      // "No template" option
+      const noneCard = makeTemplateCard({ id: '__none__', name: 'No Template', thumbnail: null });
+      noneCard.classList.add('selected');
+      selectedTemplateId = null;
+      templatePickerGrid.appendChild(noneCard);
+
+      list.forEach(t => templatePickerGrid.appendChild(makeTemplateCard(t)));
+
+      function makeTemplateCard(t) {
+        const div = document.createElement('div');
+        div.dataset.id = t.id;
+        div.style.cssText = 'border:2px solid var(--border);border-radius:6px;cursor:pointer;overflow:hidden;background:#fff;transition:border-color 0.15s;';
+        div.innerHTML = `
+          <div style="height:100px;background:#e8e2da;display:flex;align-items:center;justify-content:center;overflow:hidden;">
+            ${t.thumbnail
+              ? `<img src="${t.thumbnail}" style="width:100%;height:100%;object-fit:cover;" alt="" />`
+              : `<span style="font-size:32px;">📄</span>`}
+          </div>
+          <div style="padding:7px 8px;font-size:12px;font-weight:600;text-align:center;">${escHtml(t.name)}</div>
+          ${t.format ? `<div style="padding:0 8px 7px;font-size:10px;color:var(--muted);text-align:center;text-transform:uppercase;">${escHtml(t.format)}</div>` : ''}`;
+        div.addEventListener('click', () => {
+          templatePickerGrid.querySelectorAll('[data-id]').forEach(c => {
+            c.style.borderColor = 'var(--border)';
+            c.style.background  = '#fff';
+          });
+          div.style.borderColor = 'var(--gold)';
+          div.style.background  = '#fdf8f0';
+          selectedTemplateId = t.id === '__none__' ? null : t.id;
+          selectedTemplateThumb = t.id === '__none__' ? null : (t.thumbnail || null);
+          schedulePreview();
+        });
+        return div;
+      }
+
+      // highlight first card
+      const first = templatePickerGrid.querySelector('[data-id]');
+      if (first) { first.style.borderColor = 'var(--gold)'; first.style.background = '#fdf8f0'; }
+    })
+    .catch(() => {
+      templatePickerGrid.innerHTML = '<div style="color:var(--muted);font-size:13px;">Could not load templates.</div>';
+    });
+
+  // ── Frame grid ───────────────────────────────────────────────────────
+  const frameGrid = document.getElementById('frameGrid');
+  let selectedFrame = 'none';
+  let frameImages = {}; // cache loaded SVG images
+
+  fetch('/frames')
+    .then(r => r.json())
+    .then(frames => {
+      if (!frames.find(f => f.filename === 'none.svg')) {
+        frames.unshift({ filename: 'none.svg', name: 'No Frame' });
+      }
+      frameGrid.innerHTML = '';
+      frames.forEach(frame => {
+        const name  = frame.filename.replace('.svg', '');
+        const label = frame.name;
+        const isSelected = name === 'none';
+        const div = document.createElement('label');
+        div.className = 'frame-option' + (isSelected ? ' selected' : '');
+        div.dataset.value = name;
+        div.innerHTML = `
+          <input type="radio" name="frame" value="${escHtml(name)}" ${isSelected ? 'checked' : ''} />
+          <img src="/frames/${escHtml(frame.filename)}" alt="${escHtml(label)}" onerror="this.style.opacity='0.3'" />
+          <div>${escHtml(label)}</div>`;
+        div.addEventListener('click', () => {
+          frameGrid.querySelectorAll('.frame-option').forEach(o => o.classList.remove('selected'));
+          div.classList.add('selected');
+          selectedFrame = name;
+          loadFrameImage(name, `/frames/${frame.filename}`, () => schedulePreview());
+        });
+        frameGrid.appendChild(div);
+      });
+    })
+    .catch(() => {
+      frameGrid.innerHTML = '<div style="color:var(--muted);font-size:13px;">Could not load frames.</div>';
+    });
+
+  function loadFrameImage(name, src, cb) {
+    if (name === 'none') { cb && cb(); return; }
+    if (frameImages[name]) { cb && cb(); return; }
+    const img = new Image();
+    img.onload = () => { frameImages[name] = img; cb && cb(); };
+    img.onerror = () => { cb && cb(); };
+    img.src = src;
+  }
+
+  // ── Preview tabs ─────────────────────────────────────────────────────
+  let activePanel = 'cover';
+  document.querySelectorAll('.preview-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.preview-tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      activePanel = tab.dataset.panel;
+      drawPreview();
+    });
+  });
+
+  // ── Live preview engine ───────────────────────────────────────────────
+  const canvas  = document.getElementById('previewCanvas');
+  const ctx     = canvas.getContext('2d');
+  let previewTimer = null;
+  let photoImgCache = {};
+  let selectedTemplateThumb = null;
+  let templateThumbImgCache = {};
+
+  function schedulePreview() {
+    clearTimeout(previewTimer);
+    previewTimer = setTimeout(drawPreview, 80);
+  }
+
+  function drawPreview() {
+    const W = canvas.width;
+    const H = canvas.height;
+    ctx.clearRect(0, 0, W, H);
+
+    const fontMap = {
+      serif:     'Georgia, serif',
+      sans:      'Arial, sans-serif',
+      garamond:  "'Garamond','Book Antiqua',Georgia,serif",
+      palatino:  "'Palatino Linotype','Palatino',Georgia,serif",
+      trebuchet: "'Trebuchet MS',Arial,sans-serif",
+      century:   "'Century Gothic','Futura',Arial,sans-serif",
+      cursive:   "'Dancing Script','Great Vibes',cursive",
+    };
+    const fontFamily = fontMap[getRadio('fontFamily')] || 'Georgia, serif';
+    const firstName  = getVal('firstName');
+    const lastName   = getVal('lastName');
+    const dob        = fmtDate(getVal('dateOfBirth'));
+    const dod        = fmtDate(getVal('dateOfDeath'));
+    const fullName   = [firstName, lastName].filter(Boolean).join(' ') || 'Full Name';
+    const dates      = (dob || dod) ? `${dob || '?'} — ${dod || '?'}` : 'Date of Birth — Date of Death';
+
+    if (activePanel === 'cover') drawCoverPanel(W, H, fontFamily, fullName, dates);
+    else if (activePanel === 'inside') drawInsidePanel(W, H, fontFamily);
+    else if (activePanel === 'back') drawBackPanel(W, H, fontFamily);
+  }
+
+  // ── Green gradient background ─────────────────────────────────────
+  function drawGreenBg(W, H) {
+    const grad = ctx.createLinearGradient(0, 0, W, H);
+    grad.addColorStop(0,   '#c8d8c0');
+    grad.addColorStop(0.4, '#dce8d4');
+    grad.addColorStop(1,   '#e8f0e0');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, W, H);
+  }
+
+  // ── Decorative border ─────────────────────────────────────────────
+  function drawBorder(W, H, pad) {
+    ctx.strokeStyle = '#2c3a2c';
+    ctx.lineWidth = 1.5;
+    ctx.strokeRect(pad, pad, W - pad*2, H - pad*2);
+  }
+
+  // ── Cross symbol ──────────────────────────────────────────────────
+  function drawCross(cx, cy, size, color) {
+    ctx.strokeStyle = color;
+    ctx.lineWidth = size * 0.12;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(cx, cy - size/2);
+    ctx.lineTo(cx, cy + size/2);
+    ctx.moveTo(cx - size * 0.35, cy - size * 0.1);
+    ctx.lineTo(cx + size * 0.35, cy - size * 0.1);
+    ctx.stroke();
+    ctx.lineCap = 'butt';
+  }
+
+  // ── Bird silhouette ───────────────────────────────────────────────
+  function drawBird(cx, cy, size, color, flip) {
+    ctx.fillStyle = color;
+    ctx.save();
+    ctx.translate(cx, cy);
+    if (flip) ctx.scale(-1, 1);
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.bezierCurveTo(-size*0.6, -size*0.4, -size*0.9, size*0.1, -size*1.1, size*0.05);
+    ctx.bezierCurveTo(-size*0.7, size*0.2, -size*0.3, size*0.1, 0, size*0.3);
+    ctx.bezierCurveTo(size*0.2, size*0.1, size*0.5, -size*0.2, size*0.4, -size*0.3);
+    ctx.bezierCurveTo(size*0.2, -size*0.35, size*0.05, -size*0.15, 0, 0);
+    ctx.fill();
+    ctx.restore();
+  }
+
+  // ── Mandala ring ──────────────────────────────────────────────────
+  function drawMandalaRing(cx, cy, r, color) {
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 0.8;
+    ctx.globalAlpha = 0.55;
+    ctx.beginPath(); ctx.arc(cx, cy, r + 2, 0, Math.PI*2); ctx.stroke();
+    const petals = 16;
+    for (let i = 0; i < petals; i++) {
+      const angle = (i / petals) * Math.PI * 2;
+      const px = cx + (r + 9) * Math.cos(angle);
+      const py = cy + (r + 9) * Math.sin(angle);
+      ctx.beginPath();
+      ctx.arc(px, py, 4, 0, Math.PI*2);
+      ctx.stroke();
+    }
+    ctx.beginPath(); ctx.arc(cx, cy, r - 6, 0, Math.PI*2); ctx.stroke();
+    for (let i = 0; i < 8; i++) {
+      const angle = (i / 8) * Math.PI * 2;
+      ctx.beginPath();
+      ctx.moveTo(cx + (r - 6) * Math.cos(angle), cy + (r - 6) * Math.sin(angle));
+      ctx.lineTo(cx + (r + 2) * Math.cos(angle), cy + (r + 2) * Math.sin(angle));
+      ctx.stroke();
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  // ── Floral corner ─────────────────────────────────────────────────
+  function drawFloralCorner(x, y, size, color, rotate) {
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate(rotate);
+    ctx.globalAlpha = 0.35;
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 0.8;
+    for (let i = 0; i < 5; i++) {
+      const a = (i / 5) * Math.PI * 0.9 - 0.2;
+      const px = Math.cos(a) * size * 0.7;
+      const py = Math.sin(a) * size * 0.7;
+      ctx.beginPath();
+      ctx.ellipse(px * 0.5, py * 0.5, size * 0.25, size * 0.12, a, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.bezierCurveTo(size*0.2, size*0.2, size*0.4, size*0.1, size*0.6, size*0.0);
+    ctx.stroke();
+    ctx.globalAlpha = 1;
+    ctx.restore();
+  }
+
+  // ── Circular photo clip ───────────────────────────────────────────
+  function drawCirclePhoto(cx, cy, r, dataURL, cb) {
+    function render(img) {
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(cx, cy, r, 0, Math.PI * 2);
+      ctx.clip();
+      const ratio = img.width / img.height;
+      let sw, sh, sx, sy;
+      if (ratio > 1) { sh = img.height; sw = sh; sx = (img.width-sw)/2; sy = 0; }
+      else           { sw = img.width;  sh = sw; sx = 0; sy = (img.height-sh)/2; }
+      ctx.drawImage(img, sx, sy, sw, sh, cx-r, cy-r, r*2, r*2);
+      ctx.restore();
+      cb && cb();
+    }
+    if (photoImgCache[dataURL]) { render(photoImgCache[dataURL]); return; }
+    const img = new Image();
+    img.onload = () => { photoImgCache[dataURL] = img; render(img); cb && cb(); };
+    img.src = dataURL;
+  }
+
+  // ── Template thumbnail as background ─────────────────────────────
+  function drawTemplateBg(W, H, thumbURL, cb) {
+    function render(img) {
+      ctx.save();
+      const ratio = img.width / img.height;
+      const zRatio = W / H;
+      let sx, sy, sw, sh;
+      if (ratio > zRatio) { sh = img.height; sw = sh*zRatio; sx=(img.width-sw)/2; sy=0; }
+      else                { sw = img.width; sh = sw/zRatio; sx=0; sy=(img.height-sh)/2; }
+      ctx.drawImage(img, sx, sy, sw, sh, 0, 0, W, H);
+      ctx.restore();
+      cb && cb();
+    }
+    if (templateThumbImgCache[thumbURL]) { render(templateThumbImgCache[thumbURL]); return; }
+    const img = new Image();
+    img.onload = () => { templateThumbImgCache[thumbURL] = img; render(img); cb && cb(); };
+    img.src = thumbURL;
+  }
+
+  // ── Photo grid (gallery) ──────────────────────────────────────────
+  function drawPhotoGrid(W, H, cols, rows, padX, padY, borderColor) {
+    const cellW = (W - padX*2 - (cols-1)*6) / cols;
+    const cellH = (H - padY*2 - (rows-1)*6) / rows;
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        const x = padX + c*(cellW+6);
+        const y = padY + r*(cellH+6);
+        const radius = 5;
+        ctx.strokeStyle = borderColor;
+        ctx.lineWidth = 1.5;
+        ctx.fillStyle = 'rgba(255,255,255,0.5)';
+        ctx.beginPath();
+        ctx.moveTo(x+radius, y);
+        ctx.lineTo(x+cellW-radius, y);
+        ctx.quadraticCurveTo(x+cellW, y, x+cellW, y+radius);
+        ctx.lineTo(x+cellW, y+cellH-radius);
+        ctx.quadraticCurveTo(x+cellW, y+cellH, x+cellW-radius, y+cellH);
+        ctx.lineTo(x+radius, y+cellH);
+        ctx.quadraticCurveTo(x, y+cellH, x, y+cellH-radius);
+        ctx.lineTo(x, y+radius);
+        ctx.quadraticCurveTo(x, y, x+radius, y);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+      }
+    }
+  }
+
+  // ── FRONT COVER ───────────────────────────────────────────────────
+  function drawCoverPanel(W, H, font, name, dates) {
+    const finish = () => {
+      const pad = W * 0.05;
+      drawBorder(W, H, pad);
+      drawFloralCorner(pad+4, pad+4, W*0.18, '#3a5a3a', 0);
+      drawFloralCorner(W-pad-4, pad+4, W*0.18, '#3a5a3a', Math.PI*0.5);
+      drawFloralCorner(pad+4, H-pad-4, W*0.18, '#3a5a3a', -Math.PI*0.5);
+      drawFloralCorner(W-pad-4, H-pad-4, W*0.18, '#3a5a3a', Math.PI);
+
+      const crossY = H * 0.16;
+      drawCross(W/2, crossY, W*0.07, '#2c3a2c');
+      drawBird(W*0.28, crossY - H*0.01, W*0.08, '#4a7a5a', false);
+      drawBird(W*0.72, crossY - H*0.01, W*0.08, '#4a7a5a', true);
+
+      ctx.fillStyle = '#2c3a2c';
+      ctx.textAlign = 'center';
+      ctx.font = `${W*0.055}px Arial`;
+      ctx.fillText('IN LOVING', W/2, H * 0.26);
+
+      const cx = W/2, cy = H * 0.48, r = W * 0.30;
+      drawMandalaRing(cx, cy, r, '#4a6a4a');
+
+      if (portraitDataURL) {
+        drawCirclePhoto(cx, cy, r - 2, portraitDataURL, () => drawCoverText(W, H, font, name, dates));
+      } else {
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(cx, cy, r-2, 0, Math.PI*2);
+        ctx.fillStyle = 'rgba(255,255,255,0.55)';
+        ctx.fill();
+        ctx.restore();
+        ctx.fillStyle = '#7a9a7a';
+        ctx.font = `${W*0.10}px Arial`;
+        ctx.textAlign = 'center';
+        ctx.fillText('📷', cx, cy + W*0.035);
+        ctx.font = `${W*0.040}px Arial`;
+        ctx.fillStyle = '#5a7a5a';
+        ctx.fillText('Upload photo', cx, cy + W*0.095);
+        drawCoverText(W, H, font, name, dates);
+      }
+    };
+
+    if (selectedTemplateThumb) {
+      drawTemplateBg(W, H, selectedTemplateThumb, finish);
+    } else {
+      drawGreenBg(W, H);
+      ctx.globalAlpha = 0.10;
+      ctx.fillStyle = '#2a4a2a';
+      ctx.font = `${H*0.6}px Arial`;
+      ctx.textAlign = 'center';
+      ctx.fillText('🌿', W*0.15, H*0.65);
+      ctx.fillText('🌿', W*0.88, H*0.35);
+      ctx.globalAlpha = 1;
+      finish();
+    }
+  }
+
+  function drawCoverText(W, H, font, name, dates) {
+    ctx.fillStyle = '#2c3a2c';
+    ctx.textAlign = 'center';
+    ctx.font = `italic ${W*0.048}px ${font}`;
+    ctx.fillText('In loving memory of', W/2, H * 0.68);
+
+    ctx.strokeStyle = '#2c3a2c';
+    ctx.lineWidth = 0.8;
+    ctx.globalAlpha = 0.4;
+    ctx.beginPath(); ctx.moveTo(W*0.2, H*0.72); ctx.lineTo(W*0.8, H*0.72); ctx.stroke();
+    ctx.globalAlpha = 1;
+
+    const isCursive = getRadio('fontFamily') === 'cursive';
+    const nameFont = isCursive ? "'Dancing Script','Great Vibes',cursive" : font;
+    const ns = fitFontSize(name, nameFont, W*0.84, Math.round(W*0.075), Math.round(W*0.040));
+    ctx.font = `${isCursive ? '' : 'bold '}${ns}px ${nameFont}`;
+    ctx.fillStyle = '#1a2c1a';
+    ctx.fillText(name, W/2, H * 0.79, W*0.88);
+
+    ctx.font = `italic ${Math.max(ns-3,10)}px ${font}`;
+    ctx.fillStyle = '#3a5a3a';
+    ctx.fillText(dates, W/2, H * 0.87, W*0.88);
+
+    ctx.globalAlpha = 0.30;
+    ctx.font = `${W*0.10}px Arial`;
+    ctx.fillStyle = '#3a5a3a';
+    ctx.fillText('🌸', W/2 - W*0.12, H*0.94);
+    ctx.fillText('🌸', W/2 + W*0.12, H*0.94);
+    ctx.globalAlpha = 1;
+  }
+
+  // ── INSIDE PANEL ─────────────────────────────────────────────────
+  function drawInsidePanel(W, H, font) {
+    const finish = () => {
+      const obit    = getVal('obituary');
+      const svcDate = fmtDate(getVal('serviceDate'));
+      const svcTime = getVal('serviceTime');
+      const svcLoc  = getVal('serviceLocation');
+      const officiant = getVal('officiant');
+
+      ctx.save();
+      ctx.fillStyle = 'rgba(44,58,44,0.08)';
+      ctx.fillRect(W * 0.60, 0, W * 0.15, H);
+      ctx.fillStyle = '#1a2c1a';
+      ctx.font = `bold italic ${W*0.15*0.55}px Georgia`;
+      ctx.textAlign = 'center';
+      ctx.globalAlpha = 0.18;
+      ctx.translate(W * 0.60 + W * 0.15 / 2, H/2);
+      ctx.rotate(-Math.PI/2);
+      ctx.fillText('IN LOVING MEMORY', 0, 0, H*0.85);
+      ctx.restore();
+
+      ctx.fillStyle = 'rgba(44,58,44,0.7)';
+      ctx.fillRect(0, 0, W*0.58, 26);
+      ctx.fillStyle = '#fff';
+      ctx.font = `bold 10px Arial`;
+      ctx.textAlign = 'center';
+      ctx.fillText('OBITUARY', W*0.29, 17);
+
+      ctx.fillStyle = '#1a2c1a';
+      ctx.textAlign = 'left';
+      ctx.font = `11px ${font}`;
+      const obitLines = wrapText(obit || 'Obituary text will appear here...', W*0.54, 11, font);
+      let ty = 40;
+      for (const line of obitLines.slice(0, 24)) {
+        ctx.fillText(line, 8, ty); ty += 14;
+        if (ty > H - 10) break;
+      }
+      if (obitLines.length > 24) {
+        ctx.fillStyle = '#7a9a7a'; ctx.font = `italic 10px Arial`;
+        ctx.fillText('...continued', 8, ty);
+      }
+
+      ctx.fillStyle = 'rgba(44,58,44,0.7)';
+      ctx.fillRect(W*0.66, 0, W*0.34, 26);
+      ctx.fillStyle = '#fff';
+      ctx.font = `bold 10px Arial`;
+      ctx.textAlign = 'center';
+      ctx.fillText('SERVICE', W*0.83, 17);
+
+      const fields = [
+        ['DATE',     svcDate || '—'],
+        ['TIME',     svcTime || '—'],
+        ['LOCATION', svcLoc  || '—'],
+        ['OFFICIANT',officiant || '—'],
+      ];
+      let sy = 38;
+      ctx.textAlign = 'left';
+      for (const [label, val] of fields) {
+        ctx.font = `bold 8px Arial`; ctx.fillStyle = '#4a6a4a';
+        ctx.fillText(label, W*0.67, sy); sy += 11;
+        ctx.font = `11px ${font}`; ctx.fillStyle = '#1a2c1a';
+        const vls = wrapText(val, W*0.30, 11, font);
+        vls.slice(0,2).forEach(l => { ctx.fillText(l, W*0.67, sy); sy += 13; });
+        sy += 5;
+        if (sy > H - 20) break;
+      }
+
+      ctx.strokeStyle = '#c8a96e';
+      ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(W*0.59, 10); ctx.lineTo(W*0.59, H-10); ctx.stroke();
+    };
+
+    if (selectedTemplateThumb) {
+      drawTemplateBg(W, H, selectedTemplateThumb, finish);
+    } else {
+      drawGreenBg(W, H);
+      finish();
+    }
+  }
+
+  // ── BACK PANEL ───────────────────────────────────────────────────
+  function drawBackPanel(W, H, font) {
+    const finish = () => {
+      drawPhotoGrid(W, H, 3, 7, W*0.04, H*0.04, '#c8a96e');
+      // Overlay gallery slot photos onto the grid cells
+      const padX = W*0.04, padY = H*0.04, cols = 3, rows = 7;
+      const cellW = (W - padX*2 - (cols-1)*6) / cols;
+      const cellH = (H - padY*2 - (rows-1)*6) / rows;
+      gallerySlots.forEach((item, i) => {
+        if (!item) return;
+        const c = i % cols, r = Math.floor(i / cols);
+        if (r >= rows) return;
+        const x = padX + c*(cellW+6), y = padY + r*(cellH+6);
+        if (photoImgCache[item.dataURL]) {
+          ctx.save(); ctx.beginPath();
+          const rad = 5;
+          ctx.moveTo(x+rad,y); ctx.lineTo(x+cellW-rad,y); ctx.quadraticCurveTo(x+cellW,y,x+cellW,y+rad);
+          ctx.lineTo(x+cellW,y+cellH-rad); ctx.quadraticCurveTo(x+cellW,y+cellH,x+cellW-rad,y+cellH);
+          ctx.lineTo(x+rad,y+cellH); ctx.quadraticCurveTo(x,y+cellH,x,y+cellH-rad);
+          ctx.lineTo(x,y+rad); ctx.quadraticCurveTo(x,y,x+rad,y); ctx.closePath();
+          ctx.clip();
+          const img = photoImgCache[item.dataURL];
+          const ir = img.width/img.height, zr = cellW/cellH;
+          let sx,sy,sw,sh;
+          if(ir>zr){sh=img.height;sw=sh*zr;sx=(img.width-sw)/2;sy=0;}
+          else{sw=img.width;sh=sw/zr;sx=0;sy=(img.height-sh)/2;}
+          ctx.drawImage(img,sx,sy,sw,sh,x,y,cellW,cellH);
+          ctx.restore();
+        } else {
+          const img2 = new Image();
+          img2.onload = () => { photoImgCache[item.dataURL] = img2; schedulePreview(); };
+          img2.src = item.dataURL;
+        }
+      });
+      ctx.fillStyle = 'rgba(44,58,44,0.75)';
+      ctx.fillRect(0, H*0.93, W, H*0.07);
+      ctx.fillStyle = '#fff';
+      ctx.font = `bold 9px Arial`;
+      ctx.textAlign = 'center';
+      ctx.fillText('Printed By  VISTEC GraphX', W/2, H*0.97);
+    };
+
+    if (selectedTemplateThumb) {
+      drawTemplateBg(W, H, selectedTemplateThumb, finish);
+    } else {
+      drawGreenBg(W, H);
+      finish();
+    }
+  }
+
+  function fitFontSize(text, font, maxW, maxSize, minSize) {
+    for (let s = maxSize; s >= minSize; s--) {
+      ctx.font = `bold ${s}px ${font}`;
+      if (ctx.measureText(text).width <= maxW) return s;
+    }
+    return minSize;
+  }
+
+  function wrapText(text, maxW, size, font) {
+    ctx.font = `${size}px ${font}`;
+    const words = text.split(' ');
+    const lines = [];
+    let cur = '';
+    for (const w of words) {
+      const test = cur ? cur + ' ' + w : w;
+      if (ctx.measureText(test).width > maxW) {
+        if (cur) lines.push(cur);
+        cur = w;
+      } else {
+        cur = test;
+      }
+    }
+    if (cur) lines.push(cur);
+    return lines;
+  }
+
+  // Initial draw
+  drawPreview();
+
+  // ── Frame grid ── load default frame image
+  loadFrameImage('none', '/frames/none.svg');
+
+  // ── Form submit ──────────────────────────────────────────────────────
+  const form      = document.getElementById('programForm');
+  const submitBtn = document.getElementById('submitBtn');
+  const statusMsg = document.getElementById('statusMsg');
+
+  form.addEventListener('submit', async e => {
+    e.preventDefault();
+
+    if (!portraitFile) {
+      showStatus('error', 'Please upload a portrait photo for the cover.');
+      return;
+    }
+    const fd = new FormData(form);
+    fd.append('portrait', portraitFile);
+    gallerySlots.forEach((item, i) => {
+      if (item) fd.append(`gallery_${i}`, item.file);
+    });
+    if (selectedTemplateId) fd.append('templateId', selectedTemplateId);
+
+    submitBtn.disabled = true;
+    showStatus('processing', '<span class="spinner"></span> Generating your program — this may take up to 60 seconds…');
+
+    try {
+      const resp = await fetch('/generate', { method: 'POST', body: fd });
+      const data = await resp.json();
+
+      if (data.success) {
+        let html = `<strong>✓ Program generated successfully!</strong>`;
+        if (data.warnings && data.warnings.length > 0) {
+          html += `<br/><br/><strong>Warnings:</strong><ul class="warning-list">`;
+          data.warnings.forEach(w => { html += `<li>${escHtml(w)}</li>`; });
+          html += `</ul>`;
+        }
+        html += `<div class="download-links">
+          <a href="${data.pdfPath}" class="download-btn" download>⬇ Download Print PDF</a>
+          <a href="${data.previewPath}" class="download-btn secondary" download>⬇ Download Preview</a>
+        </div>`;
+        if (data.previewPath) {
+          html += `<img src="${data.previewPath}" class="preview-img" alt="Program Preview" />`;
+        }
+        showStatus(data.warnings && data.warnings.length > 0 ? 'warning' : 'success', html);
+      } else {
+        showStatus('error', `<strong>Generation failed:</strong> ${escHtml(data.error || 'Unknown error.')}`);
+      }
+    } catch (err) {
+      showStatus('error', `<strong>Network error:</strong> ${escHtml(err.message)}`);
+    } finally {
+      submitBtn.disabled = false;
+    }
+  });
+
+  function showStatus(type, html) {
+    statusMsg.className = type;
+    statusMsg.innerHTML = html;
+    statusMsg.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+})();
+</script>
+
+</body>
+</html>

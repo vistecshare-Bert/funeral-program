@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Vistec GraphX — Template Manager</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --navy: #1a2744; --gold: #c8a96e; --cream: #faf7f2; --white: #fff;
+      --border: #ddd5c8; --text: #2c2c2c; --muted: #6b6b6b;
+      --error: #b91c1c; --success: #166534; --radius: 6px;
+      --shadow: 0 2px 8px rgba(0,0,0,0.10);
+    }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--cream); color: var(--text); min-height: 100vh; }
+    header {
+      background: var(--navy); color: #fff; padding: 16px 32px;
+      display: flex; align-items: center; justify-content: space-between;
+      border-bottom: 3px solid var(--gold);
+    }
+    header .logo { font-size: 20px; font-weight: 700; }
+    header .subtitle { font-size: 12px; opacity: 0.7; margin-top: 2px; }
+    header a { color: var(--gold); font-size: 13px; text-decoration: none; font-weight: 600; }
+    header a:hover { text-decoration: underline; }
+
+    .container { max-width: 900px; margin: 32px auto; padding: 0 20px 60px; }
+
+    .card { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); margin-bottom: 28px; overflow: hidden; }
+    .card-header { background: var(--navy); color: #fff; padding: 11px 18px; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.8px; }
+    .card-body { padding: 20px 22px; }
+
+    .field { display: flex; flex-direction: column; gap: 5px; margin-bottom: 14px; }
+    .field label { font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
+    .field label .req { color: var(--error); margin-left: 2px; }
+    .field input, .field select {
+      border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 8px 11px; font-size: 14px; color: var(--text); background: var(--white);
+      transition: border-color 0.15s; font-family: inherit;
+    }
+    .field input:focus, .field select:focus {
+      outline: none; border-color: var(--gold); box-shadow: 0 0 0 3px rgba(200,169,110,0.15);
+    }
+
+    .file-drop {
+      border: 2px dashed var(--border); border-radius: var(--radius);
+      padding: 24px 16px; text-align: center; cursor: pointer;
+      transition: border-color 0.15s, background 0.15s; background: var(--cream);
+    }
+    .file-drop:hover, .file-drop.dragover { border-color: var(--gold); background: #fdf8f0; }
+    .file-drop .icon { font-size: 28px; margin-bottom: 6px; }
+    .file-drop .hint { font-size: 12px; color: var(--muted); margin-top: 3px; }
+    .file-drop .chosen { font-size: 13px; font-weight: 600; color: var(--navy); margin-top: 6px; }
+
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    @media (max-width: 600px) { .grid-2 { grid-template-columns: 1fr; } }
+
+    .btn {
+      padding: 10px 28px; border: none; border-radius: var(--radius);
+      font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.15s;
+    }
+    .btn-primary { background: var(--navy); color: #fff; }
+    .btn-primary:hover { background: #243660; }
+    .btn-primary:disabled { background: #9ca3af; cursor: not-allowed; }
+    .btn-danger { background: #fef2f2; color: var(--error); border: 1px solid #fecaca; padding: 6px 14px; font-size: 12px; }
+    .btn-danger:hover { background: #fee2e2; }
+
+    #uploadMsg { margin-top: 14px; padding: 12px 16px; border-radius: var(--radius); font-size: 14px; display: none; }
+    #uploadMsg.success { display: block; background: #f0fdf4; border: 1px solid #bbf7d0; color: var(--success); }
+    #uploadMsg.error   { display: block; background: #fef2f2; border: 1px solid #fecaca; color: var(--error); }
+
+    /* Template grid */
+    .template-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 16px; }
+    .template-card {
+      border: 1px solid var(--border); border-radius: var(--radius);
+      overflow: hidden; background: var(--white); box-shadow: var(--shadow);
+    }
+    .template-card .thumb-wrap {
+      height: 140px; background: #e8e2da; display: flex; align-items: center; justify-content: center; overflow: hidden;
+    }
+    .template-card .thumb-wrap img { width: 100%; height: 100%; object-fit: cover; }
+    .template-card .thumb-wrap .no-thumb { font-size: 40px; }
+    .template-card .meta { padding: 10px 12px; }
+    .template-card .t-name { font-weight: 700; font-size: 14px; margin-bottom: 3px; }
+    .template-card .t-format { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
+    .template-card .t-date { font-size: 11px; color: var(--muted); margin-top: 2px; }
+    .template-card .t-actions { padding: 8px 12px 10px; border-top: 1px solid var(--border); }
+    .empty-state { color: var(--muted); font-size: 14px; text-align: center; padding: 32px; }
+
+    .spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: spin 0.8s linear infinite; margin-right: 6px; vertical-align: middle; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+
+<header>
+  <div>
+    <div class="logo">Vistec GraphX — Template Manager</div>
+    <div class="subtitle">Staff Admin — Upload &amp; manage program templates</div>
+  </div>
+  <a href="/">← Back to Program Form</a>
+</header>
+
+<div class="container">
+
+  <!-- Upload form -->
+  <div class="card">
+    <div class="card-header">Upload New Template</div>
+    <div class="card-body">
+      <form id="uploadForm" novalidate>
+        <div class="grid-2">
+          <div class="field">
+            <label>Template Name <span class="req">*</span></label>
+            <input type="text" id="tName" placeholder="e.g. Classic Dove, Modern Cross" required />
+          </div>
+          <div class="field">
+            <label>Format <span class="req">*</span></label>
+            <select id="tFormat" required>
+              <option value="">— Select format —</option>
+              <option value="letter-bifold">Letter Bi-fold (8.5"×11")</option>
+              <option value="legal-bifold">Legal Bi-fold (8.5"×14")</option>
+              <option value="legal-trifold">Legal Tri-fold (8.5"×14")</option>
+              <option value="11x17-bifold">11"×17" Bi-fold</option>
+              <option value="11x17-trifold">11"×17" Tri-fold</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="field">
+            <label>Template PDF <span class="req">*</span></label>
+            <div class="file-drop" id="pdfDrop">
+              <div class="icon">📄</div>
+              <div>Click to select PDF</div>
+              <div class="hint">CorelDraw export — CMYK, 300 DPI, with bleed</div>
+              <div class="chosen" id="pdfChosen"></div>
+              <input type="file" id="pdfInput" accept=".pdf" style="display:none" />
+            </div>
+          </div>
+          <div class="field">
+            <label>Thumbnail Image <span style="color:var(--muted);font-weight:400">(optional)</span></label>
+            <div class="file-drop" id="thumbDrop">
+              <div class="icon">🖼️</div>
+              <div>Click to select thumbnail</div>
+              <div class="hint">JPG or PNG · shown to clients in the form</div>
+              <div class="chosen" id="thumbChosen"></div>
+              <input type="file" id="thumbInput" accept=".jpg,.jpeg,.png" style="display:none" />
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-top:6px">
+          <button type="submit" class="btn btn-primary" id="uploadBtn">Upload Template</button>
+        </div>
+        <div id="uploadMsg"></div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Template library -->
+  <div class="card">
+    <div class="card-header">Template Library</div>
+    <div class="card-body">
+      <div class="template-grid" id="templateGrid">
+        <div class="empty-state">Loading templates…</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  // File drop helpers
+  function wireFileDrop(dropId, inputId, chosenId) {
+    const drop   = document.getElementById(dropId);
+    const input  = document.getElementById(inputId);
+    const chosen = document.getElementById(chosenId);
+
+    drop.addEventListener('click', () => input.click());
+    drop.addEventListener('dragover', e => { e.preventDefault(); drop.classList.add('dragover'); });
+    drop.addEventListener('dragleave', () => drop.classList.remove('dragover'));
+    drop.addEventListener('drop', e => {
+      e.preventDefault(); drop.classList.remove('dragover');
+      if (e.dataTransfer.files[0]) {
+        setFile(input, e.dataTransfer.files[0], chosen);
+      }
+    });
+    input.addEventListener('change', () => {
+      if (input.files[0]) chosen.textContent = input.files[0].name;
+    });
+  }
+
+  function setFile(input, file, chosenEl) {
+    const dt = new DataTransfer();
+    dt.items.add(file);
+    input.files = dt.files;
+    chosenEl.textContent = file.name;
+  }
+
+  wireFileDrop('pdfDrop',   'pdfInput',   'pdfChosen');
+  wireFileDrop('thumbDrop', 'thumbInput', 'thumbChosen');
+
+  // Upload form
+  const form      = document.getElementById('uploadForm');
+  const uploadBtn = document.getElementById('uploadBtn');
+  const uploadMsg = document.getElementById('uploadMsg');
+
+  form.addEventListener('submit', async e => {
+    e.preventDefault();
+    const name   = document.getElementById('tName').value.trim();
+    const format = document.getElementById('tFormat').value;
+    const pdf    = document.getElementById('pdfInput').files[0];
+
+    if (!name)   return showMsg('error', 'Template name is required.');
+    if (!format) return showMsg('error', 'Please select a format.');
+    if (!pdf)    return showMsg('error', 'Please select a PDF file.');
+
+    const fd = new FormData();
+    fd.append('name', name);
+    fd.append('format', format);
+    fd.append('templatePdf', pdf);
+    const thumb = document.getElementById('thumbInput').files[0];
+    if (thumb) fd.append('thumbnail', thumb);
+
+    uploadBtn.disabled = true;
+    uploadBtn.innerHTML = '<span class="spinner"></span> Uploading…';
+
+    try {
+      const resp = await fetch('/admin/upload-template', { method: 'POST', body: fd });
+      const data = await resp.json();
+      if (data.success) {
+        showMsg('success', `✓ Template "${data.template.name}" uploaded successfully.`);
+        form.reset();
+        document.getElementById('pdfChosen').textContent   = '';
+        document.getElementById('thumbChosen').textContent = '';
+        loadTemplates();
+      } else {
+        showMsg('error', data.error || 'Upload failed.');
+      }
+    } catch (err) {
+      showMsg('error', `Network error: ${err.message}`);
+    } finally {
+      uploadBtn.disabled = false;
+      uploadBtn.innerHTML = 'Upload Template';
+    }
+  });
+
+  function showMsg(type, text) {
+    uploadMsg.className = type;
+    uploadMsg.textContent = text;
+    uploadMsg.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  // Load & render template library
+  async function loadTemplates() {
+    const grid = document.getElementById('templateGrid');
+    try {
+      const resp = await fetch('/templates');
+      const list = await resp.json();
+      if (list.length === 0) {
+        grid.innerHTML = '<div class="empty-state">No templates uploaded yet. Upload your first template above.</div>';
+        return;
+      }
+      grid.innerHTML = '';
+      list.forEach(t => {
+        const card = document.createElement('div');
+        card.className = 'template-card';
+        card.innerHTML = `
+          <div class="thumb-wrap">
+            ${t.thumbnail
+              ? `<img src="${t.thumbnail}" alt="${esc(t.name)}" />`
+              : `<div class="no-thumb">📄</div>`}
+          </div>
+          <div class="meta">
+            <div class="t-name">${esc(t.name)}</div>
+            <div class="t-format">${esc(t.format)}</div>
+            <div class="t-date">Added ${esc(t.uploadedAt)}</div>
+          </div>
+          <div class="t-actions">
+            <button class="btn btn-danger" data-id="${esc(t.id)}">🗑 Delete</button>
+          </div>`;
+        card.querySelector('.btn-danger').addEventListener('click', () => deleteTemplate(t.id, t.name));
+        grid.appendChild(card);
+      });
+    } catch {
+      grid.innerHTML = '<div class="empty-state">Could not load templates.</div>';
+    }
+  }
+
+  async function deleteTemplate(id, name) {
+    if (!confirm(`Delete template "${name}"? This cannot be undone.`)) return;
+    try {
+      const resp = await fetch(`/admin/templates/${id}`, { method: 'DELETE' });
+      const data = await resp.json();
+      if (data.success) loadTemplates();
+      else alert('Delete failed: ' + data.error);
+    } catch (err) {
+      alert('Network error: ' + err.message);
+    }
+  }
+
+  function esc(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  loadTemplates();
+})();
+</script>
+
+</body>
+</html>

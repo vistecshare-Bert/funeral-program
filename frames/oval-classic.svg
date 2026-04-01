@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 500" width="400" height="500">
+  <defs>
+    <mask id="oval-mask">
+      <rect width="400" height="500" fill="white"/>
+      <ellipse cx="200" cy="250" rx="175" ry="220" fill="black"/>
+    </mask>
+    <filter id="subtle-shadow">
+      <feDropShadow dx="0" dy="0" stdDeviation="6" flood-color="#000" flood-opacity="0.35"/>
+    </filter>
+  </defs>
+  <!-- Dark overlay masking outside of oval -->
+  <rect width="400" height="500" fill="rgba(0,0,0,0.0)" mask="url(#oval-mask)"/>
+  <!-- Oval border -->
+  <ellipse cx="200" cy="250" rx="175" ry="220" fill="none" stroke="#c8a96e" stroke-width="6" filter="url(#subtle-shadow)"/>
+  <ellipse cx="200" cy="250" rx="168" ry="213" fill="none" stroke="#ffffff" stroke-width="1.5" opacity="0.7"/>
+  <ellipse cx="200" cy="250" rx="180" ry="225" fill="none" stroke="#c8a96e" stroke-width="2" opacity="0.5"/>
+</svg>

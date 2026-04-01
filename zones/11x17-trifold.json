@@ -1,0 +1,158 @@
+{
+  "format": "11x17-trifold",
+  "description": "11x17 tri-fold — 6 panels. Panel 1=front cover (rightmost flat), 2=inside center, 3=inside left, 4=back right, 5=back center, 6=back cover.",
+  "trifold_note": "When flat, right panel = front cover. Front side L→R: Panel 3, Panel 2, Panel 1. Back side L→R: Panel 4, Panel 5, Panel 6.",
+  "panels": [
+    {
+      "id": 1,
+      "name": "front-cover",
+      "description": "Rightmost panel when flat — front cover with full portrait",
+      "zones": [
+        {
+          "type": "PORTRAIT",
+          "x": 0.05,
+          "y": 0.07,
+          "width": 0.90,
+          "height": 0.72,
+          "hasFrame": true
+        },
+        {
+          "type": "HEADER",
+          "x": 0.05,
+          "y": 0.81,
+          "width": 0.90,
+          "height": 0.14
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "name": "inside-center",
+      "description": "Center panel inside — service details",
+      "zones": [
+        {
+          "type": "SERVICE_INFO",
+          "x": 0.06,
+          "y": 0.05,
+          "width": 0.88,
+          "height": 0.50
+        },
+        {
+          "type": "GALLERY",
+          "x": 0.06,
+          "y": 0.57,
+          "width": 0.88,
+          "height": 0.35,
+          "hasFrame": true
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "name": "inside-left",
+      "description": "Left panel inside — obituary text",
+      "zones": [
+        {
+          "type": "TEXT_BODY",
+          "x": 0.06,
+          "y": 0.05,
+          "width": 0.88,
+          "height": 0.90
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "name": "back-right",
+      "description": "Right panel on back — additional text or order of service",
+      "zones": [
+        {
+          "type": "TEXT_BODY",
+          "x": 0.06,
+          "y": 0.05,
+          "width": 0.88,
+          "height": 0.65
+        },
+        {
+          "type": "ACCENT",
+          "x": 0.15,
+          "y": 0.72,
+          "width": 0.70,
+          "height": 0.012
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "name": "back-center",
+      "description": "Center panel on back — photo gallery",
+      "zones": [
+        {
+          "type": "GALLERY",
+          "x": 0.06,
+          "y": 0.05,
+          "width": 0.42,
+          "height": 0.45,
+          "hasFrame": true
+        },
+        {
+          "type": "GALLERY",
+          "x": 0.52,
+          "y": 0.05,
+          "width": 0.42,
+          "height": 0.45,
+          "hasFrame": true
+        },
+        {
+          "type": "ACCENT",
+          "x": 0.06,
+          "y": 0.52,
+          "width": 0.88,
+          "height": 0.012
+        },
+        {
+          "type": "TEXT_BODY",
+          "x": 0.06,
+          "y": 0.55,
+          "width": 0.88,
+          "height": 0.38
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "name": "back-cover",
+      "description": "Left panel on back — back cover",
+      "zones": [
+        {
+          "type": "HEADER",
+          "x": 0.06,
+          "y": 0.06,
+          "width": 0.88,
+          "height": 0.14
+        },
+        {
+          "type": "ACCENT",
+          "x": 0.15,
+          "y": 0.22,
+          "width": 0.70,
+          "height": 0.012
+        },
+        {
+          "type": "SERVICE_INFO",
+          "x": 0.10,
+          "y": 0.25,
+          "width": 0.80,
+          "height": 0.28
+        },
+        {
+          "type": "ACCENT",
+          "x": 0.15,
+          "y": 0.55,
+          "width": 0.70,
+          "height": 0.012
+        }
+      ]
+    }
+  ]
+}

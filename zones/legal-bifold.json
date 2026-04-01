@@ -1,0 +1,106 @@
+{
+  "format": "legal-bifold",
+  "description": "8.5x14 bi-fold — 4 panels. Panel 1=front cover, 2=inside right, 3=inside left, 4=back cover.",
+  "panels": [
+    {
+      "id": 1,
+      "name": "front-cover",
+      "description": "Right panel on front side — large portrait photo with name overlay",
+      "zones": [
+        {
+          "type": "PORTRAIT",
+          "x": 0.05,
+          "y": 0.07,
+          "width": 0.90,
+          "height": 0.74,
+          "hasFrame": true
+        },
+        {
+          "type": "HEADER",
+          "x": 0.05,
+          "y": 0.83,
+          "width": 0.90,
+          "height": 0.13
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "name": "inside-right",
+      "description": "Right panel on inside — service info and gallery",
+      "zones": [
+        {
+          "type": "SERVICE_INFO",
+          "x": 0.06,
+          "y": 0.05,
+          "width": 0.88,
+          "height": 0.45
+        },
+        {
+          "type": "GALLERY",
+          "x": 0.06,
+          "y": 0.52,
+          "width": 0.88,
+          "height": 0.36,
+          "hasFrame": true
+        },
+        {
+          "type": "ACCENT",
+          "x": 0.06,
+          "y": 0.91,
+          "width": 0.88,
+          "height": 0.04
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "name": "inside-left",
+      "description": "Left panel on inside — obituary text block",
+      "zones": [
+        {
+          "type": "TEXT_BODY",
+          "x": 0.06,
+          "y": 0.05,
+          "width": 0.88,
+          "height": 0.90
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "name": "back-cover",
+      "description": "Left panel on front side — back matter",
+      "zones": [
+        {
+          "type": "HEADER",
+          "x": 0.06,
+          "y": 0.06,
+          "width": 0.88,
+          "height": 0.16
+        },
+        {
+          "type": "ACCENT",
+          "x": 0.15,
+          "y": 0.24,
+          "width": 0.70,
+          "height": 0.015
+        },
+        {
+          "type": "SERVICE_INFO",
+          "x": 0.10,
+          "y": 0.27,
+          "width": 0.80,
+          "height": 0.32
+        },
+        {
+          "type": "ACCENT",
+          "x": 0.15,
+          "y": 0.62,
+          "width": 0.70,
+          "height": 0.015
+        }
+      ]
+    }
+  ]
+}

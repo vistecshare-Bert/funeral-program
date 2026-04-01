@@ -1,0 +1,16 @@
+{
+  "name": "vistec-funeral-tool",
+  "version": "1.0.0",
+  "description": "Funeral program automation system — internal staff tool",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.0",
+    "multer": "^2.0.0",
+    "uuid": "^9.0.0",
+    "dotenv": "^16.0.0"
+  }
+}
