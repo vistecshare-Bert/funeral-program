@@ -9,3 +9,4 @@ server.log
 Thumbs.db
 .claude/settings.local.json
 templates/*.pdf
+templates/metadata.json
