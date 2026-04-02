@@ -759,7 +759,7 @@
           div.style.borderColor = 'var(--gold)';
           div.style.background  = '#fdf8f0';
           selectedTemplateId = t.id === '__none__' ? null : t.id;
-          selectedTemplateThumb = t.id === '__none__' ? null : (t.thumbnail || null);
+          selectedTemplateThumb = t.id === '__none__' ? null : (t.thumbnail || `/templates/${t.id}/thumbnail`);
           schedulePreview();
         });
         return div;

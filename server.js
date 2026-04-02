@@ -96,6 +96,47 @@ app.get('/templates', (req, res) => {
   res.json(readMeta());
 });
 
+app.get('/templates/:id/thumbnail', (req, res) => {
+  const meta = readMeta();
+  const t = meta.find(m => m.id === req.params.id);
+  if (!t) return res.status(404).end();
+
+  // Already has thumbnail — redirect to it
+  if (t.thumbnail) return res.redirect(t.thumbnail);
+
+  const pdfPath   = path.join(__dirname, 'templates', t.filename);
+  const thumbName = t.id + '.jpg';
+  const thumbPath = path.join(__dirname, 'template-thumbs', thumbName);
+  const thumbUrl  = `/template-thumbs/${thumbName}`;
+
+  // Already generated but metadata not updated
+  if (fs.existsSync(thumbPath)) {
+    t.thumbnail = thumbUrl;
+    writeMeta(meta);
+    return res.redirect(thumbUrl);
+  }
+
+  const script = `
+import sys, fitz
+doc = fitz.open(sys.argv[1])
+page = doc[0]
+mat = fitz.Matrix(0.5, 0.5)
+pix = page.get_pixmap(matrix=mat)
+pix.save(sys.argv[2])
+`;
+  const scriptPath = path.join(__dirname, 'uploads', '_thumb_gen.py');
+  fs.mkdirSync(path.join(__dirname, 'uploads'), { recursive: true });
+  fs.writeFileSync(scriptPath, script);
+
+  execFile(PYTHON_PATH, [scriptPath, pdfPath, thumbPath], (err) => {
+    fs.unlinkSync(scriptPath);
+    if (err) return res.status(500).json({ error: 'Thumbnail generation failed' });
+    t.thumbnail = thumbUrl;
+    writeMeta(meta);
+    res.redirect(thumbUrl);
+  });
+});
+
 app.post('/admin/upload-template', templateUpload.fields([
   { name: 'templatePdf', maxCount: 1 },
   { name: 'thumbnail',   maxCount: 1 }
