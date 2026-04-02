@@ -558,23 +558,6 @@
     });
   });
 
-  // ── Letter → disable trifold ─────────────────────────────────────────
-  const trifoldOpt = document.getElementById('trifoldOption');
-  const trifoldRadio = trifoldOpt.querySelector('input');
-  const bifoldRadio  = document.querySelector('input[name="fold"][value="bifold"]');
-  const letterNote   = document.getElementById('letterNote');
-
-  document.querySelectorAll('input[name="size"]').forEach(r => {
-    r.addEventListener('change', () => {
-      const isLetter = r.value === 'letter' && r.checked;
-      trifoldOpt.classList.toggle('disabled', isLetter);
-      letterNote.style.display = isLetter ? 'block' : 'none';
-      if (isLetter && trifoldRadio.checked) {
-        bifoldRadio.checked = true;
-        bifoldRadio.dispatchEvent(new Event('change'));
-      }
-    });
-  });
 
   // ── Text field change → update preview ──────────────────────────────
   document.querySelectorAll('input[type=text], input[type=date], textarea').forEach(el => {
