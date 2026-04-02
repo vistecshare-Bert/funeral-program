@@ -759,7 +759,12 @@
           div.style.borderColor = 'var(--gold)';
           div.style.background  = '#fdf8f0';
           selectedTemplateId = t.id === '__none__' ? null : t.id;
-          selectedTemplateThumb = t.id === '__none__' ? null : (t.thumbnail || `/templates/${t.id}/thumbnail`);
+          selectedTemplatePanels = t.id === '__none__' ? null : {
+            front:  t.thumbnail_front  || t.thumbnail || null,
+            inside: t.thumbnail_inside || t.thumbnail || null,
+            back:   t.thumbnail_back   || t.thumbnail || null,
+          };
+          selectedTemplateThumb = selectedTemplatePanels ? selectedTemplatePanels.front : null;
           schedulePreview();
         });
         return div;
@@ -803,8 +808,9 @@
   const ctx     = canvas.getContext('2d');
   let previewTimer = null;
   let photoImgCache = {};
-  let selectedTemplateThumb = null;
-  let templateThumbImgCache = {};
+  let selectedTemplateThumb  = null;
+  let selectedTemplatePanels = null;
+  let templateThumbImgCache  = {};
 
   function schedulePreview() {
     clearTimeout(previewTimer);
@@ -832,6 +838,14 @@
     const dod        = fmtDate(getVal('dateOfDeath'));
     const fullName   = [firstName, lastName].filter(Boolean).join(' ') || 'Full Name';
     const dates      = (dob || dod) ? `${dob || '?'} — ${dod || '?'}` : 'Date of Birth — Date of Death';
+
+    // Pick correct panel thumbnail
+    if (selectedTemplatePanels) {
+      const panelKey = activePanel === 'cover' ? 'front' : activePanel === 'inside' ? 'inside' : 'back';
+      selectedTemplateThumb = selectedTemplatePanels[panelKey] || null;
+    } else {
+      selectedTemplateThumb = null;
+    }
 
     if (activePanel === 'cover') drawCoverPanel(W, H, fontFamily, fullName, dates);
     else if (activePanel === 'inside') drawInsidePanel(W, H, fontFamily);
