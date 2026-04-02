@@ -443,27 +443,8 @@
       </div>
     </div>
 
-    <div class="card">
-      <div class="card-header">Format Selection</div>
-      <div class="card-body" style="display:flex;flex-direction:column;gap:14px;">
-        <div class="field">
-          <label>Size <span class="req">*</span></label>
-          <div class="radio-group" id="sizeGroup">
-            <label class="radio-option selected"><input type="radio" name="size" value="letter" checked /> Letter (8.5"×11")</label>
-            <label class="radio-option"><input type="radio" name="size" value="legal" /> Legal (8.5"×14")</label>
-            <label class="radio-option"><input type="radio" name="size" value="11x17" /> 11"×17"</label>
-          </div>
-        </div>
-        <div class="field">
-          <label>Fold <span class="req">*</span></label>
-          <div class="radio-group" id="foldGroup">
-            <label class="radio-option selected"><input type="radio" name="fold" value="bifold" checked /> Bi-fold (4 panels)</label>
-            <label class="radio-option" id="trifoldOption"><input type="radio" name="fold" value="trifold" /> Tri-fold (6 panels)</label>
-          </div>
-          <span id="letterNote" style="font-size:11px;color:var(--warn);margin-top:3px;display:none;">⚠ Letter size is bi-fold only.</span>
-        </div>
-      </div>
-    </div>
+    <input type="hidden" name="size" value="11x17" />
+    <input type="hidden" name="fold" value="trifold" />
 
 
     <div class="card">
@@ -801,49 +782,18 @@
         return div;
       }
 
-      // highlight first card
-      const first = templatePickerGrid.querySelector('[data-id]');
-      if (first) { first.style.borderColor = 'var(--gold)'; first.style.background = '#fdf8f0'; }
+      // auto-select first real template card
+      const first = templatePickerGrid.querySelector('[data-id]:not([data-id="__none__"])');
+      if (first) first.click();
+      else templatePickerGrid.querySelector('[data-id]')?.click();
     })
     .catch(() => {
       templatePickerGrid.innerHTML = '<div style="color:var(--muted);font-size:13px;">Could not load templates.</div>';
     });
 
-  // ── Frame grid ───────────────────────────────────────────────────────
-  const frameGrid = document.getElementById('frameGrid');
+  // ── Frame (removed from UI — default to none) ────────────────────────
   let selectedFrame = 'none';
-  let frameImages = {}; // cache loaded SVG images
-
-  fetch('/frames')
-    .then(r => r.json())
-    .then(frames => {
-      if (!frames.find(f => f.filename === 'none.svg')) {
-        frames.unshift({ filename: 'none.svg', name: 'No Frame' });
-      }
-      frameGrid.innerHTML = '';
-      frames.forEach(frame => {
-        const name  = frame.filename.replace('.svg', '');
-        const label = frame.name;
-        const isSelected = name === 'none';
-        const div = document.createElement('label');
-        div.className = 'frame-option' + (isSelected ? ' selected' : '');
-        div.dataset.value = name;
-        div.innerHTML = `
-          <input type="radio" name="frame" value="${escHtml(name)}" ${isSelected ? 'checked' : ''} />
-          <img src="/frames/${escHtml(frame.filename)}" alt="${escHtml(label)}" onerror="this.style.opacity='0.3'" />
-          <div>${escHtml(label)}</div>`;
-        div.addEventListener('click', () => {
-          frameGrid.querySelectorAll('.frame-option').forEach(o => o.classList.remove('selected'));
-          div.classList.add('selected');
-          selectedFrame = name;
-          loadFrameImage(name, `/frames/${frame.filename}`, () => schedulePreview());
-        });
-        frameGrid.appendChild(div);
-      });
-    })
-    .catch(() => {
-      frameGrid.innerHTML = '<div style="color:var(--muted);font-size:13px;">Could not load frames.</div>';
-    });
+  let frameImages = {};
 
   function loadFrameImage(name, src, cb) {
     if (name === 'none') { cb && cb(); return; }
@@ -905,101 +855,13 @@
     else if (activePanel === 'back') drawBackPanel(W, H, fontFamily);
   }
 
-  // ── Green gradient background ─────────────────────────────────────
-  function drawGreenBg(W, H) {
-    const grad = ctx.createLinearGradient(0, 0, W, H);
-    grad.addColorStop(0,   '#c8d8c0');
-    grad.addColorStop(0.4, '#dce8d4');
-    grad.addColorStop(1,   '#e8f0e0');
-    ctx.fillStyle = grad;
+  // ── White background ──────────────────────────────────────────────
+  function drawWhiteBg(W, H) {
+    ctx.fillStyle = '#ffffff';
     ctx.fillRect(0, 0, W, H);
-  }
-
-  // ── Decorative border ─────────────────────────────────────────────
-  function drawBorder(W, H, pad) {
-    ctx.strokeStyle = '#2c3a2c';
-    ctx.lineWidth = 1.5;
-    ctx.strokeRect(pad, pad, W - pad*2, H - pad*2);
-  }
-
-  // ── Cross symbol ──────────────────────────────────────────────────
-  function drawCross(cx, cy, size, color) {
-    ctx.strokeStyle = color;
-    ctx.lineWidth = size * 0.12;
-    ctx.lineCap = 'round';
-    ctx.beginPath();
-    ctx.moveTo(cx, cy - size/2);
-    ctx.lineTo(cx, cy + size/2);
-    ctx.moveTo(cx - size * 0.35, cy - size * 0.1);
-    ctx.lineTo(cx + size * 0.35, cy - size * 0.1);
-    ctx.stroke();
-    ctx.lineCap = 'butt';
-  }
-
-  // ── Bird silhouette ───────────────────────────────────────────────
-  function drawBird(cx, cy, size, color, flip) {
-    ctx.fillStyle = color;
-    ctx.save();
-    ctx.translate(cx, cy);
-    if (flip) ctx.scale(-1, 1);
-    ctx.beginPath();
-    ctx.moveTo(0, 0);
-    ctx.bezierCurveTo(-size*0.6, -size*0.4, -size*0.9, size*0.1, -size*1.1, size*0.05);
-    ctx.bezierCurveTo(-size*0.7, size*0.2, -size*0.3, size*0.1, 0, size*0.3);
-    ctx.bezierCurveTo(size*0.2, size*0.1, size*0.5, -size*0.2, size*0.4, -size*0.3);
-    ctx.bezierCurveTo(size*0.2, -size*0.35, size*0.05, -size*0.15, 0, 0);
-    ctx.fill();
-    ctx.restore();
-  }
-
-  // ── Mandala ring ──────────────────────────────────────────────────
-  function drawMandalaRing(cx, cy, r, color) {
-    ctx.strokeStyle = color;
-    ctx.lineWidth = 0.8;
-    ctx.globalAlpha = 0.55;
-    ctx.beginPath(); ctx.arc(cx, cy, r + 2, 0, Math.PI*2); ctx.stroke();
-    const petals = 16;
-    for (let i = 0; i < petals; i++) {
-      const angle = (i / petals) * Math.PI * 2;
-      const px = cx + (r + 9) * Math.cos(angle);
-      const py = cy + (r + 9) * Math.sin(angle);
-      ctx.beginPath();
-      ctx.arc(px, py, 4, 0, Math.PI*2);
-      ctx.stroke();
-    }
-    ctx.beginPath(); ctx.arc(cx, cy, r - 6, 0, Math.PI*2); ctx.stroke();
-    for (let i = 0; i < 8; i++) {
-      const angle = (i / 8) * Math.PI * 2;
-      ctx.beginPath();
-      ctx.moveTo(cx + (r - 6) * Math.cos(angle), cy + (r - 6) * Math.sin(angle));
-      ctx.lineTo(cx + (r + 2) * Math.cos(angle), cy + (r + 2) * Math.sin(angle));
-      ctx.stroke();
-    }
-    ctx.globalAlpha = 1;
-  }
-
-  // ── Floral corner ─────────────────────────────────────────────────
-  function drawFloralCorner(x, y, size, color, rotate) {
-    ctx.save();
-    ctx.translate(x, y);
-    ctx.rotate(rotate);
-    ctx.globalAlpha = 0.35;
-    ctx.strokeStyle = color;
-    ctx.lineWidth = 0.8;
-    for (let i = 0; i < 5; i++) {
-      const a = (i / 5) * Math.PI * 0.9 - 0.2;
-      const px = Math.cos(a) * size * 0.7;
-      const py = Math.sin(a) * size * 0.7;
-      ctx.beginPath();
-      ctx.ellipse(px * 0.5, py * 0.5, size * 0.25, size * 0.12, a, 0, Math.PI * 2);
-      ctx.stroke();
-    }
-    ctx.beginPath();
-    ctx.moveTo(0, 0);
-    ctx.bezierCurveTo(size*0.2, size*0.2, size*0.4, size*0.1, size*0.6, size*0.0);
-    ctx.stroke();
-    ctx.globalAlpha = 1;
-    ctx.restore();
+    ctx.strokeStyle = '#dddddd';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(0.5, 0.5, W - 1, H - 1);
   }
 
   // ── Circular photo clip ───────────────────────────────────────────
@@ -1074,42 +936,27 @@
   // ── FRONT COVER ───────────────────────────────────────────────────
   function drawCoverPanel(W, H, font, name, dates) {
     const finish = () => {
-      const pad = W * 0.05;
-      drawBorder(W, H, pad);
-      drawFloralCorner(pad+4, pad+4, W*0.18, '#3a5a3a', 0);
-      drawFloralCorner(W-pad-4, pad+4, W*0.18, '#3a5a3a', Math.PI*0.5);
-      drawFloralCorner(pad+4, H-pad-4, W*0.18, '#3a5a3a', -Math.PI*0.5);
-      drawFloralCorner(W-pad-4, H-pad-4, W*0.18, '#3a5a3a', Math.PI);
+      const cx = W/2, cy = H * 0.38, r = W * 0.28;
 
-      const crossY = H * 0.16;
-      drawCross(W/2, crossY, W*0.07, '#2c3a2c');
-      drawBird(W*0.28, crossY - H*0.01, W*0.08, '#4a7a5a', false);
-      drawBird(W*0.72, crossY - H*0.01, W*0.08, '#4a7a5a', true);
-
-      ctx.fillStyle = '#2c3a2c';
-      ctx.textAlign = 'center';
-      ctx.font = `${W*0.055}px Arial`;
-      ctx.fillText('IN LOVING', W/2, H * 0.26);
-
-      const cx = W/2, cy = H * 0.48, r = W * 0.30;
-      drawMandalaRing(cx, cy, r, '#4a6a4a');
+      // Photo circle placeholder
+      ctx.beginPath();
+      ctx.arc(cx, cy, r, 0, Math.PI*2);
+      ctx.fillStyle = '#f5f5f5';
+      ctx.fill();
+      ctx.strokeStyle = '#cccccc';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
 
       if (portraitDataURL) {
-        drawCirclePhoto(cx, cy, r - 2, portraitDataURL, () => drawCoverText(W, H, font, name, dates));
+        drawCirclePhoto(cx, cy, r - 1, portraitDataURL, () => drawCoverText(W, H, font, name, dates));
       } else {
-        ctx.save();
-        ctx.beginPath();
-        ctx.arc(cx, cy, r-2, 0, Math.PI*2);
-        ctx.fillStyle = 'rgba(255,255,255,0.55)';
-        ctx.fill();
-        ctx.restore();
-        ctx.fillStyle = '#7a9a7a';
-        ctx.font = `${W*0.10}px Arial`;
+        ctx.fillStyle = '#aaaaaa';
+        ctx.font = `${W*0.09}px Arial`;
         ctx.textAlign = 'center';
-        ctx.fillText('📷', cx, cy + W*0.035);
-        ctx.font = `${W*0.040}px Arial`;
-        ctx.fillStyle = '#5a7a5a';
-        ctx.fillText('Upload photo', cx, cy + W*0.095);
+        ctx.fillText('📷', cx, cy + W*0.03);
+        ctx.font = `${W*0.038}px Arial`;
+        ctx.fillStyle = '#aaaaaa';
+        ctx.fillText('Upload photo', cx, cy + W*0.085);
         drawCoverText(W, H, font, name, dates);
       }
     };
@@ -1117,125 +964,72 @@
     if (selectedTemplateThumb) {
       drawTemplateBg(W, H, selectedTemplateThumb, finish);
     } else {
-      drawGreenBg(W, H);
-      ctx.globalAlpha = 0.10;
-      ctx.fillStyle = '#2a4a2a';
-      ctx.font = `${H*0.6}px Arial`;
-      ctx.textAlign = 'center';
-      ctx.fillText('🌿', W*0.15, H*0.65);
-      ctx.fillText('🌿', W*0.88, H*0.35);
-      ctx.globalAlpha = 1;
+      drawWhiteBg(W, H);
       finish();
     }
   }
 
   function drawCoverText(W, H, font, name, dates) {
-    ctx.fillStyle = '#2c3a2c';
     ctx.textAlign = 'center';
-    ctx.font = `italic ${W*0.048}px ${font}`;
-    ctx.fillText('In loving memory of', W/2, H * 0.68);
+    ctx.font = `italic ${W*0.042}px ${font}`;
+    ctx.fillStyle = '#555555';
+    ctx.fillText('In Loving Memory of', W/2, H * 0.72);
 
-    ctx.strokeStyle = '#2c3a2c';
+    ctx.strokeStyle = '#cccccc';
     ctx.lineWidth = 0.8;
-    ctx.globalAlpha = 0.4;
-    ctx.beginPath(); ctx.moveTo(W*0.2, H*0.72); ctx.lineTo(W*0.8, H*0.72); ctx.stroke();
-    ctx.globalAlpha = 1;
+    ctx.beginPath(); ctx.moveTo(W*0.2, H*0.755); ctx.lineTo(W*0.8, H*0.755); ctx.stroke();
 
     const isCursive = getRadio('fontFamily') === 'cursive';
     const nameFont = isCursive ? "'Dancing Script','Great Vibes',cursive" : font;
-    const ns = fitFontSize(name, nameFont, W*0.84, Math.round(W*0.075), Math.round(W*0.040));
+    const ns = fitFontSize(name, nameFont, W*0.84, Math.round(W*0.072), Math.round(W*0.038));
     ctx.font = `${isCursive ? '' : 'bold '}${ns}px ${nameFont}`;
-    ctx.fillStyle = '#1a2c1a';
-    ctx.fillText(name, W/2, H * 0.79, W*0.88);
+    ctx.fillStyle = '#222222';
+    ctx.fillText(name, W/2, H * 0.82, W*0.88);
 
-    ctx.font = `italic ${Math.max(ns-3,10)}px ${font}`;
-    ctx.fillStyle = '#3a5a3a';
-    ctx.fillText(dates, W/2, H * 0.87, W*0.88);
-
-    ctx.globalAlpha = 0.30;
-    ctx.font = `${W*0.10}px Arial`;
-    ctx.fillStyle = '#3a5a3a';
-    ctx.fillText('🌸', W/2 - W*0.12, H*0.94);
-    ctx.fillText('🌸', W/2 + W*0.12, H*0.94);
-    ctx.globalAlpha = 1;
+    ctx.font = `${Math.max(ns-4,10)}px ${font}`;
+    ctx.fillStyle = '#777777';
+    ctx.fillText(dates, W/2, H * 0.90, W*0.88);
   }
 
   // ── INSIDE PANEL ─────────────────────────────────────────────────
   function drawInsidePanel(W, H, font) {
     const finish = () => {
-      const obit    = getVal('obituary');
-      const svcDate = fmtDate(getVal('serviceDate'));
-      const svcTime = getVal('serviceTime');
-      const svcLoc  = getVal('serviceLocation');
+      const svcDate   = fmtDate(getVal('serviceDate'));
+      const svcTime   = getVal('serviceTime');
+      const svcLoc    = getVal('serviceLocation');
       const officiant = getVal('officiant');
 
-      ctx.save();
-      ctx.fillStyle = 'rgba(44,58,44,0.08)';
-      ctx.fillRect(W * 0.60, 0, W * 0.15, H);
-      ctx.fillStyle = '#1a2c1a';
-      ctx.font = `bold italic ${W*0.15*0.55}px Georgia`;
-      ctx.textAlign = 'center';
-      ctx.globalAlpha = 0.18;
-      ctx.translate(W * 0.60 + W * 0.15 / 2, H/2);
-      ctx.rotate(-Math.PI/2);
-      ctx.fillText('IN LOVING MEMORY', 0, 0, H*0.85);
-      ctx.restore();
-
-      ctx.fillStyle = 'rgba(44,58,44,0.7)';
-      ctx.fillRect(0, 0, W*0.58, 26);
-      ctx.fillStyle = '#fff';
-      ctx.font = `bold 10px Arial`;
-      ctx.textAlign = 'center';
-      ctx.fillText('OBITUARY', W*0.29, 17);
-
-      ctx.fillStyle = '#1a2c1a';
+      // Section header
+      ctx.fillStyle = '#333333';
+      ctx.font = `bold ${W*0.042}px Arial`;
       ctx.textAlign = 'left';
-      ctx.font = `11px ${font}`;
-      const obitLines = wrapText(obit || 'Obituary text will appear here...', W*0.54, 11, font);
-      let ty = 40;
-      for (const line of obitLines.slice(0, 24)) {
-        ctx.fillText(line, 8, ty); ty += 14;
-        if (ty > H - 10) break;
-      }
-      if (obitLines.length > 24) {
-        ctx.fillStyle = '#7a9a7a'; ctx.font = `italic 10px Arial`;
-        ctx.fillText('...continued', 8, ty);
-      }
-
-      ctx.fillStyle = 'rgba(44,58,44,0.7)';
-      ctx.fillRect(W*0.66, 0, W*0.34, 26);
-      ctx.fillStyle = '#fff';
-      ctx.font = `bold 10px Arial`;
-      ctx.textAlign = 'center';
-      ctx.fillText('SERVICE', W*0.83, 17);
+      ctx.fillText('Service Information', W*0.06, H*0.08);
+      ctx.strokeStyle = '#dddddd';
+      ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(W*0.06, H*0.10); ctx.lineTo(W*0.94, H*0.10); ctx.stroke();
 
       const fields = [
-        ['DATE',     svcDate || '—'],
-        ['TIME',     svcTime || '—'],
-        ['LOCATION', svcLoc  || '—'],
-        ['OFFICIANT',officiant || '—'],
+        ['Date',      svcDate   || '—'],
+        ['Time',      svcTime   || '—'],
+        ['Location',  svcLoc    || '—'],
+        ['Officiant', officiant || '—'],
       ];
-      let sy = 38;
-      ctx.textAlign = 'left';
+      let sy = H * 0.15;
       for (const [label, val] of fields) {
-        ctx.font = `bold 8px Arial`; ctx.fillStyle = '#4a6a4a';
-        ctx.fillText(label, W*0.67, sy); sy += 11;
-        ctx.font = `11px ${font}`; ctx.fillStyle = '#1a2c1a';
-        const vls = wrapText(val, W*0.30, 11, font);
-        vls.slice(0,2).forEach(l => { ctx.fillText(l, W*0.67, sy); sy += 13; });
-        sy += 5;
+        ctx.font = `bold ${W*0.036}px Arial`; ctx.fillStyle = '#888888';
+        ctx.fillText(label, W*0.06, sy);
+        ctx.font = `${W*0.036}px ${font}`; ctx.fillStyle = '#222222';
+        const vls = wrapText(val, W*0.82, Math.round(W*0.036), font);
+        vls.slice(0,2).forEach(l => { sy += H*0.048; ctx.fillText(l, W*0.06, sy); });
+        sy += H*0.035;
         if (sy > H - 20) break;
       }
-
-      ctx.strokeStyle = '#c8a96e';
-      ctx.lineWidth = 1;
-      ctx.beginPath(); ctx.moveTo(W*0.59, 10); ctx.lineTo(W*0.59, H-10); ctx.stroke();
     };
 
     if (selectedTemplateThumb) {
       drawTemplateBg(W, H, selectedTemplateThumb, finish);
     } else {
-      drawGreenBg(W, H);
+      drawWhiteBg(W, H);
       finish();
     }
   }
@@ -1243,8 +1037,7 @@
   // ── BACK PANEL ───────────────────────────────────────────────────
   function drawBackPanel(W, H, font) {
     const finish = () => {
-      drawPhotoGrid(W, H, 3, 7, W*0.04, H*0.04, '#c8a96e');
-      // Overlay gallery slot photos onto the grid cells
+      drawPhotoGrid(W, H, 3, 7, W*0.04, H*0.04, '#cccccc');
       const padX = W*0.04, padY = H*0.04, cols = 3, rows = 7;
       const cellW = (W - padX*2 - (cols-1)*6) / cols;
       const cellH = (H - padY*2 - (rows-1)*6) / rows;
@@ -1274,9 +1067,9 @@
           img2.src = item.dataURL;
         }
       });
-      ctx.fillStyle = 'rgba(44,58,44,0.75)';
+      ctx.fillStyle = '#f0f0f0';
       ctx.fillRect(0, H*0.93, W, H*0.07);
-      ctx.fillStyle = '#fff';
+      ctx.fillStyle = '#888888';
       ctx.font = `bold 9px Arial`;
       ctx.textAlign = 'center';
       ctx.fillText('Printed By  VISTEC GraphX', W/2, H*0.97);
@@ -1285,7 +1078,7 @@
     if (selectedTemplateThumb) {
       drawTemplateBg(W, H, selectedTemplateThumb, finish);
     } else {
-      drawGreenBg(W, H);
+      drawWhiteBg(W, H);
       finish();
     }
   }
