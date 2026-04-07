@@ -622,13 +622,28 @@
   const galleryInput     = document.getElementById('galleryInput');
   const galleryPool      = document.getElementById('galleryPool');
   const gallerySlotGrid  = document.getElementById('gallerySlotGrid');
-  const GALLERY_SLOTS    = 21; // 3 cols × 7 rows
+  const GALLERY_SLOTS    = 31; // 10 inside panel (2×5) + 21 back panel (3×7)
+  const INSIDE_SLOTS     = 10; // slots 0–9  → inside panel
+  // slots 10–30 → back panel
   let galleryPoolFiles   = []; // {file, dataURL}
   let gallerySlots       = new Array(GALLERY_SLOTS).fill(null); // null or {file, dataURL}
   let dragSource         = null; // {type:'pool'|'slot', index}
 
+  // Section headers inside the slot grid
+  const insideHeader = document.createElement('div');
+  insideHeader.style.cssText = 'grid-column:span 3;font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;padding:2px 0 1px;border-bottom:1px solid var(--border);margin-bottom:2px;';
+  insideHeader.textContent = 'Inside Panel (2×5)';
+  gallerySlotGrid.appendChild(insideHeader);
+
   // Build slot grid
   for (let i = 0; i < GALLERY_SLOTS; i++) {
+    // Insert back-panel section header between slot 9 and 10
+    if (i === INSIDE_SLOTS) {
+      const backHeader = document.createElement('div');
+      backHeader.style.cssText = 'grid-column:span 3;font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;padding:4px 0 1px;border-bottom:1px solid var(--border);margin-bottom:2px;margin-top:4px;';
+      backHeader.textContent = 'Back Panel (3×7)';
+      gallerySlotGrid.appendChild(backHeader);
+    }
     const slot = document.createElement('div');
     slot.className = 'gallery-slot';
     slot.dataset.slot = i;
@@ -1007,19 +1022,78 @@
   // ── INSIDE PANEL ─────────────────────────────────────────────────
   function drawInsidePanel(W, H, font) {
     const finish = () => {
+      // ── Top: 2×5 photo grid (slots 0–9) ──
+      const cols = 2, rows = 5, gap = 4;
+      const padX = W * 0.06, padY = H * 0.015;
+      const photoAreaH = H * 0.56;
+      const maxCellW = (W - padX*2 - (cols-1)*gap) / cols;
+      const maxCellH = (photoAreaH - padY*2 - (rows-1)*gap) / rows;
+      const cellSize = Math.min(maxCellW, maxCellH);
+      const gridW = cols * cellSize + (cols-1)*gap;
+      const gStartX = (W - gridW) / 2;
+      const gStartY = padY;
+
+      // Draw empty gold boxes
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          const x = gStartX + c*(cellSize+gap);
+          const y = gStartY + r*(cellSize+gap);
+          const rad = 6;
+          ctx.strokeStyle = '#c8a96e';
+          ctx.lineWidth = 1.5;
+          ctx.fillStyle = 'rgba(255,255,255,0.35)';
+          ctx.beginPath();
+          ctx.moveTo(x+rad,y); ctx.lineTo(x+cellSize-rad,y); ctx.quadraticCurveTo(x+cellSize,y,x+cellSize,y+rad);
+          ctx.lineTo(x+cellSize,y+cellSize-rad); ctx.quadraticCurveTo(x+cellSize,y+cellSize,x+cellSize-rad,y+cellSize);
+          ctx.lineTo(x+rad,y+cellSize); ctx.quadraticCurveTo(x,y+cellSize,x,y+cellSize-rad);
+          ctx.lineTo(x,y+rad); ctx.quadraticCurveTo(x,y,x+rad,y); ctx.closePath();
+          ctx.fill(); ctx.stroke();
+        }
+      }
+
+      // Draw gallery photos (slots 0–9)
+      gallerySlots.slice(0, INSIDE_SLOTS).forEach((item, i) => {
+        if (!item) return;
+        const c = i % cols, r = Math.floor(i / cols);
+        if (r >= rows) return;
+        const x = gStartX + c*(cellSize+gap);
+        const y = gStartY + r*(cellSize+gap);
+        if (photoImgCache[item.dataURL]) {
+          ctx.save(); ctx.beginPath();
+          const rad = 6;
+          ctx.moveTo(x+rad,y); ctx.lineTo(x+cellSize-rad,y); ctx.quadraticCurveTo(x+cellSize,y,x+cellSize,y+rad);
+          ctx.lineTo(x+cellSize,y+cellSize-rad); ctx.quadraticCurveTo(x+cellSize,y+cellSize,x+cellSize-rad,y+cellSize);
+          ctx.lineTo(x+rad,y+cellSize); ctx.quadraticCurveTo(x,y+cellSize,x,y+cellSize-rad);
+          ctx.lineTo(x,y+rad); ctx.quadraticCurveTo(x,y,x+rad,y); ctx.closePath();
+          ctx.clip();
+          const img = photoImgCache[item.dataURL];
+          const ir = img.width/img.height;
+          let sx,sy,sw,sh;
+          if(ir>1){sh=img.height;sw=sh;sx=(img.width-sw)/2;sy=0;}
+          else{sw=img.width;sh=sw;sx=0;sy=(img.height-sh)/2;}
+          ctx.drawImage(img,sx,sy,sw,sh,x,y,cellSize,cellSize);
+          ctx.restore();
+        } else {
+          const img2 = new Image();
+          img2.onload = () => { photoImgCache[item.dataURL] = img2; schedulePreview(); };
+          img2.src = item.dataURL;
+        }
+      });
+
+      // ── Bottom: Service Information ──
       const svcDate   = fmtDate(getVal('serviceDate'));
       const svcTime   = getVal('serviceTime');
       const svcLoc    = getVal('serviceLocation');
       const officiant = getVal('officiant');
 
-      // Section header
+      const infoY = H * 0.595;
       ctx.fillStyle = '#333333';
       ctx.font = `bold ${W*0.042}px Arial`;
       ctx.textAlign = 'left';
-      ctx.fillText('Service Information', W*0.06, H*0.08);
-      ctx.strokeStyle = '#dddddd';
+      ctx.fillText('Service Information', W*0.06, infoY);
+      ctx.strokeStyle = '#c8a96e';
       ctx.lineWidth = 1;
-      ctx.beginPath(); ctx.moveTo(W*0.06, H*0.10); ctx.lineTo(W*0.94, H*0.10); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(W*0.06, infoY+H*0.018); ctx.lineTo(W*0.94, infoY+H*0.018); ctx.stroke();
 
       const fields = [
         ['Date',      svcDate   || '—'],
@@ -1027,15 +1101,15 @@
         ['Location',  svcLoc    || '—'],
         ['Officiant', officiant || '—'],
       ];
-      let sy = H * 0.15;
+      let sy2 = infoY + H*0.045;
       for (const [label, val] of fields) {
-        ctx.font = `bold ${W*0.036}px Arial`; ctx.fillStyle = '#888888';
-        ctx.fillText(label, W*0.06, sy);
-        ctx.font = `${W*0.036}px ${font}`; ctx.fillStyle = '#222222';
-        const vls = wrapText(val, W*0.82, Math.round(W*0.036), font);
-        vls.slice(0,2).forEach(l => { sy += H*0.048; ctx.fillText(l, W*0.06, sy); });
-        sy += H*0.035;
-        if (sy > H - 20) break;
+        ctx.font = `bold ${W*0.033}px Arial`; ctx.fillStyle = '#888888'; ctx.textAlign = 'left';
+        ctx.fillText(label, W*0.06, sy2);
+        ctx.font = `${W*0.033}px ${font}`; ctx.fillStyle = '#222222';
+        const vls = wrapText(val, W*0.82, Math.round(W*0.033), font);
+        vls.slice(0,2).forEach(l => { sy2 += H*0.042; ctx.fillText(l, W*0.06, sy2); });
+        sy2 += H*0.028;
+        if (sy2 > H - 20) break;
       }
     };
 
@@ -1055,7 +1129,7 @@
       const grid = drawPhotoGrid(W, H*0.94, cols, rows, padX, padY, gap, '#c8a96e');
       const { startX, startY, cellSize } = grid;
 
-      gallerySlots.forEach((item, i) => {
+      gallerySlots.slice(INSIDE_SLOTS).forEach((item, i) => {
         if (!item) return;
         const c = i % cols, r = Math.floor(i / cols);
         if (r >= rows) return;
