@@ -912,25 +912,30 @@
   }
 
   // ── Photo grid (gallery) ──────────────────────────────────────────
-  function drawPhotoGrid(W, H, cols, rows, padX, padY, borderColor) {
-    const cellW = (W - padX*2 - (cols-1)*6) / cols;
-    const cellH = (H - padY*2 - (rows-1)*6) / rows;
+  // Returns { startX, startY, cellSize, gap } for photo placement
+  function drawPhotoGrid(W, H, cols, rows, padX, padY, gap, borderColor) {
+    const maxCellW = (W - padX*2 - (cols-1)*gap) / cols;
+    const maxCellH = (H - padY*2 - (rows-1)*gap) / rows;
+    const cellSize = Math.min(maxCellW, maxCellH); // square cells
+    const gridW = cols * cellSize + (cols-1)*gap;
+    const startX = (W - gridW) / 2;
+    const startY = padY;
+    const radius = 6;
     for (let r = 0; r < rows; r++) {
       for (let c = 0; c < cols; c++) {
-        const x = padX + c*(cellW+6);
-        const y = padY + r*(cellH+6);
-        const radius = 5;
+        const x = startX + c*(cellSize+gap);
+        const y = startY + r*(cellSize+gap);
         ctx.strokeStyle = borderColor;
         ctx.lineWidth = 1.5;
-        ctx.fillStyle = 'rgba(255,255,255,0.5)';
+        ctx.fillStyle = 'rgba(255,255,255,0.35)';
         ctx.beginPath();
         ctx.moveTo(x+radius, y);
-        ctx.lineTo(x+cellW-radius, y);
-        ctx.quadraticCurveTo(x+cellW, y, x+cellW, y+radius);
-        ctx.lineTo(x+cellW, y+cellH-radius);
-        ctx.quadraticCurveTo(x+cellW, y+cellH, x+cellW-radius, y+cellH);
-        ctx.lineTo(x+radius, y+cellH);
-        ctx.quadraticCurveTo(x, y+cellH, x, y+cellH-radius);
+        ctx.lineTo(x+cellSize-radius, y);
+        ctx.quadraticCurveTo(x+cellSize, y, x+cellSize, y+radius);
+        ctx.lineTo(x+cellSize, y+cellSize-radius);
+        ctx.quadraticCurveTo(x+cellSize, y+cellSize, x+cellSize-radius, y+cellSize);
+        ctx.lineTo(x+radius, y+cellSize);
+        ctx.quadraticCurveTo(x, y+cellSize, x, y+cellSize-radius);
         ctx.lineTo(x, y+radius);
         ctx.quadraticCurveTo(x, y, x+radius, y);
         ctx.closePath();
@@ -938,6 +943,7 @@
         ctx.stroke();
       }
     }
+    return { startX, startY, cellSize, gap };
   }
 
   // ── FRONT COVER ───────────────────────────────────────────────────
@@ -1044,29 +1050,31 @@
   // ── BACK PANEL ───────────────────────────────────────────────────
   function drawBackPanel(W, H, font) {
     const finish = () => {
-      drawPhotoGrid(W, H, 3, 7, W*0.04, H*0.04, '#cccccc');
-      const padX = W*0.04, padY = H*0.04, cols = 3, rows = 7;
-      const cellW = (W - padX*2 - (cols-1)*6) / cols;
-      const cellH = (H - padY*2 - (rows-1)*6) / rows;
+      const cols = 3, rows = 7, gap = 4;
+      const padX = W*0.04, padY = H*0.015;
+      const grid = drawPhotoGrid(W, H*0.94, cols, rows, padX, padY, gap, '#c8a96e');
+      const { startX, startY, cellSize } = grid;
+
       gallerySlots.forEach((item, i) => {
         if (!item) return;
         const c = i % cols, r = Math.floor(i / cols);
         if (r >= rows) return;
-        const x = padX + c*(cellW+6), y = padY + r*(cellH+6);
+        const x = startX + c*(cellSize+gap);
+        const y = startY + r*(cellSize+gap);
         if (photoImgCache[item.dataURL]) {
           ctx.save(); ctx.beginPath();
-          const rad = 5;
-          ctx.moveTo(x+rad,y); ctx.lineTo(x+cellW-rad,y); ctx.quadraticCurveTo(x+cellW,y,x+cellW,y+rad);
-          ctx.lineTo(x+cellW,y+cellH-rad); ctx.quadraticCurveTo(x+cellW,y+cellH,x+cellW-rad,y+cellH);
-          ctx.lineTo(x+rad,y+cellH); ctx.quadraticCurveTo(x,y+cellH,x,y+cellH-rad);
+          const rad = 6;
+          ctx.moveTo(x+rad,y); ctx.lineTo(x+cellSize-rad,y); ctx.quadraticCurveTo(x+cellSize,y,x+cellSize,y+rad);
+          ctx.lineTo(x+cellSize,y+cellSize-rad); ctx.quadraticCurveTo(x+cellSize,y+cellSize,x+cellSize-rad,y+cellSize);
+          ctx.lineTo(x+rad,y+cellSize); ctx.quadraticCurveTo(x,y+cellSize,x,y+cellSize-rad);
           ctx.lineTo(x,y+rad); ctx.quadraticCurveTo(x,y,x+rad,y); ctx.closePath();
           ctx.clip();
           const img = photoImgCache[item.dataURL];
-          const ir = img.width/img.height, zr = cellW/cellH;
+          const ir = img.width/img.height;
           let sx,sy,sw,sh;
-          if(ir>zr){sh=img.height;sw=sh*zr;sx=(img.width-sw)/2;sy=0;}
-          else{sw=img.width;sh=sw/zr;sx=0;sy=(img.height-sh)/2;}
-          ctx.drawImage(img,sx,sy,sw,sh,x,y,cellW,cellH);
+          if(ir>1){sh=img.height;sw=sh;sx=(img.width-sw)/2;sy=0;}
+          else{sw=img.width;sh=sw;sx=0;sy=(img.height-sh)/2;}
+          ctx.drawImage(img,sx,sy,sw,sh,x,y,cellSize,cellSize);
           ctx.restore();
         } else {
           const img2 = new Image();
