@@ -48,9 +48,9 @@
     /* Two-column layout */
     .page-body {
       display: grid;
-      grid-template-columns: 1fr 360px;
+      grid-template-columns: 1fr 380px;
       gap: 0;
-      max-width: 1200px;
+      max-width: 1220px;
       margin: 0 auto;
       align-items: start;
     }
@@ -510,7 +510,7 @@
       <button class="preview-tab" data-panel="back">Back Cover</button>
     </div>
     <div class="canvas-wrap">
-      <canvas id="previewCanvas" width="320" height="400"></canvas>
+      <canvas id="previewCanvas" width="320" height="621"></canvas>
     </div>
     <div class="preview-hint">Updates as you fill in the form.<br/>Final PDF may differ slightly.</div>
     <button type="button" id="fullscreenBtn" style="margin-top:8px;width:100%;padding:7px;background:#1a2740;color:#fff;border:none;border-radius:6px;font-size:13px;cursor:pointer;font-weight:600;">⛶ Full Screen Preview</button>
@@ -943,7 +943,7 @@
   // ── FRONT COVER ───────────────────────────────────────────────────
   function drawCoverPanel(W, H, font, name, dates) {
     const finish = () => {
-      const cx = W/2, cy = H * 0.38, r = W * 0.28;
+      const cx = W/2, cy = H * 0.32, r = W * 0.28;
 
       // Photo circle placeholder
       ctx.beginPath();
@@ -980,22 +980,22 @@
     ctx.textAlign = 'center';
     ctx.font = `italic ${W*0.042}px ${font}`;
     ctx.fillStyle = '#555555';
-    ctx.fillText('In Loving Memory of', W/2, H * 0.72);
+    ctx.fillText('In Loving Memory of', W/2, H * 0.64);
 
     ctx.strokeStyle = '#cccccc';
     ctx.lineWidth = 0.8;
-    ctx.beginPath(); ctx.moveTo(W*0.2, H*0.755); ctx.lineTo(W*0.8, H*0.755); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(W*0.2, H*0.668); ctx.lineTo(W*0.8, H*0.668); ctx.stroke();
 
     const isCursive = getRadio('fontFamily') === 'cursive';
     const nameFont = isCursive ? "'Dancing Script','Great Vibes',cursive" : font;
     const ns = fitFontSize(name, nameFont, W*0.84, Math.round(W*0.072), Math.round(W*0.038));
     ctx.font = `${isCursive ? '' : 'bold '}${ns}px ${nameFont}`;
     ctx.fillStyle = '#222222';
-    ctx.fillText(name, W/2, H * 0.82, W*0.88);
+    ctx.fillText(name, W/2, H * 0.74, W*0.88);
 
     ctx.font = `${Math.max(ns-4,10)}px ${font}`;
     ctx.fillStyle = '#777777';
-    ctx.fillText(dates, W/2, H * 0.90, W*0.88);
+    ctx.fillText(dates, W/2, H * 0.81, W*0.88);
   }
 
   // ── INSIDE PANEL ─────────────────────────────────────────────────
@@ -1075,11 +1075,11 @@
         }
       });
       ctx.fillStyle = '#f0f0f0';
-      ctx.fillRect(0, H*0.93, W, H*0.07);
+      ctx.fillRect(0, H*0.96, W, H*0.04);
       ctx.fillStyle = '#888888';
       ctx.font = `bold 9px Arial`;
       ctx.textAlign = 'center';
-      ctx.fillText('Printed By  VISTEC GraphX', W/2, H*0.97);
+      ctx.fillText('Printed By  VISTEC GraphX', W/2, H*0.985);
     };
 
     if (selectedTemplateThumb) {
