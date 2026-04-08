@@ -120,7 +120,7 @@ app.get('/templates/:id/thumbnail', (req, res) => {
 import sys, fitz
 doc = fitz.open(sys.argv[1])
 page = doc[0]
-mat = fitz.Matrix(0.5, 0.5)
+mat = fitz.Matrix(2.0, 2.0)
 pix = page.get_pixmap(matrix=mat)
 pix.save(sys.argv[2])
 `;
