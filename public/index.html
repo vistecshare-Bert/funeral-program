@@ -108,7 +108,8 @@
       position: relative;
     }
     #previewCanvas {
-      max-width: 100%;
+      width: 320px;
+      height: 621px;
       border-radius: 4px;
       box-shadow: 0 4px 20px rgba(0,0,0,0.20);
       background: white;
@@ -831,17 +832,6 @@
   // ── Live preview engine ───────────────────────────────────────────────
   const canvas  = document.getElementById('previewCanvas');
   const ctx     = canvas.getContext('2d');
-  // Scale canvas for high-DPI / retina displays
-  (function scaleCanvasForDPI() {
-    const dpr = window.devicePixelRatio || 1;
-    const cssW = 320;
-    const cssH = 621;
-    canvas.width  = cssW * dpr;
-    canvas.height = cssH * dpr;
-    canvas.style.width  = cssW + 'px';
-    canvas.style.height = cssH + 'px';
-    ctx.scale(dpr, dpr);
-  })();
   let previewTimer = null;
   let photoImgCache = {};
   let selectedTemplateThumb  = null;
@@ -854,9 +844,9 @@
   }
 
   function drawPreview() {
-    const W = 320;
-    const H = 621;
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    const W = canvas.width;
+    const H = canvas.height;
+    ctx.clearRect(0, 0, W, H);
     ctx.imageSmoothingEnabled = true;
     ctx.imageSmoothingQuality = 'high';
 
