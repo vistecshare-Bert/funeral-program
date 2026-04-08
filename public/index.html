@@ -510,7 +510,7 @@
       <button class="preview-tab" data-panel="back">Back Cover</button>
     </div>
     <div class="canvas-wrap">
-      <canvas id="previewCanvas" width="320" height="621"></canvas>
+      <canvas id="previewCanvas" width="640" height="1242"></canvas>
     </div>
     <div class="preview-hint">Updates as you fill in the form.<br/>Final PDF may differ slightly.</div>
     <button type="button" id="fullscreenBtn" style="margin-top:8px;width:100%;padding:7px;background:#1a2740;color:#fff;border:none;border-radius:6px;font-size:13px;cursor:pointer;font-weight:600;">⛶ Full Screen Preview</button>
@@ -831,6 +831,17 @@
   // ── Live preview engine ───────────────────────────────────────────────
   const canvas  = document.getElementById('previewCanvas');
   const ctx     = canvas.getContext('2d');
+  // Scale canvas for high-DPI / retina displays
+  (function scaleCanvasForDPI() {
+    const dpr = window.devicePixelRatio || 1;
+    const cssW = 320;
+    const cssH = 621;
+    canvas.width  = cssW * dpr;
+    canvas.height = cssH * dpr;
+    canvas.style.width  = cssW + 'px';
+    canvas.style.height = cssH + 'px';
+    ctx.scale(dpr, dpr);
+  })();
   let previewTimer = null;
   let photoImgCache = {};
   let selectedTemplateThumb  = null;
@@ -843,9 +854,11 @@
   }
 
   function drawPreview() {
-    const W = canvas.width;
-    const H = canvas.height;
-    ctx.clearRect(0, 0, W, H);
+    const W = 320;
+    const H = 621;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
 
     const fontMap = {
       serif:     'Georgia, serif',
