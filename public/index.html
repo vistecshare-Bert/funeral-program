@@ -967,27 +967,31 @@
   // ── FRONT COVER ───────────────────────────────────────────────────
   function drawCoverPanel(W, H, font, name, dates) {
     const finish = () => {
-      const cx = W/2, cy = H * 0.32, r = W * 0.28;
+      const cx = W/2, cy = H * 0.42, r = W * 0.28;
 
-      // Photo circle placeholder
-      ctx.beginPath();
-      ctx.arc(cx, cy, r, 0, Math.PI*2);
-      ctx.fillStyle = '#f5f5f5';
-      ctx.fill();
-      ctx.strokeStyle = '#cccccc';
-      ctx.lineWidth = 1.5;
-      ctx.stroke();
+      // Only draw the circle background if NO template is selected
+      if (!selectedTemplateThumb) {
+        ctx.beginPath();
+        ctx.arc(cx, cy, r, 0, Math.PI*2);
+        ctx.fillStyle = '#f5f5f5';
+        ctx.fill();
+        ctx.strokeStyle = '#cccccc';
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+      }
 
       if (portraitDataURL) {
         drawCirclePhoto(cx, cy, r - 1, portraitDataURL, () => drawCoverText(W, H, font, name, dates));
       } else {
-        ctx.fillStyle = '#aaaaaa';
-        ctx.font = `${W*0.09}px Arial`;
-        ctx.textAlign = 'center';
-        ctx.fillText('📷', cx, cy + W*0.03);
-        ctx.font = `${W*0.038}px Arial`;
-        ctx.fillStyle = '#aaaaaa';
-        ctx.fillText('Upload photo', cx, cy + W*0.085);
+        if (!selectedTemplateThumb) {
+          ctx.fillStyle = '#aaaaaa';
+          ctx.font = `${W*0.09}px Arial`;
+          ctx.textAlign = 'center';
+          ctx.fillText('📷', cx, cy + W*0.03);
+          ctx.font = `${W*0.038}px Arial`;
+          ctx.fillStyle = '#aaaaaa';
+          ctx.fillText('Upload photo', cx, cy + W*0.085);
+        }
         drawCoverText(W, H, font, name, dates);
       }
     };
@@ -1002,24 +1006,28 @@
 
   function drawCoverText(W, H, font, name, dates) {
     ctx.textAlign = 'center';
-    ctx.font = `italic ${W*0.042}px ${font}`;
-    ctx.fillStyle = '#555555';
-    ctx.fillText('In Loving Memory of', W/2, H * 0.64);
 
-    ctx.strokeStyle = '#cccccc';
-    ctx.lineWidth = 0.8;
-    ctx.beginPath(); ctx.moveTo(W*0.2, H*0.668); ctx.lineTo(W*0.8, H*0.668); ctx.stroke();
+    // Only draw "In Loving Memory of" if no template (template already has it)
+    if (!selectedTemplateThumb) {
+      ctx.font = `italic ${W*0.042}px ${font}`;
+      ctx.fillStyle = '#555555';
+      ctx.fillText('In Loving Memory of', W/2, H * 0.64);
+      ctx.strokeStyle = '#cccccc';
+      ctx.lineWidth = 0.8;
+      ctx.beginPath(); ctx.moveTo(W*0.2, H*0.658); ctx.lineTo(W*0.8, H*0.658); ctx.stroke();
+    }
 
     const isCursive = getRadio('fontFamily') === 'cursive';
     const nameFont = isCursive ? "'Dancing Script','Great Vibes',cursive" : font;
+    const textY = selectedTemplateThumb ? H * 0.72 : H * 0.70;
     const ns = fitFontSize(name, nameFont, W*0.84, Math.round(W*0.072), Math.round(W*0.038));
     ctx.font = `${isCursive ? '' : 'bold '}${ns}px ${nameFont}`;
     ctx.fillStyle = '#222222';
-    ctx.fillText(name, W/2, H * 0.74, W*0.88);
+    ctx.fillText(name, W/2, textY, W*0.88);
 
     ctx.font = `${Math.max(ns-4,10)}px ${font}`;
-    ctx.fillStyle = '#777777';
-    ctx.fillText(dates, W/2, H * 0.81, W*0.88);
+    ctx.fillStyle = '#555555';
+    ctx.fillText(dates, W/2, textY + ns + 4, W*0.88);
   }
 
   // ── INSIDE PANEL ─────────────────────────────────────────────────
