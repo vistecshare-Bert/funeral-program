@@ -175,6 +175,31 @@ app.post('/admin/upload-template', templateUpload.fields([
   }
 });
 
+app.post('/admin/templates/:id/thumbnails', templateUpload.fields([
+  { name: 'thumbnail_front',  maxCount: 1 },
+  { name: 'thumbnail_inside', maxCount: 1 },
+  { name: 'thumbnail_back',   maxCount: 1 }
+]), (req, res) => {
+  try {
+    const meta = readMeta();
+    const entry = meta.find(t => t.id === req.params.id);
+    if (!entry) return res.status(404).json({ success: false, error: 'Template not found.' });
+
+    const frontFile  = (req.files['thumbnail_front']  || [])[0];
+    const insideFile = (req.files['thumbnail_inside'] || [])[0];
+    const backFile   = (req.files['thumbnail_back']   || [])[0];
+
+    if (frontFile)  entry.thumbnail_front  = `/template-thumbs/${frontFile.filename}`;
+    if (insideFile) entry.thumbnail_inside = `/template-thumbs/${insideFile.filename}`;
+    if (backFile)   entry.thumbnail_back   = `/template-thumbs/${backFile.filename}`;
+
+    writeMeta(meta);
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 app.delete('/admin/templates/:id', (req, res) => {
   try {
     const meta    = readMeta();

@@ -50,6 +50,8 @@
     .file-drop .icon { font-size: 28px; margin-bottom: 6px; }
     .file-drop .hint { font-size: 12px; color: var(--muted); margin-top: 3px; }
     .file-drop .chosen { font-size: 13px; font-weight: 600; color: var(--navy); margin-top: 6px; }
+    .mini-drop { padding: 12px 8px; }
+    .btn-secondary { background: var(--navy); color: #fff; border: none; }
 
     .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
     @media (max-width: 600px) { .grid-2 { grid-template-columns: 1fr; } }
@@ -296,23 +298,104 @@
       }
       grid.innerHTML = '';
       list.forEach(t => {
+        const hasPanels = t.thumbnail_front || t.thumbnail_inside || t.thumbnail_back;
         const card = document.createElement('div');
         card.className = 'template-card';
         card.innerHTML = `
           <div class="thumb-wrap">
-            ${t.thumbnail
-              ? `<img src="${t.thumbnail}" alt="${esc(t.name)}" />`
-              : `<div class="no-thumb">📄</div>`}
+            ${t.thumbnail_front
+              ? `<img src="${t.thumbnail_front}" alt="${esc(t.name)}" />`
+              : t.thumbnail
+                ? `<img src="${t.thumbnail}" alt="${esc(t.name)}" />`
+                : `<div class="no-thumb">📄</div>`}
           </div>
           <div class="meta">
             <div class="t-name">${esc(t.name)}</div>
             <div class="t-format">${esc(t.format)}</div>
             <div class="t-date">Added ${esc(t.uploadedAt)}</div>
+            <div class="t-panels" style="font-size:11px;margin-top:4px;color:${hasPanels ? 'var(--success)' : '#b45309'}">
+              ${hasPanels ? '✓ Panel previews set' : '⚠ No panel previews'}
+            </div>
           </div>
           <div class="t-actions">
+            <button class="btn btn-secondary add-previews-btn" data-id="${esc(t.id)}" data-name="${esc(t.name)}">🖼 Add Previews</button>
             <button class="btn btn-danger" data-id="${esc(t.id)}">🗑 Delete</button>
+          </div>
+          <div class="preview-upload-form" id="puf-${esc(t.id)}" style="display:none;margin-top:12px;border-top:1px solid var(--border);padding-top:12px;">
+            <div style="font-size:12px;font-weight:700;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px;">Panel Preview Images</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;">
+              <div>
+                <div style="font-size:11px;font-weight:600;margin-bottom:4px;">Front Cover</div>
+                <div class="file-drop mini-drop" id="puf-front-drop-${esc(t.id)}">
+                  <div class="icon" style="font-size:18px;">🖼️</div>
+                  <div style="font-size:11px;">Click to select</div>
+                  <div class="chosen" id="puf-front-chosen-${esc(t.id)}" style="font-size:10px;"></div>
+                  <input type="file" id="puf-front-${esc(t.id)}" accept=".jpg,.jpeg,.png" style="display:none" />
+                </div>
+              </div>
+              <div>
+                <div style="font-size:11px;font-weight:600;margin-bottom:4px;">Inside Panel</div>
+                <div class="file-drop mini-drop" id="puf-inside-drop-${esc(t.id)}">
+                  <div class="icon" style="font-size:18px;">🖼️</div>
+                  <div style="font-size:11px;">Click to select</div>
+                  <div class="chosen" id="puf-inside-chosen-${esc(t.id)}" style="font-size:10px;"></div>
+                  <input type="file" id="puf-inside-${esc(t.id)}" accept=".jpg,.jpeg,.png" style="display:none" />
+                </div>
+              </div>
+              <div>
+                <div style="font-size:11px;font-weight:600;margin-bottom:4px;">Back Cover</div>
+                <div class="file-drop mini-drop" id="puf-back-drop-${esc(t.id)}">
+                  <div class="icon" style="font-size:18px;">🖼️</div>
+                  <div style="font-size:11px;">Click to select</div>
+                  <div class="chosen" id="puf-back-chosen-${esc(t.id)}" style="font-size:10px;"></div>
+                  <input type="file" id="puf-back-${esc(t.id)}" accept=".jpg,.jpeg,.png" style="display:none" />
+                </div>
+              </div>
+            </div>
+            <button class="btn btn-primary save-previews-btn" data-id="${esc(t.id)}" style="margin-top:10px;width:100%;">Save Previews</button>
+            <div class="preview-msg" id="puf-msg-${esc(t.id)}" style="display:none;margin-top:8px;font-size:13px;padding:8px 12px;border-radius:6px;"></div>
           </div>`;
+
         card.querySelector('.btn-danger').addEventListener('click', () => deleteTemplate(t.id, t.name));
+
+        // Toggle preview upload form
+        card.querySelector('.add-previews-btn').addEventListener('click', () => {
+          const form = card.querySelector('.preview-upload-form');
+          form.style.display = form.style.display === 'none' ? 'block' : 'none';
+        });
+
+        // Wire mini file drops
+        ['front', 'inside', 'back'].forEach(panel => {
+          wireFileDrop(`puf-${panel}-drop-${t.id}`, `puf-${panel}-${t.id}`, `puf-${panel}-chosen-${t.id}`);
+        });
+
+        // Save previews
+        card.querySelector('.save-previews-btn').addEventListener('click', async () => {
+          const fd = new FormData();
+          const front  = document.getElementById(`puf-front-${t.id}`).files[0];
+          const inside = document.getElementById(`puf-inside-${t.id}`).files[0];
+          const back   = document.getElementById(`puf-back-${t.id}`).files[0];
+          if (!front && !inside && !back) {
+            showPufMsg(t.id, 'error', 'Select at least one panel image.');
+            return;
+          }
+          if (front)  fd.append('thumbnail_front',  front);
+          if (inside) fd.append('thumbnail_inside', inside);
+          if (back)   fd.append('thumbnail_back',   back);
+          try {
+            const resp = await fetch(`/admin/templates/${t.id}/thumbnails`, { method: 'POST', body: fd });
+            const data = await resp.json();
+            if (data.success) {
+              showPufMsg(t.id, 'success', '✓ Previews saved.');
+              setTimeout(loadTemplates, 800);
+            } else {
+              showPufMsg(t.id, 'error', data.error || 'Save failed.');
+            }
+          } catch (err) {
+            showPufMsg(t.id, 'error', `Network error: ${err.message}`);
+          }
+        });
+
         grid.appendChild(card);
       });
     } catch {
@@ -330,6 +413,15 @@
     } catch (err) {
       alert('Network error: ' + err.message);
     }
+  }
+
+  function showPufMsg(id, type, text) {
+    const el = document.getElementById(`puf-msg-${id}`);
+    el.style.display = 'block';
+    el.style.background = type === 'success' ? '#f0fdf4' : '#fef2f2';
+    el.style.border     = type === 'success' ? '1px solid #bbf7d0' : '1px solid #fecaca';
+    el.style.color      = type === 'success' ? 'var(--success)' : 'var(--error)';
+    el.textContent = text;
   }
 
   function esc(s) {
