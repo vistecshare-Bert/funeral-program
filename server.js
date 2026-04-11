@@ -138,12 +138,16 @@ pix.save(sys.argv[2])
 });
 
 app.post('/admin/upload-template', templateUpload.fields([
-  { name: 'templatePdf', maxCount: 1 },
-  { name: 'thumbnail',   maxCount: 1 }
+  { name: 'templatePdf',      maxCount: 1 },
+  { name: 'thumbnail_front',  maxCount: 1 },
+  { name: 'thumbnail_inside', maxCount: 1 },
+  { name: 'thumbnail_back',   maxCount: 1 }
 ]), (req, res) => {
   try {
-    const pdfFile   = (req.files['templatePdf'] || [])[0];
-    const thumbFile = (req.files['thumbnail']   || [])[0];
+    const pdfFile         = (req.files['templatePdf']      || [])[0];
+    const thumbFrontFile  = (req.files['thumbnail_front']  || [])[0];
+    const thumbInsideFile = (req.files['thumbnail_inside'] || [])[0];
+    const thumbBackFile   = (req.files['thumbnail_back']   || [])[0];
 
     if (!pdfFile) return res.status(400).json({ success: false, error: 'PDF file is required.' });
 
@@ -153,12 +157,14 @@ app.post('/admin/upload-template', templateUpload.fields([
 
     const meta = readMeta();
     const entry = {
-      id:          uuidv4(),
-      name:        name.trim(),
-      filename:    pdfFile.filename,
+      id:               uuidv4(),
+      name:             name.trim(),
+      filename:         pdfFile.filename,
       format,
-      thumbnail:   thumbFile ? `/template-thumbs/${thumbFile.filename}` : null,
-      uploadedAt:  new Date().toISOString().split('T')[0]
+      thumbnail_front:  thumbFrontFile  ? `/template-thumbs/${thumbFrontFile.filename}`  : null,
+      thumbnail_inside: thumbInsideFile ? `/template-thumbs/${thumbInsideFile.filename}` : null,
+      thumbnail_back:   thumbBackFile   ? `/template-thumbs/${thumbBackFile.filename}`   : null,
+      uploadedAt:       new Date().toISOString().split('T')[0]
     };
     meta.push(entry);
     writeMeta(meta);
@@ -179,10 +185,12 @@ app.delete('/admin/templates/:id', (req, res) => {
     // Delete PDF
     const pdfPath = path.join(__dirname, 'templates', entry.filename);
     if (fs.existsSync(pdfPath)) fs.unlinkSync(pdfPath);
-    // Delete thumbnail
-    if (entry.thumbnail) {
-      const thumbPath = path.join(__dirname, entry.thumbnail.replace(/^\//, ''));
-      if (fs.existsSync(thumbPath)) fs.unlinkSync(thumbPath);
+    // Delete panel thumbnails
+    for (const field of ['thumbnail_front', 'thumbnail_inside', 'thumbnail_back', 'thumbnail']) {
+      if (entry[field]) {
+        const thumbPath = path.join(__dirname, entry[field].replace(/^\//, ''));
+        if (fs.existsSync(thumbPath)) fs.unlinkSync(thumbPath);
+      }
     }
 
     meta.splice(idx, 1);

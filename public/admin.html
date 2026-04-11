@@ -137,13 +137,36 @@
             </div>
           </div>
           <div class="field">
-            <label>Thumbnail Image <span style="color:var(--muted);font-weight:400">(optional)</span></label>
-            <div class="file-drop" id="thumbDrop">
+            <label>Front Cover Preview <span style="color:var(--muted);font-weight:400">(optional)</span></label>
+            <div class="file-drop" id="thumbFrontDrop">
               <div class="icon">🖼️</div>
-              <div>Click to select thumbnail</div>
-              <div class="hint">JPG or PNG · shown to clients in the form</div>
-              <div class="chosen" id="thumbChosen"></div>
-              <input type="file" id="thumbInput" accept=".jpg,.jpeg,.png" style="display:none" />
+              <div>Click to select image</div>
+              <div class="hint">JPG or PNG · front cover panel</div>
+              <div class="chosen" id="thumbFrontChosen"></div>
+              <input type="file" id="thumbFrontInput" accept=".jpg,.jpeg,.png" style="display:none" />
+            </div>
+          </div>
+        </div>
+
+        <div class="grid-2" style="margin-top:14px">
+          <div class="field">
+            <label>Inside Panel Preview <span style="color:var(--muted);font-weight:400">(optional)</span></label>
+            <div class="file-drop" id="thumbInsideDrop">
+              <div class="icon">🖼️</div>
+              <div>Click to select image</div>
+              <div class="hint">JPG or PNG · inside spread panel</div>
+              <div class="chosen" id="thumbInsideChosen"></div>
+              <input type="file" id="thumbInsideInput" accept=".jpg,.jpeg,.png" style="display:none" />
+            </div>
+          </div>
+          <div class="field">
+            <label>Back Cover Preview <span style="color:var(--muted);font-weight:400">(optional)</span></label>
+            <div class="file-drop" id="thumbBackDrop">
+              <div class="icon">🖼️</div>
+              <div>Click to select image</div>
+              <div class="hint">JPG or PNG · back cover panel</div>
+              <div class="chosen" id="thumbBackChosen"></div>
+              <input type="file" id="thumbBackInput" accept=".jpg,.jpeg,.png" style="display:none" />
             </div>
           </div>
         </div>
@@ -199,8 +222,10 @@
     chosenEl.textContent = file.name;
   }
 
-  wireFileDrop('pdfDrop',   'pdfInput',   'pdfChosen');
-  wireFileDrop('thumbDrop', 'thumbInput', 'thumbChosen');
+  wireFileDrop('pdfDrop',        'pdfInput',        'pdfChosen');
+  wireFileDrop('thumbFrontDrop', 'thumbFrontInput', 'thumbFrontChosen');
+  wireFileDrop('thumbInsideDrop','thumbInsideInput','thumbInsideChosen');
+  wireFileDrop('thumbBackDrop',  'thumbBackInput',  'thumbBackChosen');
 
   // Upload form
   const form      = document.getElementById('uploadForm');
@@ -221,8 +246,12 @@
     fd.append('name', name);
     fd.append('format', format);
     fd.append('templatePdf', pdf);
-    const thumb = document.getElementById('thumbInput').files[0];
-    if (thumb) fd.append('thumbnail', thumb);
+    const thumbFront  = document.getElementById('thumbFrontInput').files[0];
+    const thumbInside = document.getElementById('thumbInsideInput').files[0];
+    const thumbBack   = document.getElementById('thumbBackInput').files[0];
+    if (thumbFront)  fd.append('thumbnail_front',  thumbFront);
+    if (thumbInside) fd.append('thumbnail_inside', thumbInside);
+    if (thumbBack)   fd.append('thumbnail_back',   thumbBack);
 
     uploadBtn.disabled = true;
     uploadBtn.innerHTML = '<span class="spinner"></span> Uploading…';
@@ -233,8 +262,10 @@
       if (data.success) {
         showMsg('success', `✓ Template "${data.template.name}" uploaded successfully.`);
         form.reset();
-        document.getElementById('pdfChosen').textContent   = '';
-        document.getElementById('thumbChosen').textContent = '';
+        document.getElementById('pdfChosen').textContent        = '';
+        document.getElementById('thumbFrontChosen').textContent  = '';
+        document.getElementById('thumbInsideChosen').textContent = '';
+        document.getElementById('thumbBackChosen').textContent   = '';
         loadTemplates();
       } else {
         showMsg('error', data.error || 'Upload failed.');

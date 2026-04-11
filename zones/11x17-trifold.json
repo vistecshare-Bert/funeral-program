@@ -85,7 +85,7 @@
     {
       "id": 5,
       "name": "back-center",
-      "description": "Center panel on back — photo gallery",
+      "description": "Center panel on back — photo gallery and service info",
       "zones": [
         {
           "type": "GALLERY",
@@ -111,7 +111,7 @@
           "height": 0.012
         },
         {
-          "type": "TEXT_BODY",
+          "type": "SERVICE_INFO",
           "x": 0.06,
           "y": 0.55,
           "width": 0.88,
