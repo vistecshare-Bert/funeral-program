@@ -1005,21 +1005,21 @@
   }
 
   function drawCoverText(W, H, font, name, dates) {
+    // When a template is selected, it already has its own design — don't overlay text
+    if (selectedTemplateThumb) return;
+
     ctx.textAlign = 'center';
 
-    // Only draw "In Loving Memory of" if no template (template already has it)
-    if (!selectedTemplateThumb) {
-      ctx.font = `italic ${W*0.042}px ${font}`;
-      ctx.fillStyle = '#555555';
-      ctx.fillText('In Loving Memory of', W/2, H * 0.64);
-      ctx.strokeStyle = '#cccccc';
-      ctx.lineWidth = 0.8;
-      ctx.beginPath(); ctx.moveTo(W*0.2, H*0.658); ctx.lineTo(W*0.8, H*0.658); ctx.stroke();
-    }
+    ctx.font = `italic ${W*0.042}px ${font}`;
+    ctx.fillStyle = '#555555';
+    ctx.fillText('In Loving Memory of', W/2, H * 0.64);
+    ctx.strokeStyle = '#cccccc';
+    ctx.lineWidth = 0.8;
+    ctx.beginPath(); ctx.moveTo(W*0.2, H*0.658); ctx.lineTo(W*0.8, H*0.658); ctx.stroke();
 
     const isCursive = getRadio('fontFamily') === 'cursive';
     const nameFont = isCursive ? "'Dancing Script','Great Vibes',cursive" : font;
-    const textY = selectedTemplateThumb ? H * 0.72 : H * 0.70;
+    const textY = H * 0.70;
     const ns = fitFontSize(name, nameFont, W*0.84, Math.round(W*0.072), Math.round(W*0.038));
     ctx.font = `${isCursive ? '' : 'bold '}${ns}px ${nameFont}`;
     ctx.fillStyle = '#222222';
