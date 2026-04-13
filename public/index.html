@@ -1006,29 +1006,40 @@
   }
 
   function drawCoverText(W, H, font, name, dates) {
-    // When a template is selected, it already has its own design — don't overlay text
-    if (selectedTemplateThumb) return;
+    const hasName  = name  !== 'Full Name';
+    const hasDates = dates !== 'Date of Birth — Date of Death';
 
     ctx.textAlign = 'center';
 
-    ctx.font = `italic ${W*0.042}px ${font}`;
-    ctx.fillStyle = '#555555';
-    ctx.fillText('In Loving Memory of', W/2, H * 0.64);
-    ctx.strokeStyle = '#cccccc';
-    ctx.lineWidth = 0.8;
-    ctx.beginPath(); ctx.moveTo(W*0.2, H*0.658); ctx.lineTo(W*0.8, H*0.658); ctx.stroke();
+    // Only draw "In Loving Memory of" header when no template is active
+    if (!selectedTemplateThumb) {
+      ctx.font = `italic ${W*0.042}px ${font}`;
+      ctx.fillStyle = '#555555';
+      ctx.fillText('In Loving Memory of', W/2, H * 0.64);
+      ctx.strokeStyle = '#cccccc';
+      ctx.lineWidth = 0.8;
+      ctx.beginPath(); ctx.moveTo(W*0.2, H*0.658); ctx.lineTo(W*0.8, H*0.658); ctx.stroke();
+    }
+
+    // Always show entered name/dates; skip when still showing defaults
+    if (!hasName && !hasDates) return;
 
     const isCursive = getRadio('fontFamily') === 'cursive';
     const nameFont = isCursive ? "'Dancing Script','Great Vibes',cursive" : font;
-    const textY = H * 0.70;
+    const textY = selectedTemplateThumb ? H * 0.72 : H * 0.70;
     const ns = fitFontSize(name, nameFont, W*0.84, Math.round(W*0.072), Math.round(W*0.038));
-    ctx.font = `${isCursive ? '' : 'bold '}${ns}px ${nameFont}`;
-    ctx.fillStyle = '#222222';
-    ctx.fillText(name, W/2, textY, W*0.88);
 
-    ctx.font = `${Math.max(ns-4,10)}px ${font}`;
-    ctx.fillStyle = '#555555';
-    ctx.fillText(dates, W/2, textY + ns + 4, W*0.88);
+    if (hasName) {
+      ctx.font = `${isCursive ? '' : 'bold '}${ns}px ${nameFont}`;
+      ctx.fillStyle = selectedTemplateThumb ? '#1a1a1a' : '#222222';
+      ctx.fillText(name, W/2, textY, W*0.88);
+    }
+
+    if (hasDates) {
+      ctx.font = `${Math.max(ns-4,10)}px ${font}`;
+      ctx.fillStyle = '#555555';
+      ctx.fillText(dates, W/2, textY + ns + 4, W*0.88);
+    }
   }
 
   // ── INSIDE PANEL ─────────────────────────────────────────────────
