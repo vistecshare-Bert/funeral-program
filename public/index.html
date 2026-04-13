@@ -1195,50 +1195,50 @@
     const svcDate     = getVal('serviceDate');
     const svcTime     = getVal('serviceTime');
     const svcLocation = getVal('serviceLocation');
-    const hasService  = svcDate || svcTime || svcLocation;
+    const svcOfficiant = getVal('officiant');
+    const hasService  = svcDate || svcTime || svcLocation || svcOfficiant;
 
     if (hasService) {
-      const svcPx   = Math.round(W * 0.038);
-      const lineGap = svcPx * 1.5;
-      let   svcY    = dateBottomY + svcPx * 2.2;
-
-      ctx.fillStyle = '#222222';
+      const svcPx   = Math.round(W * 0.036);
+      const lineGap = svcPx * 1.35;
+      let   svcY    = dateBottomY + svcPx * 2.0;
 
       if (svcDate || svcTime) {
         const dtLine = [fmtDate(svcDate), svcTime].filter(Boolean).join(' at ');
-        ctx.font = `bold ${svcPx}px Arial, sans-serif`;
+        ctx.font      = `bold ${svcPx}px Arial, sans-serif`;
+        ctx.fillStyle = '#222222';
         ctx.fillText(dtLine, W/2, svcY, W*0.84);
         svcY += lineGap;
       }
 
       if (svcLocation) {
-        ctx.font = `${svcPx * 0.88}px Arial, sans-serif`;
+        const locPx  = Math.round(svcPx * 0.86);
+        const maxW   = W * 0.82;
+        ctx.font      = `${locPx}px Arial, sans-serif`;
         ctx.fillStyle = '#444444';
-        // wrap long location across two lines
+        // wrap location across up to two lines
         const words = svcLocation.split(' ');
-        let line1 = '', line2 = '';
-        ctx.font = `${svcPx * 0.88}px Arial, sans-serif`;
-        const maxW = W * 0.82;
-        let current = '';
-        let wrapped = false;
+        let current = '', wrapped = false, line1 = '';
         for (const w of words) {
           const test = current ? current + ' ' + w : w;
           if (!wrapped && ctx.measureText(test).width > maxW) {
-            line1 = current;
-            current = w;
-            wrapped = true;
-          } else {
-            current = test;
-          }
+            line1 = current; current = w; wrapped = true;
+          } else { current = test; }
         }
         if (wrapped) {
-          line2 = current;
-          ctx.fillText(line1, W/2, svcY, W*0.84);
-          svcY += lineGap * 0.9;
-          ctx.fillText(line2, W/2, svcY, W*0.84);
+          ctx.fillText(line1, W/2, svcY, W*0.84);   svcY += lineGap * 0.88;
+          ctx.fillText(current, W/2, svcY, W*0.84);
         } else {
           ctx.fillText(current, W/2, svcY, W*0.84);
         }
+        svcY += lineGap * 0.88;
+      }
+
+      if (svcOfficiant) {
+        const offPx = Math.round(svcPx * 0.82);
+        ctx.font      = `italic ${offPx}px Arial, sans-serif`;
+        ctx.fillStyle = '#555555';
+        ctx.fillText(svcOfficiant, W/2, svcY, W*0.84);
       }
     }
   }
