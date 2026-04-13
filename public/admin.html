@@ -360,21 +360,16 @@
 
         // Toggle preview upload form
         card.querySelector('.add-previews-btn').addEventListener('click', () => {
-          const form = card.querySelector('.preview-upload-form');
-          form.style.display = form.style.display === 'none' ? 'block' : 'none';
-        });
-
-        // Wire mini file drops
-        ['front', 'inside', 'back'].forEach(panel => {
-          wireFileDrop(`puf-${panel}-drop-${t.id}`, `puf-${panel}-${t.id}`, `puf-${panel}-chosen-${t.id}`);
+          const puf = card.querySelector('.preview-upload-form');
+          puf.style.display = puf.style.display === 'none' ? 'block' : 'none';
         });
 
         // Save previews
         card.querySelector('.save-previews-btn').addEventListener('click', async () => {
-          const fd = new FormData();
-          const front  = document.getElementById(`puf-front-${t.id}`).files[0];
-          const inside = document.getElementById(`puf-inside-${t.id}`).files[0];
-          const back   = document.getElementById(`puf-back-${t.id}`).files[0];
+          const fd     = new FormData();
+          const front  = card.querySelector(`#puf-front-${t.id}`).files[0];
+          const inside = card.querySelector(`#puf-inside-${t.id}`).files[0];
+          const back   = card.querySelector(`#puf-back-${t.id}`).files[0];
           if (!front && !inside && !back) {
             showPufMsg(t.id, 'error', 'Select at least one panel image.');
             return;
@@ -397,6 +392,11 @@
         });
 
         grid.appendChild(card);
+
+        // Wire mini file drops AFTER card is in the DOM
+        ['front', 'inside', 'back'].forEach(panel => {
+          wireFileDrop(`puf-${panel}-drop-${t.id}`, `puf-${panel}-${t.id}`, `puf-${panel}-chosen-${t.id}`);
+        });
       });
     } catch {
       grid.innerHTML = '<div class="empty-state">Could not load templates.</div>';
