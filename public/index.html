@@ -1166,6 +1166,8 @@
       ctx.fillText(name, W/2, textY, W*0.88);
     }
 
+    let dateBottomY = textY + ns * 0.5;
+
     if (hasDates) {
       const dateSizeKey   = getRadio('dateFontSize')   || 'small';
       const dateStyleKey  = getRadio('dateFontStyle')  || 'italic';
@@ -1178,13 +1180,66 @@
         trebuchet: "'Trebuchet MS',Arial,sans-serif",
         century:   "'Century Gothic','Futura',Arial,sans-serif"
       };
-      const dateFont     = dateFontMap[dateFamilyKey] || 'Georgia, serif';
-      const dateSizeMap  = { small: 0.038, medium: 0.050, large: 0.062 };
-      const datePx       = Math.round(W * (dateSizeMap[dateSizeKey] || 0.038));
-      const dateStyle    = dateStyleKey === 'italic' ? 'italic ' : dateStyleKey === 'bold' ? 'bold ' : dateStyleKey === 'bolditalic' ? 'bold italic ' : dateStyleKey === 'light' ? '300 ' : '';
+      const dateFont    = dateFontMap[dateFamilyKey] || 'Georgia, serif';
+      const dateSizeMap = { small: 0.038, medium: 0.050, large: 0.062 };
+      const datePx      = Math.round(W * (dateSizeMap[dateSizeKey] || 0.038));
+      const dateStyle   = dateStyleKey === 'italic' ? 'italic ' : dateStyleKey === 'bold' ? 'bold ' : dateStyleKey === 'bolditalic' ? 'bold italic ' : dateStyleKey === 'light' ? '300 ' : '';
+      const dateY       = textY + ns * 0.5 + datePx;
       ctx.font      = `${dateStyle}${datePx}px ${dateFont}`;
-      ctx.fillStyle = '#555555';
-      ctx.fillText(dates, W/2, textY + ns * 0.95 + datePx, W*0.88);
+      ctx.fillStyle = '#333333';
+      ctx.fillText(dates, W/2, dateY, W*0.88);
+      dateBottomY = dateY + datePx * 0.4;
+    }
+
+    // ── Service info on cover (no label) ──────────────────────────
+    const svcDate     = getVal('serviceDate');
+    const svcTime     = getVal('serviceTime');
+    const svcLocation = getVal('serviceLocation');
+    const hasService  = svcDate || svcTime || svcLocation;
+
+    if (hasService) {
+      const svcPx   = Math.round(W * 0.038);
+      const lineGap = svcPx * 1.5;
+      let   svcY    = dateBottomY + svcPx * 2.2;
+
+      ctx.fillStyle = '#222222';
+
+      if (svcDate || svcTime) {
+        const dtLine = [fmtDate(svcDate), svcTime].filter(Boolean).join(' at ');
+        ctx.font = `bold ${svcPx}px Arial, sans-serif`;
+        ctx.fillText(dtLine, W/2, svcY, W*0.84);
+        svcY += lineGap;
+      }
+
+      if (svcLocation) {
+        ctx.font = `${svcPx * 0.88}px Arial, sans-serif`;
+        ctx.fillStyle = '#444444';
+        // wrap long location across two lines
+        const words = svcLocation.split(' ');
+        let line1 = '', line2 = '';
+        ctx.font = `${svcPx * 0.88}px Arial, sans-serif`;
+        const maxW = W * 0.82;
+        let current = '';
+        let wrapped = false;
+        for (const w of words) {
+          const test = current ? current + ' ' + w : w;
+          if (!wrapped && ctx.measureText(test).width > maxW) {
+            line1 = current;
+            current = w;
+            wrapped = true;
+          } else {
+            current = test;
+          }
+        }
+        if (wrapped) {
+          line2 = current;
+          ctx.fillText(line1, W/2, svcY, W*0.84);
+          svcY += lineGap * 0.9;
+          ctx.fillText(line2, W/2, svcY, W*0.84);
+        } else {
+          ctx.fillText(current, W/2, svcY, W*0.84);
+        }
+      }
     }
   }
 
