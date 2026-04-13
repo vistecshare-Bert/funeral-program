@@ -1259,7 +1259,7 @@
       const maxCellW = (leftW - (cols-1)*gap) / cols;
       const maxCellH = (photoAreaH - padY*2 - (rows-1)*gap) / rows;
       const cellSize = Math.min(maxCellW, maxCellH);
-      const gStartY  = padY;
+      const gStartY  = padY + 60;       // 60px top padding
 
       // Draw empty gold boxes
       for (let r = 0; r < rows; r++) {
