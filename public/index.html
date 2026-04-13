@@ -453,6 +453,41 @@
         </div>
 
         <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px;margin-top:6px;">Dates (Birth &amp; Death)</div>
+        <div class="field">
+          <label>Date Font Family</label>
+          <div class="radio-group" style="flex-wrap:wrap;">
+            <label class="radio-option selected" style="flex-direction:column;gap:2px;min-width:80px;text-align:center;">
+              <input type="radio" name="dateFontFamily" value="serif" checked />
+              <span style="font-family:Georgia,serif;font-size:14px;">Aa</span>
+              <span>Serif</span>
+            </label>
+            <label class="radio-option" style="flex-direction:column;gap:2px;min-width:80px;text-align:center;">
+              <input type="radio" name="dateFontFamily" value="sans" />
+              <span style="font-family:Arial,sans-serif;font-size:14px;">Aa</span>
+              <span>Sans-Serif</span>
+            </label>
+            <label class="radio-option" style="flex-direction:column;gap:2px;min-width:80px;text-align:center;">
+              <input type="radio" name="dateFontFamily" value="garamond" />
+              <span style="font-family:'Garamond','Book Antiqua',Georgia,serif;font-size:14px;font-style:italic;">Aa</span>
+              <span>Garamond</span>
+            </label>
+            <label class="radio-option" style="flex-direction:column;gap:2px;min-width:80px;text-align:center;">
+              <input type="radio" name="dateFontFamily" value="palatino" />
+              <span style="font-family:'Palatino Linotype','Palatino',Georgia,serif;font-size:14px;">Aa</span>
+              <span>Palatino</span>
+            </label>
+            <label class="radio-option" style="flex-direction:column;gap:2px;min-width:80px;text-align:center;">
+              <input type="radio" name="dateFontFamily" value="trebuchet" />
+              <span style="font-family:'Trebuchet MS',Arial,sans-serif;font-size:14px;">Aa</span>
+              <span>Trebuchet</span>
+            </label>
+            <label class="radio-option" style="flex-direction:column;gap:2px;min-width:80px;text-align:center;">
+              <input type="radio" name="dateFontFamily" value="century" />
+              <span style="font-family:'Century Gothic','Futura',Arial,sans-serif;font-size:14px;">Aa</span>
+              <span>Century</span>
+            </label>
+          </div>
+        </div>
         <div class="grid-2">
           <div class="field">
             <label>Date Font Size</label>
@@ -1132,12 +1167,22 @@
     }
 
     if (hasDates) {
-      const dateSizeKey  = getRadio('dateFontSize')  || 'small';
-      const dateStyleKey = getRadio('dateFontStyle') || 'italic';
+      const dateSizeKey   = getRadio('dateFontSize')   || 'small';
+      const dateStyleKey  = getRadio('dateFontStyle')  || 'italic';
+      const dateFamilyKey = getRadio('dateFontFamily') || 'serif';
+      const dateFontMap   = {
+        serif:     'Georgia, serif',
+        sans:      'Arial, sans-serif',
+        garamond:  "'Garamond','Book Antiqua',Georgia,serif",
+        palatino:  "'Palatino Linotype','Palatino',Georgia,serif",
+        trebuchet: "'Trebuchet MS',Arial,sans-serif",
+        century:   "'Century Gothic','Futura',Arial,sans-serif"
+      };
+      const dateFont     = dateFontMap[dateFamilyKey] || 'Georgia, serif';
       const dateSizeMap  = { small: 0.038, medium: 0.050, large: 0.062 };
       const datePx       = Math.round(W * (dateSizeMap[dateSizeKey] || 0.038));
       const dateStyle    = dateStyleKey === 'italic' ? 'italic ' : dateStyleKey === 'bold' ? 'bold ' : dateStyleKey === 'bolditalic' ? 'bold italic ' : dateStyleKey === 'light' ? '300 ' : '';
-      ctx.font      = `${dateStyle}${datePx}px ${font}`;
+      ctx.font      = `${dateStyle}${datePx}px ${dateFont}`;
       ctx.fillStyle = '#555555';
       ctx.fillText(dates, W/2, textY + ns * 0.95 + datePx, W*0.88);
     }
