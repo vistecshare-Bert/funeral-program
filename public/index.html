@@ -1356,31 +1356,71 @@
   // ── BACK PANEL ───────────────────────────────────────────────────
   function drawBackPanel(W, H, font) {
     const finish = () => {
-      const cols = 3, rows = 7, gap = 4;
-      const padX = W*0.04, padY = H*0.015;
-      const grid = drawPhotoGrid(W, H*0.94, cols, rows, padX, padY, gap, '#c8a96e');
-      const { startX, startY, cellSize } = grid;
+      const gap    = 4;
+      const padX   = W * 0.04;
+      const padY   = H * 0.02;
+      const gridW  = W - padX * 2;
+      const gridH  = H * 0.92 - padY;
+      const numCols = 3, numRows = 8;
+      const baseW  = (gridW - gap * (numCols - 1)) / numCols;
+      const baseH  = (gridH - gap * (numRows - 1)) / numRows;
 
-      gallerySlots.slice(INSIDE_SLOTS).forEach((item, i) => {
+      // Mosaic layout: {c=col, r=row, cw=colSpan, rh=rowSpan}
+      const mosaic = [
+        // Row 0: 3 uniform
+        {c:0,r:0,cw:1,rh:1},{c:1,r:0,cw:1,rh:1},{c:2,r:0,cw:1,rh:1},
+        // Rows 1-2: 2+2 left, 1 tall right
+        {c:0,r:1,cw:1,rh:1},{c:1,r:1,cw:1,rh:1},{c:2,r:1,cw:1,rh:2},
+        {c:0,r:2,cw:1,rh:1},{c:1,r:2,cw:1,rh:1},
+        // Row 3: 1 wide (2-col) + 1
+        {c:0,r:3,cw:2,rh:1},{c:2,r:3,cw:1,rh:1},
+        // Row 4: 3 uniform
+        {c:0,r:4,cw:1,rh:1},{c:1,r:4,cw:1,rh:1},{c:2,r:4,cw:1,rh:1},
+        // Rows 5-6: 1 large (2×2) + 2 stacked right
+        {c:0,r:5,cw:2,rh:2},{c:2,r:5,cw:1,rh:1},{c:2,r:6,cw:1,rh:1},
+        // Row 7: 3 uniform
+        {c:0,r:7,cw:1,rh:1},{c:1,r:7,cw:1,rh:1},{c:2,r:7,cw:1,rh:1},
+      ];
+
+      function rndPath(x, y, w, h, rad) {
+        ctx.beginPath();
+        ctx.moveTo(x+rad, y);
+        ctx.lineTo(x+w-rad, y); ctx.quadraticCurveTo(x+w, y, x+w, y+rad);
+        ctx.lineTo(x+w, y+h-rad); ctx.quadraticCurveTo(x+w, y+h, x+w-rad, y+h);
+        ctx.lineTo(x+rad, y+h); ctx.quadraticCurveTo(x, y+h, x, y+h-rad);
+        ctx.lineTo(x, y+rad); ctx.quadraticCurveTo(x, y, x+rad, y);
+        ctx.closePath();
+      }
+
+      mosaic.forEach((cell, i) => {
+        const x = padX + cell.c * (baseW + gap);
+        const y = padY + cell.r * (baseH + gap);
+        const w = cell.cw * baseW + (cell.cw - 1) * gap;
+        const h = cell.rh * baseH + (cell.rh - 1) * gap;
+        const rad = 6;
+
+        // Draw background box
+        ctx.save();
+        rndPath(x, y, w, h, rad);
+        ctx.fillStyle = 'rgba(255,255,255,0.35)';
+        ctx.strokeStyle = '#c8a96e';
+        ctx.lineWidth = 1.5;
+        ctx.fill(); ctx.stroke();
+        ctx.restore();
+
+        // Draw photo if present
+        const item = gallerySlots[INSIDE_SLOTS + i];
         if (!item) return;
-        const c = i % cols, r = Math.floor(i / cols);
-        if (r >= rows) return;
-        const x = startX + c*(cellSize+gap);
-        const y = startY + r*(cellSize+gap);
         if (photoImgCache[item.dataURL]) {
-          ctx.save(); ctx.beginPath();
-          const rad = 6;
-          ctx.moveTo(x+rad,y); ctx.lineTo(x+cellSize-rad,y); ctx.quadraticCurveTo(x+cellSize,y,x+cellSize,y+rad);
-          ctx.lineTo(x+cellSize,y+cellSize-rad); ctx.quadraticCurveTo(x+cellSize,y+cellSize,x+cellSize-rad,y+cellSize);
-          ctx.lineTo(x+rad,y+cellSize); ctx.quadraticCurveTo(x,y+cellSize,x,y+cellSize-rad);
-          ctx.lineTo(x,y+rad); ctx.quadraticCurveTo(x,y,x+rad,y); ctx.closePath();
+          ctx.save();
+          rndPath(x, y, w, h, rad);
           ctx.clip();
           const img = photoImgCache[item.dataURL];
-          const ir = img.width/img.height;
-          let sx,sy,sw,sh;
-          if(ir>1){sh=img.height;sw=sh;sx=(img.width-sw)/2;sy=0;}
-          else{sw=img.width;sh=sw;sx=0;sy=(img.height-sh)/2;}
-          ctx.drawImage(img,sx,sy,sw,sh,x,y,cellSize,cellSize);
+          const ir = img.width / img.height, cr = w / h;
+          let sx, sy, sw, sh;
+          if (ir > cr) { sh = img.height; sw = sh * cr; sx = (img.width - sw) / 2; sy = 0; }
+          else         { sw = img.width;  sh = sw / cr; sx = 0; sy = (img.height - sh) / 2; }
+          ctx.drawImage(img, sx, sy, sw, sh, x, y, w, h);
           ctx.restore();
         } else {
           const img2 = new Image();
@@ -1388,6 +1428,7 @@
           img2.src = item.dataURL;
         }
       });
+
       ctx.fillStyle = '#f0f0f0';
       ctx.fillRect(0, H*0.96, W, H*0.04);
       ctx.fillStyle = '#888888';
