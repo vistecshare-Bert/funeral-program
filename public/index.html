@@ -371,84 +371,6 @@
     </div>
 
     <div class="card">
-      <div class="card-header">Service Information</div>
-      <div class="card-body">
-        <div class="grid-2">
-          <div class="field">
-            <label>Service Date <span class="req">*</span></label>
-            <input type="date" name="serviceDate" required />
-          </div>
-          <div class="field">
-            <label>Service Time <span class="req">*</span></label>
-            <input type="text" name="serviceTime" required placeholder="2:00 PM" />
-          </div>
-          <div class="field" style="grid-column:span 2">
-            <label>Location <span class="req">*</span></label>
-            <input type="text" name="serviceLocation" required placeholder="Grace Baptist Church, Charlotte NC" />
-          </div>
-          <div class="field" style="grid-column:span 2">
-            <label>Officiant</label>
-            <input type="text" name="officiant" placeholder="Pastor David Williams (optional)" />
-          </div>
-        </div>
-      </div>
-    </div>
-
-
-    <!-- Portrait photo (cover) -->
-    <div class="card">
-      <div class="card-header">Main Portrait Photo</div>
-      <div class="card-body">
-        <div class="portrait-zone" id="portraitZone">
-          <div class="placeholder">
-            <div class="icon">🖼️</div>
-            <div><strong>Click or drop portrait photo here</strong></div>
-            <div class="hint" style="font-size:12px;color:var(--muted);margin-top:4px;">1 photo only · JPG or PNG · appears in the circular frame on the cover</div>
-          </div>
-          <img class="portrait-thumb" id="portraitThumb" src="" alt="" style="display:none" />
-          <button type="button" class="clear-btn" id="portraitClear" title="Remove">✕</button>
-        </div>
-        <input type="file" id="portraitInput" accept=".jpg,.jpeg,.png" style="display:none" />
-      </div>
-    </div>
-
-    <!-- Gallery photos (drag into slots) -->
-    <div class="card">
-      <div class="card-header">Gallery Photos — Drag into Slots</div>
-      <div class="card-body">
-        <div class="gallery-layout">
-          <div class="gallery-pool-wrap">
-            <div class="gallery-pool-label">Uploaded Photos</div>
-            <div class="gallery-upload-btn" id="galleryUploadBtn">+ Add Photos</div>
-            <input type="file" id="galleryInput" accept=".jpg,.jpeg,.png" multiple style="display:none" />
-            <div class="gallery-pool" id="galleryPool"></div>
-            <div style="font-size:11px;color:var(--muted);margin-top:4px;">Drag photos into the slots →</div>
-          </div>
-          <div class="gallery-grid-wrap">
-            <div class="gallery-grid-label">Gallery Grid (drag here)</div>
-            <div class="gallery-slot-grid" id="gallerySlotGrid"></div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="card-header">Template Selection</div>
-      <div class="card-body">
-        <div id="templatePickerGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;">
-          <div style="color:var(--muted);font-size:13px;">Loading templates…</div>
-        </div>
-        <div id="noTemplatesMsg" style="display:none;font-size:13px;color:var(--muted);padding:8px 0;">
-          No templates uploaded yet. <a href="/admin" target="_blank" style="color:var(--gold);font-weight:600;">Upload templates in the admin panel →</a>
-        </div>
-      </div>
-    </div>
-
-    <input type="hidden" name="size" value="11x17" />
-    <input type="hidden" name="fold" value="trifold" />
-
-
-    <div class="card">
       <div class="card-header">Style &amp; Font</div>
       <div class="card-body" style="display:flex;flex-direction:column;gap:14px;">
         <div class="field">
@@ -530,6 +452,83 @@
         </div>
       </div>
     </div>
+
+    <div class="card">
+      <div class="card-header">Service Information</div>
+      <div class="card-body">
+        <div class="grid-2">
+          <div class="field">
+            <label>Service Date <span class="req">*</span></label>
+            <input type="date" name="serviceDate" required />
+          </div>
+          <div class="field">
+            <label>Service Time <span class="req">*</span></label>
+            <input type="text" name="serviceTime" required placeholder="2:00 PM" />
+          </div>
+          <div class="field" style="grid-column:span 2">
+            <label>Location <span class="req">*</span></label>
+            <input type="text" name="serviceLocation" required placeholder="Grace Baptist Church, Charlotte NC" />
+          </div>
+          <div class="field" style="grid-column:span 2">
+            <label>Officiant</label>
+            <input type="text" name="officiant" placeholder="Pastor David Williams (optional)" />
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- Portrait photo (cover) -->
+    <div class="card">
+      <div class="card-header">Main Portrait Photo</div>
+      <div class="card-body">
+        <div class="portrait-zone" id="portraitZone">
+          <div class="placeholder">
+            <div class="icon">🖼️</div>
+            <div><strong>Click or drop portrait photo here</strong></div>
+            <div class="hint" style="font-size:12px;color:var(--muted);margin-top:4px;">1 photo only · JPG or PNG · appears in the circular frame on the cover</div>
+          </div>
+          <img class="portrait-thumb" id="portraitThumb" src="" alt="" style="display:none" />
+          <button type="button" class="clear-btn" id="portraitClear" title="Remove">✕</button>
+        </div>
+        <input type="file" id="portraitInput" accept=".jpg,.jpeg,.png" style="display:none" />
+      </div>
+    </div>
+
+    <!-- Gallery photos (drag into slots) -->
+    <div class="card">
+      <div class="card-header">Gallery Photos — Drag into Slots</div>
+      <div class="card-body">
+        <div class="gallery-layout">
+          <div class="gallery-pool-wrap">
+            <div class="gallery-pool-label">Uploaded Photos</div>
+            <div class="gallery-upload-btn" id="galleryUploadBtn">+ Add Photos</div>
+            <input type="file" id="galleryInput" accept=".jpg,.jpeg,.png" multiple style="display:none" />
+            <div class="gallery-pool" id="galleryPool"></div>
+            <div style="font-size:11px;color:var(--muted);margin-top:4px;">Drag photos into the slots →</div>
+          </div>
+          <div class="gallery-grid-wrap">
+            <div class="gallery-grid-label">Gallery Grid (drag here)</div>
+            <div class="gallery-slot-grid" id="gallerySlotGrid"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">Template Selection</div>
+      <div class="card-body">
+        <div id="templatePickerGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;">
+          <div style="color:var(--muted);font-size:13px;">Loading templates…</div>
+        </div>
+        <div id="noTemplatesMsg" style="display:none;font-size:13px;color:var(--muted);padding:8px 0;">
+          No templates uploaded yet. <a href="/admin" target="_blank" style="color:var(--gold);font-weight:600;">Upload templates in the admin panel →</a>
+        </div>
+      </div>
+    </div>
+
+    <input type="hidden" name="size" value="11x17" />
+    <input type="hidden" name="fold" value="trifold" />
 
     <div class="submit-area">
       <button type="submit" id="submitBtn">Generate Program PDF</button>
