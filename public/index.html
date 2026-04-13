@@ -1250,16 +1250,16 @@
   // ── INSIDE PANEL ─────────────────────────────────────────────────
   function drawInsidePanel(W, H, font) {
     const finish = () => {
-      // ── Top: 2×5 photo grid (slots 0–9) ──
-      const cols = 2, rows = 5, gap = 4;
-      const padX = W * 0.06, padY = H * 0.015;
-      const photoAreaH = H * 0.56;
-      const maxCellW = (W - padX*2 - (cols-1)*gap) / cols;
+      // ── Top: 2×5 photo grid (slots 0–9) — left portion only ──
+      const cols = 2, rows = 5, gap = 6;
+      const gStartX  = W * 0.04;           // left margin
+      const leftW    = W * 0.54;           // width of left column (clear of MEMORY text)
+      const padY     = H * 0.012;
+      const photoAreaH = H * 0.68;
+      const maxCellW = (leftW - (cols-1)*gap) / cols;
       const maxCellH = (photoAreaH - padY*2 - (rows-1)*gap) / rows;
       const cellSize = Math.min(maxCellW, maxCellH);
-      const gridW = cols * cellSize + (cols-1)*gap;
-      const gStartX = (W - gridW) / 2;
-      const gStartY = padY;
+      const gStartY  = padY;
 
       // Draw empty gold boxes
       for (let r = 0; r < rows; r++) {
