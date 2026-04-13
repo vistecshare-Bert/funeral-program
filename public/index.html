@@ -1088,7 +1088,7 @@
   }
 
   // ── FRONT COVER ───────────────────────────────────────────────────
-  function drawCoverPanel(W, H, font, name, dates) {
+  function drawCoverPanel(W, H, font, name, dates, onDone) {
     const finish = () => {
       const cx = W/2, cy = H * 0.42, r = W * 0.28;
 
@@ -1104,7 +1104,7 @@
       }
 
       if (portraitDataURL) {
-        drawCirclePhoto(cx, cy, r - 1, portraitDataURL, () => drawCoverText(W, H, font, name, dates));
+        drawCirclePhoto(cx, cy, r - 1, portraitDataURL, () => { drawCoverText(W, H, font, name, dates); onDone && onDone(); });
       } else {
         if (!selectedTemplateThumb) {
           ctx.fillStyle = '#aaaaaa';
@@ -1116,6 +1116,7 @@
           ctx.fillText('Upload photo', cx, cy + W*0.085);
         }
         drawCoverText(W, H, font, name, dates);
+        onDone && onDone();
       }
     };
 
@@ -1248,7 +1249,7 @@
   }
 
   // ── INSIDE PANEL ─────────────────────────────────────────────────
-  function drawInsidePanel(W, H, font) {
+  function drawInsidePanel(W, H, font, onDone) {
     const finish = () => {
       // ── Top: 2×5 photo grid (slots 0–9) — left portion only ──
       const cols = 2, rows = 5, gap = 6;
@@ -1343,6 +1344,7 @@
         ctx.textAlign = 'center';
         ctx.fillText('Enter funeral home info in the form', centerX, infoY + H*0.048, maxW);
       }
+      onDone && onDone();
     };
 
     if (selectedTemplateThumb) {
@@ -1354,7 +1356,7 @@
   }
 
   // ── BACK PANEL ───────────────────────────────────────────────────
-  function drawBackPanel(W, H, font) {
+  function drawBackPanel(W, H, font, onDone) {
     const finish = () => {
       const gap    = 4;
       const padX   = W * 0.04 + 30;
@@ -1435,6 +1437,7 @@
       ctx.font = `bold 9px Arial`;
       ctx.textAlign = 'center';
       ctx.fillText('Printed By  VISTEC GraphX', W/2, H*0.985);
+      onDone && onDone();
     };
 
     if (selectedTemplateThumb) {
@@ -1483,51 +1486,80 @@
 
   const fullscreenCanvas = document.getElementById('fullscreenCanvas');
 
+  // Render a single panel to the canvas and return its dataURL via callback
+  function snapshotPanel(panelName, cb) {
+    const W = canvas.width, H = canvas.height;
+    ctx.clearRect(0, 0, W, H);
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
+
+    const fontMap = {
+      serif:     'Georgia, serif',
+      sans:      'Arial, sans-serif',
+      garamond:  "'Garamond','Book Antiqua',Georgia,serif",
+      palatino:  "'Palatino Linotype','Palatino',Georgia,serif",
+      trebuchet: "'Trebuchet MS',Arial,sans-serif",
+      century:   "'Century Gothic','Futura',Arial,sans-serif",
+      cursive:   "'Dancing Script','Great Vibes',cursive",
+    };
+    const fontFamily = fontMap[getRadio('fontFamily')] || 'Georgia, serif';
+    const firstName  = getVal('firstName');
+    const lastName   = getVal('lastName');
+    const dob        = fmtDate(getVal('dateOfBirth'));
+    const dod        = fmtDate(getVal('dateOfDeath'));
+    const fullName   = [firstName, lastName].filter(Boolean).join(' ') || 'Full Name';
+    const dates      = (dob || dod) ? `${dob || '?'} — ${dod || '?'}` : 'Date of Birth — Date of Death';
+
+    // Temporarily set the correct panel thumbnail
+    const origThumb = selectedTemplateThumb;
+    if (selectedTemplatePanels) {
+      const key = panelName === 'cover' ? 'front' : panelName;
+      selectedTemplateThumb = selectedTemplatePanels[key] || null;
+    } else {
+      selectedTemplateThumb = null;
+    }
+
+    function done() {
+      const url = canvas.toDataURL('image/jpeg', 0.92);
+      selectedTemplateThumb = origThumb;
+      cb(url);
+    }
+
+    if (panelName === 'cover')  drawCoverPanel(W, H, fontFamily, fullName, dates, done);
+    else if (panelName === 'inside') drawInsidePanel(W, H, fontFamily, done);
+    else drawBackPanel(W, H, fontFamily, done);
+  }
+
   document.getElementById('fullscreenBtn').addEventListener('click', () => {
     fullscreenModal.style.display = 'flex';
+    fullscreenImg.style.display    = 'none';
+    fullscreenCanvas.style.display = 'block';
 
-    if (selectedTemplatePanels && (selectedTemplatePanels.back || selectedTemplatePanels.inside || selectedTemplatePanels.front)) {
-      // Stitch all 3 panels side by side: back | inside | front
-      fullscreenImg.style.display = 'none';
-      fullscreenCanvas.style.display = 'block';
+    const origPanel = activePanel;
 
-      const urls = [
-        selectedTemplatePanels.back   || null,
-        selectedTemplatePanels.inside || null,
-        selectedTemplatePanels.front  || null
-      ];
+    // Render all 3 panels sequentially, then stitch side-by-side: back | inside | cover
+    snapshotPanel('back', backURL => {
+      snapshotPanel('inside', insideURL => {
+        snapshotPanel('cover', coverURL => {
+          // Restore the panel the user was on
+          activePanel = origPanel;
+          schedulePreview();
 
-      const imgs = urls.map(url => {
-        if (!url) return Promise.resolve(null);
-        return new Promise(resolve => {
-          const img = new Image();
-          img.onload = () => resolve(img);
-          img.onerror = () => resolve(null);
-          img.src = url;
+          const W = canvas.width, H = canvas.height;
+          fullscreenCanvas.width  = W * 3 + 4; // 2px gap between panels
+          fullscreenCanvas.height = H;
+          const fctx = fullscreenCanvas.getContext('2d');
+          fctx.fillStyle = '#1a1a1a';
+          fctx.fillRect(0, 0, fullscreenCanvas.width, H);
+
+          [backURL, insideURL, coverURL].forEach((url, i) => {
+            const img = new Image();
+            img.onload = () => fctx.drawImage(img, i * (W + 2), 0, W, H);
+            img.src = url;
+          });
         });
       });
-
-      Promise.all(imgs).then(loaded => {
-        const valid = loaded.filter(Boolean);
-        if (!valid.length) return;
-        const panelH = valid[0].naturalHeight;
-        const panelW = valid[0].naturalWidth;
-        const totalW = panelW * 3;
-        fullscreenCanvas.width  = totalW;
-        fullscreenCanvas.height = panelH;
-        const fctx = fullscreenCanvas.getContext('2d');
-        fctx.fillStyle = '#f5f5f0';
-        fctx.fillRect(0, 0, totalW, panelH);
-        loaded.forEach((img, i) => {
-          if (img) fctx.drawImage(img, i * panelW, 0, panelW, panelH);
-        });
-      });
-    } else {
-      // No template — show current canvas scaled up
-      fullscreenCanvas.style.display = 'none';
-      fullscreenImg.style.display    = 'block';
-      fullscreenImg.src = canvas.toDataURL('image/jpeg', 0.92);
-    }
+    });
   });
 
   document.getElementById('closeFullscreen').addEventListener('click', () => {
