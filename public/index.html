@@ -1252,8 +1252,8 @@
     const finish = () => {
       // ── Top: 2×5 photo grid (slots 0–9) — left portion only ──
       const cols = 2, rows = 5, gap = 6;
-      const gStartX  = W * 0.04;           // left margin
-      const leftW    = W * 0.54;           // width of left column (clear of MEMORY text)
+      const gStartX  = W * 0.08;           // left padding — matches Final Rites indent
+      const leftW    = W * 0.46;           // width of left column (clear of MEMORY text)
       const padY     = H * 0.012;
       const photoAreaH = H * 0.68;
       const maxCellW = (leftW - (cols-1)*gap) / cols;
