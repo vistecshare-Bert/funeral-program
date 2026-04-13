@@ -491,6 +491,43 @@
             </label>
           </div>
         </div>
+
+        <div class="grid-2">
+          <div class="field">
+            <label>Name Font Size</label>
+            <div class="radio-group">
+              <label class="radio-option" style="flex:1;justify-content:center;">
+                <input type="radio" name="nameFontSize" value="small" />
+                <span style="font-size:11px;">Small</span>
+              </label>
+              <label class="radio-option selected" style="flex:1;justify-content:center;">
+                <input type="radio" name="nameFontSize" value="medium" checked />
+                <span style="font-size:13px;">Medium</span>
+              </label>
+              <label class="radio-option" style="flex:1;justify-content:center;">
+                <input type="radio" name="nameFontSize" value="large" />
+                <span style="font-size:16px;">Large</span>
+              </label>
+            </div>
+          </div>
+          <div class="field">
+            <label>Name Font Weight</label>
+            <div class="radio-group">
+              <label class="radio-option" style="flex:1;justify-content:center;">
+                <input type="radio" name="nameFontWeight" value="normal" />
+                <span style="font-weight:400;">Normal</span>
+              </label>
+              <label class="radio-option selected" style="flex:1;justify-content:center;">
+                <input type="radio" name="nameFontWeight" value="bold" checked />
+                <span style="font-weight:700;">Bold</span>
+              </label>
+              <label class="radio-option" style="flex:1;justify-content:center;">
+                <input type="radio" name="nameFontWeight" value="extrabold" />
+                <span style="font-weight:900;">Extra Bold</span>
+              </label>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -1018,27 +1055,40 @@
       ctx.fillText('In Loving Memory of', W/2, H * 0.64);
       ctx.strokeStyle = '#cccccc';
       ctx.lineWidth = 0.8;
-      ctx.beginPath(); ctx.moveTo(W*0.2, H*0.658); ctx.lineTo(W*0.8, H*0.658); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(W*0.2, H*0.655); ctx.lineTo(W*0.8, H*0.655); ctx.stroke();
     }
 
-    // Always show entered name/dates; skip when still showing defaults
+    // Skip if no data entered yet
     if (!hasName && !hasDates) return;
 
+    // Font size multiplier from selector
+    const sizeKey = getRadio('nameFontSize') || 'medium';
+    const sizeMap = { small: 0.055, medium: 0.072, large: 0.092 };
+    const maxSize = Math.round(W * (sizeMap[sizeKey] || 0.072));
+    const minSize = Math.round(W * 0.030);
+
+    // Font weight from selector
+    const weightKey = getRadio('nameFontWeight') || 'bold';
+    const weightMap = { normal: '400', bold: '700', extrabold: '900' };
+    const fontWeight = weightMap[weightKey] || '700';
+
     const isCursive = getRadio('fontFamily') === 'cursive';
-    const nameFont = isCursive ? "'Dancing Script','Great Vibes',cursive" : font;
-    const textY = selectedTemplateThumb ? H * 0.72 : H * 0.70;
-    const ns = fitFontSize(name, nameFont, W*0.84, Math.round(W*0.072), Math.round(W*0.038));
+    const nameFont  = isCursive ? "'Dancing Script','Great Vibes',cursive" : font;
+    const ns        = fitFontSize(name, nameFont, W*0.84, maxSize, minSize);
+
+    // Position name snug under "In loving memory of" line
+    const textY = selectedTemplateThumb ? H * 0.72 : H * 0.668 + ns;
 
     if (hasName) {
-      ctx.font = `${isCursive ? '' : 'bold '}${ns}px ${nameFont}`;
-      ctx.fillStyle = selectedTemplateThumb ? '#1a1a1a' : '#222222';
+      ctx.font      = `${isCursive ? '' : fontWeight + ' '}${ns}px ${nameFont}`;
+      ctx.fillStyle = '#1a1a1a';
       ctx.fillText(name, W/2, textY, W*0.88);
     }
 
     if (hasDates) {
-      ctx.font = `${Math.max(ns-4,10)}px ${font}`;
+      ctx.font      = `${Math.max(ns - 6, 10)}px ${font}`;
       ctx.fillStyle = '#555555';
-      ctx.fillText(dates, W/2, textY + ns + 4, W*0.88);
+      ctx.fillText(dates, W/2, textY + ns * 0.9, W*0.88);
     }
   }
 
