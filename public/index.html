@@ -1251,63 +1251,65 @@
   // ── INSIDE PANEL ─────────────────────────────────────────────────
   function drawInsidePanel(W, H, font, onDone) {
     const finish = () => {
-      // ── Top: 2×5 photo grid (slots 0–9) — left portion only ──
-      const cols = 2, rows = 5, gap = 6;
-      const gStartX  = W * 0.08;           // left padding — matches Final Rites indent
-      const leftW    = W * 0.46;           // width of left column (clear of MEMORY text)
-      const padY     = H * 0.012;
-      const photoAreaH = H * 0.68;
-      const maxCellW = (leftW - (cols-1)*gap) / cols;
-      const maxCellH = (photoAreaH - padY*2 - (rows-1)*gap) / rows;
-      const cellSize = Math.min(maxCellW, maxCellH);
-      const gStartY  = padY + 60;       // 60px top padding
+      // ── Top: Dynamic photo grid (slots 0–9) — left portion only ──
+      const gStartX  = W * 0.08;
+      const leftW    = W * 0.46;
+      const gStartY  = 60;
+      const photoAreaH = H * 0.68 - gStartY;
+      const gap = 6;
 
-      // Draw empty gold boxes
-      for (let r = 0; r < rows; r++) {
-        for (let c = 0; c < cols; c++) {
-          const x = gStartX + c*(cellSize+gap);
-          const y = gStartY + r*(cellSize+gap);
+      // Only the slots that actually have photos
+      const insidePhotos = gallerySlots.slice(0, INSIDE_SLOTS).filter(Boolean);
+      const photoCount   = insidePhotos.length;
+
+      if (photoCount > 0) {
+        const cols = photoCount === 1 ? 1 : 2;
+        const rows = Math.ceil(photoCount / cols);
+        const cellSize = Math.min(
+          (leftW    - (cols - 1) * gap) / cols,
+          (photoAreaH - (rows - 1) * gap) / rows
+        );
+
+        insidePhotos.forEach((item, idx) => {
+          const col = idx % cols;
+          const row = Math.floor(idx / cols);
+          // Centre the last row if it has fewer than cols photos
+          const photosInRow = Math.min(cols, photoCount - row * cols);
+          const rowW = photosInRow * cellSize + (photosInRow - 1) * gap;
+          const offsetX = (leftW - rowW) / 2;
+          const x = gStartX + offsetX + col * (cellSize + gap);
+          const y = gStartY + row * (cellSize + gap);
           const rad = 6;
-          ctx.strokeStyle = '#c8a96e';
-          ctx.lineWidth = 1.5;
-          ctx.fillStyle = 'rgba(255,255,255,0.35)';
-          ctx.beginPath();
-          ctx.moveTo(x+rad,y); ctx.lineTo(x+cellSize-rad,y); ctx.quadraticCurveTo(x+cellSize,y,x+cellSize,y+rad);
-          ctx.lineTo(x+cellSize,y+cellSize-rad); ctx.quadraticCurveTo(x+cellSize,y+cellSize,x+cellSize-rad,y+cellSize);
-          ctx.lineTo(x+rad,y+cellSize); ctx.quadraticCurveTo(x,y+cellSize,x,y+cellSize-rad);
-          ctx.lineTo(x,y+rad); ctx.quadraticCurveTo(x,y,x+rad,y); ctx.closePath();
-          ctx.fill(); ctx.stroke();
-        }
+
+          function rrPath() {
+            ctx.beginPath();
+            ctx.moveTo(x+rad,y); ctx.lineTo(x+cellSize-rad,y); ctx.quadraticCurveTo(x+cellSize,y,x+cellSize,y+rad);
+            ctx.lineTo(x+cellSize,y+cellSize-rad); ctx.quadraticCurveTo(x+cellSize,y+cellSize,x+cellSize-rad,y+cellSize);
+            ctx.lineTo(x+rad,y+cellSize); ctx.quadraticCurveTo(x,y+cellSize,x,y+cellSize-rad);
+            ctx.lineTo(x,y+rad); ctx.quadraticCurveTo(x,y,x+rad,y); ctx.closePath();
+          }
+
+          if (photoImgCache[item.dataURL]) {
+            ctx.save(); rrPath(); ctx.clip();
+            const img = photoImgCache[item.dataURL];
+            const ir = img.width / img.height;
+            let sx, sy, sw, sh;
+            if (ir > 1) { sh = img.height; sw = sh; sx = (img.width-sw)/2; sy = 0; }
+            else        { sw = img.width;  sh = sw; sx = 0; sy = (img.height-sh)/2; }
+            ctx.drawImage(img, sx, sy, sw, sh, x, y, cellSize, cellSize);
+            ctx.restore();
+          } else {
+            // Draw placeholder while image loads
+            ctx.save(); rrPath();
+            ctx.fillStyle = 'rgba(255,255,255,0.35)';
+            ctx.strokeStyle = '#c8a96e'; ctx.lineWidth = 1.5;
+            ctx.fill(); ctx.stroke(); ctx.restore();
+            const img2 = new Image();
+            img2.onload = () => { photoImgCache[item.dataURL] = img2; schedulePreview(); };
+            img2.src = item.dataURL;
+          }
+        });
       }
-
-      // Draw gallery photos (slots 0–9)
-      gallerySlots.slice(0, INSIDE_SLOTS).forEach((item, i) => {
-        if (!item) return;
-        const c = i % cols, r = Math.floor(i / cols);
-        if (r >= rows) return;
-        const x = gStartX + c*(cellSize+gap);
-        const y = gStartY + r*(cellSize+gap);
-        if (photoImgCache[item.dataURL]) {
-          ctx.save(); ctx.beginPath();
-          const rad = 6;
-          ctx.moveTo(x+rad,y); ctx.lineTo(x+cellSize-rad,y); ctx.quadraticCurveTo(x+cellSize,y,x+cellSize,y+rad);
-          ctx.lineTo(x+cellSize,y+cellSize-rad); ctx.quadraticCurveTo(x+cellSize,y+cellSize,x+cellSize-rad,y+cellSize);
-          ctx.lineTo(x+rad,y+cellSize); ctx.quadraticCurveTo(x,y+cellSize,x,y+cellSize-rad);
-          ctx.lineTo(x,y+rad); ctx.quadraticCurveTo(x,y,x+rad,y); ctx.closePath();
-          ctx.clip();
-          const img = photoImgCache[item.dataURL];
-          const ir = img.width/img.height;
-          let sx,sy,sw,sh;
-          if(ir>1){sh=img.height;sw=sh;sx=(img.width-sw)/2;sy=0;}
-          else{sw=img.width;sh=sw;sx=0;sy=(img.height-sh)/2;}
-          ctx.drawImage(img,sx,sy,sw,sh,x,y,cellSize,cellSize);
-          ctx.restore();
-        } else {
-          const img2 = new Image();
-          img2.onload = () => { photoImgCache[item.dataURL] = img2; schedulePreview(); };
-          img2.src = item.dataURL;
-        }
-      });
 
       // ── Bottom: Final Rites Entrusted To (left 55% only — clear of MEMORY text) ──
       const finalRites = getVal('finalRites');
