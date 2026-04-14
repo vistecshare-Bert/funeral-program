@@ -1050,7 +1050,7 @@
     }
     if (templateThumbImgCache[thumbURL]) { render(templateThumbImgCache[thumbURL]); return; }
     const img = new Image();
-    img.onload = () => { templateThumbImgCache[thumbURL] = img; render(img); cb && cb(); };
+    img.onload = () => { templateThumbImgCache[thumbURL] = img; render(img); };
     img.src = thumbURL;
   }
 
