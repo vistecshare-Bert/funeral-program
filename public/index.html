@@ -1182,54 +1182,64 @@
       selectedTemplateName.toLowerCase().includes('black trifold');
 
     if (isBlackTrifold) {
-      const lx  = W * 0.25;   // centre of left text column
-      const lw  = W * 0.46;   // max text width in left column
+      const lx = W * 0.25;   // centre of left text column
+      const lw = W * 0.46;   // max text width in left column
 
-      // Name — below "In loving memory of" in template
-      if (hasName) {
-        const sizeKey  = getRadio('nameFontSize')   || 'medium';
-        const sizeMap  = { small: 0.052, medium: 0.068, large: 0.086 };
+      // ── Name: first name / last name on separate lines ─────────────
+      const firstName = getVal('firstName');
+      const lastName  = getVal('lastName');
+      if (firstName || lastName) {
+        const sizeKey   = getRadio('nameFontSize')   || 'medium';
+        const sizeMap   = { small: 0.052, medium: 0.068, large: 0.086 };
         const weightKey = getRadio('nameFontWeight') || 'bold';
         const weightMap = { normal: '400', bold: '700', extrabold: '900' };
         const fontWeight = weightMap[weightKey] || '700';
         const isCursive  = getRadio('fontFamily') === 'cursive';
         const nameFont   = isCursive ? "'Dancing Script','Great Vibes',cursive" : font;
-        const ns = fitFontSize(name, nameFont, lw, Math.round(W*(sizeMap[sizeKey]||0.068)), Math.round(W*0.030));
+        const maxPx      = Math.round(W * (sizeMap[sizeKey] || 0.068));
+        const minPx      = Math.round(W * 0.030);
+        const ns         = fitFontSize(firstName || lastName, nameFont, lw, maxPx, minPx);
+        const lineH      = ns * 1.15;
+
         ctx.textAlign = 'center';
         ctx.font      = `${isCursive ? '' : fontWeight + ' '}${ns}px ${nameFont}`;
         ctx.fillStyle = '#ffffff';
-        ctx.fillText(name, lx, H * 0.46, lw);
-
-        if (hasDates) {
-          const dateSizeKey  = getRadio('dateFontSize')  || 'small';
-          const dateStyleKey = getRadio('dateFontStyle') || 'italic';
-          const dateFamilyKey = getRadio('dateFontFamily') || 'serif';
-          const dateFontMap  = {
-            serif: 'Georgia, serif', sans: 'Arial, sans-serif',
-            garamond: "'Garamond','Book Antiqua',Georgia,serif",
-            palatino: "'Palatino Linotype','Palatino',Georgia,serif",
-            trebuchet: "'Trebuchet MS',Arial,sans-serif",
-            century: "'Century Gothic','Futura',Arial,sans-serif"
-          };
-          const dateFont  = dateFontMap[dateFamilyKey] || 'Georgia, serif';
-          const dateSizeMap = { small: 0.034, medium: 0.044, large: 0.055 };
-          const datePx    = Math.round(W * (dateSizeMap[dateSizeKey] || 0.034));
-          const dateStyle = dateStyleKey === 'italic' ? 'italic ' : dateStyleKey === 'bold' ? 'bold ' : dateStyleKey === 'bolditalic' ? 'bold italic ' : dateStyleKey === 'light' ? '300 ' : '';
-          ctx.font      = `${dateStyle}${datePx}px ${dateFont}`;
-          ctx.fillStyle = '#dddddd';
-          ctx.fillText(dates, lx, H * 0.46 + ns * 0.6 + datePx, lw);
-        }
+        let nameY = H * 0.44;
+        if (firstName) { ctx.fillText(firstName, lx, nameY, lw); nameY += lineH; }
+        if (lastName)  { ctx.fillText(lastName,  lx, nameY, lw); }
       }
 
-      // Dates + service info at bottom (below gold line ~79%)
-      const svcDate     = getVal('serviceDate');
-      const svcTime     = getVal('serviceTime');
-      const svcLocation = getVal('serviceLocation');
+      // ── Dates: inside the yellow lines, white, full width centre ───
+      if (hasDates) {
+        const dateSizeKey   = getRadio('dateFontSize')   || 'small';
+        const dateStyleKey  = getRadio('dateFontStyle')  || 'italic';
+        const dateFamilyKey = getRadio('dateFontFamily') || 'serif';
+        const dateFontMap   = {
+          serif: 'Georgia, serif', sans: 'Arial, sans-serif',
+          garamond: "'Garamond','Book Antiqua',Georgia,serif",
+          palatino: "'Palatino Linotype','Palatino',Georgia,serif",
+          trebuchet: "'Trebuchet MS',Arial,sans-serif",
+          century: "'Century Gothic','Futura',Arial,sans-serif"
+        };
+        const dateFont    = dateFontMap[dateFamilyKey] || 'Georgia, serif';
+        const dateSizeMap = { small: 0.034, medium: 0.044, large: 0.055 };
+        const datePx      = Math.round(W * (dateSizeMap[dateSizeKey] || 0.034));
+        const dateStyle   = dateStyleKey === 'italic' ? 'italic ' : dateStyleKey === 'bold' ? 'bold ' : dateStyleKey === 'bolditalic' ? 'bold italic ' : dateStyleKey === 'light' ? '300 ' : '';
+        ctx.textAlign = 'center';
+        ctx.font      = `${dateStyle}${datePx}px ${dateFont}`;
+        ctx.fillStyle = '#ffffff';
+        ctx.fillText(dates, W / 2, H * 0.795, W * 0.92);
+      }
+
+      // ── Service info: 30px higher than before ──────────────────────
+      const svcDate      = getVal('serviceDate');
+      const svcTime      = getVal('serviceTime');
+      const svcLocation  = getVal('serviceLocation');
       const svcOfficiant = getVal('officiant');
       if (svcDate || svcTime || svcLocation || svcOfficiant) {
-        const svcPx  = Math.round(W * 0.034);
-        const gap    = svcPx * 1.3;
-        let   svcY   = H * 0.815;
+        const svcPx = Math.round(W * 0.034);
+        const gap   = svcPx * 1.3;
+        let   svcY  = H * 0.815 - 30;
         ctx.textAlign = 'center';
         if (svcDate || svcTime) {
           const dtLine = [fmtDate(svcDate), svcTime].filter(Boolean).join(' at ');
