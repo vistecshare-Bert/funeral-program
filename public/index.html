@@ -1358,31 +1358,15 @@
   // ── BACK PANEL ───────────────────────────────────────────────────
   function drawBackPanel(W, H, font, onDone) {
     const finish = () => {
-      const gap    = 4;
-      const padX   = W * 0.04 + 30;
-      const padY   = H * 0.02 + 30;
-      const gridW  = W - padX * 2;
-      const gridH  = H * 0.92 - padY;
-      const numCols = 3, numRows = 8;
-      const baseW  = (gridW - gap * (numCols - 1)) / numCols;
-      const baseH  = (gridH - gap * (numRows - 1)) / numRows;
+      const gap  = 4;
+      const padX = W * 0.04 + 30;
+      const padY = H * 0.02 + 30;
+      const gridW = W - padX * 2;
+      const gridH = H * 0.94 - padY - 30; // leave room for footer
 
-      // Mosaic layout: {c=col, r=row, cw=colSpan, rh=rowSpan}
-      const mosaic = [
-        // Row 0: 3 uniform
-        {c:0,r:0,cw:1,rh:1},{c:1,r:0,cw:1,rh:1},{c:2,r:0,cw:1,rh:1},
-        // Rows 1-2: 2+2 left, 1 tall right
-        {c:0,r:1,cw:1,rh:1},{c:1,r:1,cw:1,rh:1},{c:2,r:1,cw:1,rh:2},
-        {c:0,r:2,cw:1,rh:1},{c:1,r:2,cw:1,rh:1},
-        // Row 3: 1 wide (2-col) + 1
-        {c:0,r:3,cw:2,rh:1},{c:2,r:3,cw:1,rh:1},
-        // Row 4: 3 uniform
-        {c:0,r:4,cw:1,rh:1},{c:1,r:4,cw:1,rh:1},{c:2,r:4,cw:1,rh:1},
-        // Rows 5-6: 1 large (2×2) + 2 stacked right
-        {c:0,r:5,cw:2,rh:2},{c:2,r:5,cw:1,rh:1},{c:2,r:6,cw:1,rh:1},
-        // Row 7: 3 uniform
-        {c:0,r:7,cw:1,rh:1},{c:1,r:7,cw:1,rh:1},{c:2,r:7,cw:1,rh:1},
-      ];
+      // Only slots that have photos
+      const backPhotos = gallerySlots.slice(INSIDE_SLOTS).filter(Boolean);
+      const backCount  = backPhotos.length;
 
       function rndPath(x, y, w, h, rad) {
         ctx.beginPath();
@@ -1394,42 +1378,44 @@
         ctx.closePath();
       }
 
-      mosaic.forEach((cell, i) => {
-        const x = padX + cell.c * (baseW + gap);
-        const y = padY + cell.r * (baseH + gap);
-        const w = cell.cw * baseW + (cell.cw - 1) * gap;
-        const h = cell.rh * baseH + (cell.rh - 1) * gap;
-        const rad = 6;
+      if (backCount > 0) {
+        // Choose cols based on count, rows stretch to fill height
+        const cols  = backCount <= 1 ? 1 : backCount <= 4 ? 2 : 3;
+        const rows  = Math.ceil(backCount / cols);
+        const cellW = (gridW - (cols - 1) * gap) / cols;
+        const cellH = (gridH - (rows - 1) * gap) / rows;
 
-        // Draw background box
-        ctx.save();
-        rndPath(x, y, w, h, rad);
-        ctx.fillStyle = 'rgba(255,255,255,0.35)';
-        ctx.strokeStyle = '#c8a96e';
-        ctx.lineWidth = 1.5;
-        ctx.fill(); ctx.stroke();
-        ctx.restore();
+        backPhotos.forEach((item, idx) => {
+          const col = idx % cols;
+          const row = Math.floor(idx / cols);
+          // Centre last row if partial
+          const photosInRow = Math.min(cols, backCount - row * cols);
+          const rowW    = photosInRow * cellW + (photosInRow - 1) * gap;
+          const offsetX = (gridW - rowW) / 2;
+          const x = padX + offsetX + col * (cellW + gap);
+          const y = padY + row * (cellH + gap);
+          const rad = 6;
 
-        // Draw photo if present
-        const item = gallerySlots[INSIDE_SLOTS + i];
-        if (!item) return;
-        if (photoImgCache[item.dataURL]) {
-          ctx.save();
-          rndPath(x, y, w, h, rad);
-          ctx.clip();
-          const img = photoImgCache[item.dataURL];
-          const ir = img.width / img.height, cr = w / h;
-          let sx, sy, sw, sh;
-          if (ir > cr) { sh = img.height; sw = sh * cr; sx = (img.width - sw) / 2; sy = 0; }
-          else         { sw = img.width;  sh = sw / cr; sx = 0; sy = (img.height - sh) / 2; }
-          ctx.drawImage(img, sx, sy, sw, sh, x, y, w, h);
-          ctx.restore();
-        } else {
-          const img2 = new Image();
-          img2.onload = () => { photoImgCache[item.dataURL] = img2; schedulePreview(); };
-          img2.src = item.dataURL;
-        }
-      });
+          if (photoImgCache[item.dataURL]) {
+            ctx.save(); rndPath(x, y, cellW, cellH, rad); ctx.clip();
+            const img = photoImgCache[item.dataURL];
+            const ir = img.width / img.height, cr = cellW / cellH;
+            let sx, sy, sw, sh;
+            if (ir > cr) { sh = img.height; sw = sh * cr; sx = (img.width-sw)/2; sy = 0; }
+            else         { sw = img.width;  sh = sw / cr; sx = 0; sy = (img.height-sh)/2; }
+            ctx.drawImage(img, sx, sy, sw, sh, x, y, cellW, cellH);
+            ctx.restore();
+          } else {
+            ctx.save(); rndPath(x, y, cellW, cellH, rad);
+            ctx.fillStyle = 'rgba(255,255,255,0.35)';
+            ctx.strokeStyle = '#c8a96e'; ctx.lineWidth = 1.5;
+            ctx.fill(); ctx.stroke(); ctx.restore();
+            const img2 = new Image();
+            img2.onload = () => { photoImgCache[item.dataURL] = img2; schedulePreview(); };
+            img2.src = item.dataURL;
+          }
+        });
+      }
 
       ctx.fillStyle = '#f0f0f0';
       ctx.fillRect(0, H*0.96, W, H*0.04);
