@@ -1099,15 +1099,17 @@
       if (isBlackTrifold) {
         // ── Rectangular portrait zone for Black Trifold ──────────────
         // Position matches the grey box in the template (right-centre area)
-        const rx = W * 0.44, ry = H * 0.20, rw = W * 0.50, rh = H * 0.55;
-        const rad = 10;
+        const rx = W * 0.46, ry = H * 0.18, rw = W * 0.48, rh = H * 0.58;
+        const rad = 14;
 
         if (portraitDataURL) {
           const placeRectPortrait = (img) => {
-            // Clip strictly to the box then draw
             ctx.save();
             ctx.beginPath();
-            ctx.rect(rx, ry, rw, rh);   // hard rectangular clip — no overflow
+            ctx.moveTo(rx+rad,ry); ctx.lineTo(rx+rw-rad,ry); ctx.quadraticCurveTo(rx+rw,ry,rx+rw,ry+rad);
+            ctx.lineTo(rx+rw,ry+rh-rad); ctx.quadraticCurveTo(rx+rw,ry+rh,rx+rw-rad,ry+rh);
+            ctx.lineTo(rx+rad,ry+rh); ctx.quadraticCurveTo(rx,ry+rh,rx,ry+rh-rad);
+            ctx.lineTo(rx,ry+rad); ctx.quadraticCurveTo(rx,ry,rx+rad,ry); ctx.closePath();
             ctx.clip();
             const ir = img.width / img.height, cr = rw / rh;
             let sx, sy, sw, sh;
