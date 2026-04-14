@@ -1263,43 +1263,41 @@
       const photoCount   = insidePhotos.length;
 
       if (photoCount > 0) {
-        const cols = photoCount === 1 ? 1 : 2;
-        const rows = Math.ceil(photoCount / cols);
-        const cellSize = Math.min(
-          (leftW    - (cols - 1) * gap) / cols,
-          (photoAreaH - (rows - 1) * gap) / rows
-        );
+        const cols   = photoCount === 1 ? 1 : 2;
+        const rows   = Math.ceil(photoCount / cols);
+        // Cells stretch to fill the full area — rectangular, not square
+        const cellW  = (leftW     - (cols - 1) * gap) / cols;
+        const cellH  = (photoAreaH - (rows - 1) * gap) / rows;
 
         insidePhotos.forEach((item, idx) => {
           const col = idx % cols;
           const row = Math.floor(idx / cols);
-          // Centre the last row if it has fewer than cols photos
+          // Centre last row if it has fewer photos than cols
           const photosInRow = Math.min(cols, photoCount - row * cols);
-          const rowW = photosInRow * cellSize + (photosInRow - 1) * gap;
+          const rowW    = photosInRow * cellW + (photosInRow - 1) * gap;
           const offsetX = (leftW - rowW) / 2;
-          const x = gStartX + offsetX + col * (cellSize + gap);
-          const y = gStartY + row * (cellSize + gap);
+          const x = gStartX + offsetX + col * (cellW + gap);
+          const y = gStartY + row * (cellH + gap);
           const rad = 6;
 
           function rrPath() {
             ctx.beginPath();
-            ctx.moveTo(x+rad,y); ctx.lineTo(x+cellSize-rad,y); ctx.quadraticCurveTo(x+cellSize,y,x+cellSize,y+rad);
-            ctx.lineTo(x+cellSize,y+cellSize-rad); ctx.quadraticCurveTo(x+cellSize,y+cellSize,x+cellSize-rad,y+cellSize);
-            ctx.lineTo(x+rad,y+cellSize); ctx.quadraticCurveTo(x,y+cellSize,x,y+cellSize-rad);
+            ctx.moveTo(x+rad,y); ctx.lineTo(x+cellW-rad,y); ctx.quadraticCurveTo(x+cellW,y,x+cellW,y+rad);
+            ctx.lineTo(x+cellW,y+cellH-rad); ctx.quadraticCurveTo(x+cellW,y+cellH,x+cellW-rad,y+cellH);
+            ctx.lineTo(x+rad,y+cellH); ctx.quadraticCurveTo(x,y+cellH,x,y+cellH-rad);
             ctx.lineTo(x,y+rad); ctx.quadraticCurveTo(x,y,x+rad,y); ctx.closePath();
           }
 
           if (photoImgCache[item.dataURL]) {
             ctx.save(); rrPath(); ctx.clip();
             const img = photoImgCache[item.dataURL];
-            const ir = img.width / img.height;
+            const ir = img.width / img.height, cr = cellW / cellH;
             let sx, sy, sw, sh;
-            if (ir > 1) { sh = img.height; sw = sh; sx = (img.width-sw)/2; sy = 0; }
-            else        { sw = img.width;  sh = sw; sx = 0; sy = (img.height-sh)/2; }
-            ctx.drawImage(img, sx, sy, sw, sh, x, y, cellSize, cellSize);
+            if (ir > cr) { sh = img.height; sw = sh * cr; sx = (img.width-sw)/2; sy = 0; }
+            else         { sw = img.width;  sh = sw / cr; sx = 0; sy = (img.height-sh)/2; }
+            ctx.drawImage(img, sx, sy, sw, sh, x, y, cellW, cellH);
             ctx.restore();
           } else {
-            // Draw placeholder while image loads
             ctx.save(); rrPath();
             ctx.fillStyle = 'rgba(255,255,255,0.35)';
             ctx.strokeStyle = '#c8a96e'; ctx.lineWidth = 1.5;
