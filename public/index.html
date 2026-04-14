@@ -1204,8 +1204,8 @@
         ctx.textAlign = 'center';
         ctx.font      = `${isCursive ? '' : fontWeight + ' '}${ns}px ${nameFont}`;
         ctx.fillStyle = '#ffffff';
-        let nameY = H * 0.44 - 100;   // 100px closer to "In loving memory of"
-        if (firstName) { ctx.fillText(firstName, lx, nameY, lw); nameY += lineH + 50; }
+        let nameY = H * 0.44 - 100 + 100;   // top padding adjusted
+        if (firstName) { ctx.fillText(firstName, lx, nameY, lw); nameY += lineH + 60; }
         if (lastName)  { ctx.fillText(lastName,  lx, nameY, lw); }
       }
 
@@ -1228,7 +1228,7 @@
         ctx.textAlign = 'center';
         ctx.font      = `${dateStyle}${datePx}px ${dateFont}`;
         ctx.fillStyle = '#ffffff';
-        ctx.fillText(dates, W / 2, H * 0.803 - 100, W * 0.92);  // centred between 2 gold lines
+        ctx.fillText(dates, W / 2, H * 0.803 - 100 + 30, W * 0.92);  // centred between 2 gold lines
       }
 
       // ── Service info: 30px higher than before ──────────────────────
