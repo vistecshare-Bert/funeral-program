@@ -1461,27 +1461,27 @@
       ctx.lineWidth = 1;
       ctx.beginPath(); ctx.moveTo(leftPad, infoY+H*0.015); ctx.lineTo(leftPad+maxW, infoY+H*0.015); ctx.stroke();
 
-      if (finalRites) {
-        const lines = finalRites.split('\n').filter(l => l.trim());
-        const lhPx  = Math.round(W * 0.028);
-        const gap   = lhPx * 1.45;
-        let   fy    = infoY + H * 0.042;
-        ctx.textAlign = 'center';
-        lines.forEach((line, i) => {
-          if (fy > H - 20) return;
-          ctx.font      = i === 0 ? `bold ${lhPx}px Arial` : `${Math.round(lhPx*0.90)}px Arial`;
-          ctx.fillStyle = isInsideBlackTrifold
-            ? (i === 0 ? '#ffffff' : '#dddddd')
-            : (i === 0 ? '#111111' : '#444444');
-          ctx.fillText(line.trim(), centerX, fy, maxW);
-          fy += gap;
-        });
-      } else {
-        ctx.font      = `italic ${Math.round(W*0.026)}px Arial`;
-        ctx.fillStyle = isInsideBlackTrifold ? 'rgba(255,255,255,0.5)' : '#aaaaaa';
-        ctx.textAlign = 'center';
-        ctx.fillText('Enter funeral home info in the form', centerX, infoY + H*0.048, maxW);
-      }
+      // Use actual content or fall back to placeholder text
+      const finalRitesPlaceholder = 'Long & Son Mortuary Service, Inc.\n2312 Beatties Ford Road\nCharlotte, NC 28216\nTelephone: 704.394.1111  Fax: 704.394.1316';
+      const finalRitesText = finalRites || finalRitesPlaceholder;
+      const isPlaceholder  = !finalRites;
+
+      const lines = finalRitesText.split('\n').filter(l => l.trim());
+      const lhPx  = Math.round(W * 0.028);
+      const gap   = lhPx * 1.45;
+      let   fy    = infoY + H * 0.042;
+      ctx.textAlign = 'center';
+      lines.forEach((line, i) => {
+        if (fy > H - 20) return;
+        ctx.font = i === 0 ? `bold ${lhPx}px Arial` : `${Math.round(lhPx*0.90)}px Arial`;
+        if (isInsideBlackTrifold) {
+          ctx.fillStyle = isPlaceholder ? 'rgba(255,255,255,0.45)' : (i === 0 ? '#ffffff' : '#dddddd');
+        } else {
+          ctx.fillStyle = isPlaceholder ? 'rgba(0,0,0,0.35)' : (i === 0 ? '#111111' : '#444444');
+        }
+        ctx.fillText(line.trim(), centerX, fy, maxW);
+        fy += gap;
+      });
       onDone && onDone();
     };
 
