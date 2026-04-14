@@ -1253,9 +1253,9 @@
     const finish = () => {
       // ── Top: Dynamic photo grid (slots 0–9) — left portion only ──
       const gStartX  = W * 0.08;
-      const leftW    = W * 0.46;
+      const leftW    = W * 0.46 + 50;              // 50px wider to the right
       const gStartY  = 60;
-      const photoAreaH = H * 0.73 - gStartY - 15;  // fills to just above Final Rites
+      const photoAreaH = H * 0.73 - gStartY - 35;  // 20px extra gap above Final Rites
       const gap = 6;
 
       // Only the slots that actually have photos
