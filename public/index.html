@@ -1129,6 +1129,7 @@
   let previewTimer = null;
   let photoImgCache = {};
   let selectedTemplateThumb  = null;
+  let step2Active            = false;
   let selectedTemplatePanels = null;
   let selectedTemplateName   = null;
   let templateThumbImgCache  = {};
@@ -1162,8 +1163,8 @@
     const fullName   = [firstName, lastName].filter(Boolean).join(' ') || 'Full Name';
     const dates      = (dob || dod) ? `${dob || '?'} — ${dod || '?'}` : 'Date of Birth — Date of Death';
 
-    // Pick correct panel thumbnail
-    if (selectedTemplatePanels) {
+    // Pick correct panel thumbnail (Step 2 always uses plain white)
+    if (!step2Active && selectedTemplatePanels) {
       const panelKey = activePanel === 'cover' ? 'front' : activePanel === 'inside' ? 'inside' : 'back';
       selectedTemplateThumb = selectedTemplatePanels[panelKey] || null;
     } else {
@@ -1884,6 +1885,7 @@
   const step2Tabs = document.getElementById('step2Tabs');
 
   function showStep1() {
+    step2Active = false;
     step1El.style.display = 'block';
     step2El.style.display = 'none';
     step1Tabs.style.display = 'block';
@@ -1892,10 +1894,12 @@
     bubble1.textContent = '1';
     bubble2.className = 'step-bubble pending';
     stepLine.className = 'step-line';
+    schedulePreview();
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   function showStep2() {
+    step2Active = true;
     step1El.style.display = 'none';
     step2El.style.display = 'block';
     step1Tabs.style.display = 'none';
