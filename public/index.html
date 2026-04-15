@@ -710,6 +710,37 @@
     <!-- ── STEP 2 ── -->
     <div id="step2" style="display:none;">
 
+      <!-- Heading style controls -->
+      <div class="card" style="margin-bottom:16px;">
+        <div class="card-header">Heading Style</div>
+        <div class="card-body" style="display:flex;gap:24px;flex-wrap:wrap;align-items:flex-end;">
+          <div class="field">
+            <label>Font Size</label>
+            <div class="radio-group">
+              <label class="radio-option"><input type="radio" name="headingSize" value="small"> Small</label>
+              <label class="radio-option selected"><input type="radio" name="headingSize" value="medium" checked> Medium</label>
+              <label class="radio-option"><input type="radio" name="headingSize" value="large"> Large</label>
+            </div>
+          </div>
+          <div class="field">
+            <label>Font Style</label>
+            <div class="radio-group">
+              <label class="radio-option selected"><input type="radio" name="headingStyle" value="bold" checked> Bold</label>
+              <label class="radio-option"><input type="radio" name="headingStyle" value="normal"> Normal</label>
+              <label class="radio-option"><input type="radio" name="headingStyle" value="italic"> Italic</label>
+              <label class="radio-option"><input type="radio" name="headingStyle" value="bolditalic"> Bold Italic</label>
+            </div>
+          </div>
+          <div class="field">
+            <label>Font Family</label>
+            <div class="radio-group">
+              <label class="radio-option selected"><input type="radio" name="headingFont" value="serif" checked> Serif</label>
+              <label class="radio-option"><input type="radio" name="headingFont" value="sans"> Sans</label>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div class="step2-grid">
 
         <!-- Left: Celebration of Life + Acknowledgements -->
@@ -1190,13 +1221,29 @@
     let   y     = H * 0.06;
 
     function drawSectionHeader(label) {
+      // Read heading style controls
+      const sizeMap  = { small: 0.038, medium: 0.050, large: 0.065 };
+      const sizeKey  = (document.querySelector('input[name="headingSize"]:checked') || {}).value || 'medium';
+      const styleKey = (document.querySelector('input[name="headingStyle"]:checked') || {}).value || 'bold';
+      const fontKey  = (document.querySelector('input[name="headingFont"]:checked') || {}).value || 'serif';
+      const hPx      = Math.round(W * (sizeMap[sizeKey] || 0.050));
+      const hWeight  = (styleKey === 'bold' || styleKey === 'bolditalic') ? '700' : '400';
+      const hItalic  = (styleKey === 'italic' || styleKey === 'bolditalic') ? 'italic ' : '';
+      const hFamily  = fontKey === 'sans' ? 'Arial, sans-serif' : 'Georgia, serif';
+
       ctx.fillStyle = '#1a2744';
-      ctx.fillRect(pad, y, maxW, Math.round(W * 0.072));
-      ctx.fillStyle = '#ffffff';
-      ctx.font = `700 ${Math.round(W * 0.034)}px Arial, sans-serif`;
-      ctx.textAlign = 'center';
-      ctx.fillText(label.toUpperCase(), W / 2, y + Math.round(W * 0.050), maxW);
-      y += Math.round(W * 0.072) + Math.round(H * 0.018);
+      ctx.font = `${hItalic}${hWeight} ${hPx}px ${hFamily}`;
+      ctx.textAlign = 'left';
+      ctx.fillText(label, pad, y, maxW);
+      y += hPx * 0.3;
+
+      // Gold underline
+      ctx.strokeStyle = '#c8a96e';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(pad, y + 4); ctx.lineTo(pad + maxW, y + 4);
+      ctx.stroke();
+      y += hPx * 0.8 + Math.round(H * 0.015);
     }
 
     function drawGoldLine() {
@@ -2071,6 +2118,11 @@
   document.getElementById('additionalMessage').addEventListener('input', () => { if (step2Active) schedulePreview(); });
   document.getElementById('acknowledgements').addEventListener('input', () => { if (step2Active) schedulePreview(); });
   document.getElementById('serviceOrderList').addEventListener('input', () => { if (step2Active) schedulePreview(); });
+
+  // Refresh when heading style options change
+  document.querySelectorAll('input[name="headingSize"], input[name="headingStyle"], input[name="headingFont"]').forEach(el => {
+    el.addEventListener('change', () => { if (step2Active) schedulePreview(); });
+  });
 
   // ── Form submit ──────────────────────────────────────────────────────
   const form      = document.getElementById('programForm');
