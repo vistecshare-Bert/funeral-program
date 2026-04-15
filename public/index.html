@@ -285,14 +285,83 @@
     .frame-option img { width: 56px; height: 56px; object-fit: contain; margin-bottom: 3px; display: block; margin: 0 auto 4px; }
     .frame-option input { display: none; }
 
+    /* Step indicator */
+    .step-indicator {
+      display: flex; align-items: center; gap: 0; margin-bottom: 22px;
+    }
+    .step-bubble {
+      width: 32px; height: 32px; border-radius: 50%; display: flex;
+      align-items: center; justify-content: center; font-size: 13px;
+      font-weight: 700; flex-shrink: 0;
+    }
+    .step-bubble.done    { background: var(--gold);  color: var(--navy); }
+    .step-bubble.active  { background: var(--navy);  color: #fff; }
+    .step-bubble.pending { background: #e5e0d8; color: var(--muted); }
+    .step-label {
+      font-size: 11px; font-weight: 600; text-transform: uppercase;
+      letter-spacing: 0.5px; color: var(--muted); margin-top: 3px; white-space: nowrap;
+    }
+    .step-item { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+    .step-line {
+      flex: 1; height: 2px; background: var(--border); margin: 0 8px; margin-bottom: 16px;
+    }
+    .step-line.done { background: var(--gold); }
+
+    /* Step 2 three-column layout */
+    .step2-grid {
+      display: grid;
+      grid-template-columns: 1fr 1.4fr 1fr;
+      gap: 16px;
+      align-items: start;
+    }
+    @media (max-width: 900px) { .step2-grid { grid-template-columns: 1fr; } }
+
+    /* Service order list */
+    .service-row {
+      display: grid; grid-template-columns: 1fr 1fr auto; gap: 6px;
+      align-items: center; margin-bottom: 6px;
+    }
+    .service-row input {
+      border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 6px 9px; font-size: 13px; color: var(--text);
+      background: var(--white); font-family: inherit; width: 100%;
+    }
+    .service-row input:focus { outline: none; border-color: var(--gold); }
+    .service-row input::placeholder { color: #bbb; }
+    .service-remove-btn {
+      background: none; border: none; color: var(--error);
+      cursor: pointer; font-size: 16px; padding: 0 3px; line-height: 1;
+    }
+    .add-service-btn {
+      background: none; border: 1.5px dashed var(--border); border-radius: var(--radius);
+      color: var(--muted); font-size: 12px; padding: 7px 12px; cursor: pointer;
+      width: 100%; margin-top: 4px; transition: border-color 0.15s, color 0.15s;
+    }
+    .add-service-btn:hover { border-color: var(--gold); color: var(--navy); }
+
     .submit-area { text-align: center; margin-top: 8px; }
-    #submitBtn {
+    #nextBtn {
       background: var(--navy); color: var(--white); border: none;
       border-radius: var(--radius); padding: 13px 44px; font-size: 15px;
       font-weight: 600; cursor: pointer; letter-spacing: 0.5px;
       transition: background 0.15s, transform 0.1s;
     }
-    #submitBtn:hover { background: #243660; transform: translateY(-1px); }
+    #nextBtn:hover { background: #243660; transform: translateY(-1px); }
+    #nextBtn:active { transform: translateY(0); }
+    #backBtn {
+      background: #fff; color: var(--navy); border: 2px solid var(--navy);
+      border-radius: var(--radius); padding: 13px 32px; font-size: 15px;
+      font-weight: 600; cursor: pointer; letter-spacing: 0.5px;
+      transition: background 0.15s;
+    }
+    #backBtn:hover { background: var(--cream); }
+    #submitBtn {
+      background: var(--gold); color: var(--navy); border: none;
+      border-radius: var(--radius); padding: 13px 44px; font-size: 15px;
+      font-weight: 600; cursor: pointer; letter-spacing: 0.5px;
+      transition: background 0.15s, transform 0.1s;
+    }
+    #submitBtn:hover { background: #b8945a; transform: translateY(-1px); }
     #submitBtn:active { transform: translateY(0); }
     #submitBtn:disabled { background: #9ca3af; cursor: not-allowed; transform: none; }
 
@@ -345,6 +414,22 @@
   <!-- ── FORM COLUMN ─────────────────────────────────────────── -->
   <div class="form-col">
   <form id="programForm" novalidate>
+
+    <!-- Step indicator -->
+    <div class="step-indicator" id="stepIndicator">
+      <div class="step-item">
+        <div class="step-bubble active" id="bubble1">1</div>
+        <div class="step-label">Program Details</div>
+      </div>
+      <div class="step-line" id="stepLine"></div>
+      <div class="step-item">
+        <div class="step-bubble pending" id="bubble2">2</div>
+        <div class="step-label">Content</div>
+      </div>
+    </div>
+
+    <!-- ── STEP 1 ── -->
+    <div id="step1">
 
     <div class="card">
       <div class="card-header">Template Selection</div>
@@ -617,8 +702,77 @@
     <input type="hidden" name="fold" value="trifold" />
 
     <div class="submit-area">
-      <button type="submit" id="submitBtn">Generate Program PDF</button>
+      <button type="button" id="nextBtn">Next →</button>
     </div>
+
+    </div><!-- end #step1 -->
+
+    <!-- ── STEP 2 ── -->
+    <div id="step2" style="display:none;">
+
+      <div class="step2-grid">
+
+        <!-- Left: Celebration of Life + Acknowledgements -->
+        <div>
+          <div class="card">
+            <div class="card-header">Celebration of Life</div>
+            <div class="card-body">
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-bottom:6px;">
+                <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;">Event / Program Item</div>
+                <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;">Person / Role</div>
+              </div>
+              <div id="serviceOrderList"></div>
+              <button type="button" class="add-service-btn" id="addServiceItemBtn">+ Add Item</button>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header">Acknowledgements</div>
+            <div class="card-body">
+              <div class="field">
+                <textarea id="acknowledgements" name="acknowledgements" rows="6"
+                  placeholder="The family would like to express their gratitude to everyone for all the expressions of sympathy, love and support shown during this period of bereavement…"></textarea>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Center: Obituary -->
+        <div>
+          <div class="card">
+            <div class="card-header">Obituary</div>
+            <div class="card-body">
+              <div class="field">
+                <textarea id="obituaryText" name="obituary" rows="30"
+                  placeholder="Write the full obituary here…&#10;&#10;[Name] was born on… She/He is survived by…"
+                  style="min-height:420px;"></textarea>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Additional Message -->
+        <div>
+          <div class="card">
+            <div class="card-header">Additional Message</div>
+            <div class="card-body">
+              <div class="field">
+                <textarea id="additionalMessage" name="additionalMessage" rows="20"
+                  placeholder="Continuation of obituary, scripture, poem, or any additional text for the right panel…"
+                  style="min-height:300px;"></textarea>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- end .step2-grid -->
+
+      <div class="submit-area" style="display:flex;gap:12px;justify-content:center;margin-top:20px;">
+        <button type="button" id="backBtn">← Back</button>
+        <button type="submit" id="submitBtn">Generate Program PDF</button>
+      </div>
+
+    </div><!-- end #step2 -->
+
     <div id="statusMsg"></div>
 
   </form>
@@ -1701,6 +1855,60 @@
 
   fullscreenModal.addEventListener('click', e => {
     if (e.target === fullscreenModal) fullscreenModal.style.display = 'none';
+  });
+
+  // ── Step navigation ──────────────────────────────────────────────────
+  const step1El   = document.getElementById('step1');
+  const step2El   = document.getElementById('step2');
+  const bubble1   = document.getElementById('bubble1');
+  const bubble2   = document.getElementById('bubble2');
+  const stepLine  = document.getElementById('stepLine');
+
+  document.getElementById('nextBtn').addEventListener('click', () => {
+    step1El.style.display = 'none';
+    step2El.style.display = 'block';
+    bubble1.className = 'step-bubble done';
+    bubble1.textContent = '✓';
+    bubble2.className = 'step-bubble active';
+    stepLine.className = 'step-line done';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+
+  document.getElementById('backBtn').addEventListener('click', () => {
+    step2El.style.display = 'none';
+    step1El.style.display = 'block';
+    bubble1.className = 'step-bubble active';
+    bubble1.textContent = '1';
+    bubble2.className = 'step-bubble pending';
+    stepLine.className = 'step-line';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+
+  // ── Celebration of Life order-of-service builder ─────────────────────
+  const serviceOrderList = document.getElementById('serviceOrderList');
+  const defaultItems = [
+    ['Prelude', ''], ['Processional', ''], ['Call to Worship', 'Minister'],
+    ['Hymn of Comfort', ''], ['Scripture', 'Minister'],
+    ['Prayer of Comfort', 'Minister'], ['Silent Reading of Obituary', ''],
+    ['Selection', ''], ['Eulogy', ''], ['Selection', ''], ['Recessional', '']
+  ];
+
+  function addServiceRow(event = '', person = '') {
+    const row = document.createElement('div');
+    row.className = 'service-row';
+    row.innerHTML = `
+      <input type="text" placeholder="e.g. Eulogy" value="${event.replace(/"/g,'&quot;')}" />
+      <input type="text" placeholder="e.g. Pastor James" value="${person.replace(/"/g,'&quot;')}" />
+      <button type="button" class="service-remove-btn" title="Remove">×</button>`;
+    row.querySelector('.service-remove-btn').addEventListener('click', () => row.remove());
+    serviceOrderList.appendChild(row);
+  }
+
+  defaultItems.forEach(([e, p]) => addServiceRow(e, p));
+
+  document.getElementById('addServiceItemBtn').addEventListener('click', () => {
+    addServiceRow();
+    serviceOrderList.lastElementChild?.querySelector('input')?.focus();
   });
 
   // ── Form submit ──────────────────────────────────────────────────────
