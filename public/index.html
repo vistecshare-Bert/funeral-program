@@ -1360,7 +1360,7 @@
         const dw = ir >= 1 ? imgW : imgH * ir;
         const dh = ir >= 1 ? imgW / ir : imgH;
         ctx.drawImage(prayingHandsImg, (W - dw) / 2, y, dw, dh);
-        y += dh + Math.round(H * 0.015);
+        y += dh + Math.round(H * 0.015) + 30;
       } else {
         y += Math.round(H * 0.015);
       }
