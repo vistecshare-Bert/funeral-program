@@ -1471,7 +1471,7 @@
 
       const lines = finalRitesText.split('\n').filter(l => l.trim());
       const lhPx  = Math.round(W * 0.028);
-      const gap   = lhPx * 1.45;
+      const lineGap = lhPx * 1.45;
       let   fy    = infoY + H * 0.042;
       ctx.textAlign = 'center';
       lines.forEach((line, i) => {
@@ -1483,7 +1483,7 @@
           ctx.fillStyle = isPlaceholder ? 'rgba(0,0,0,0.35)' : (i === 0 ? '#111111' : '#444444');
         }
         ctx.fillText(line.trim(), centerX, fy, maxW);
-        fy += gap;
+        fy += lineGap;
       });
       onDone && onDone();
     };
