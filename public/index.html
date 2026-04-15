@@ -1159,6 +1159,13 @@
   const ctx     = canvas.getContext('2d');
   let previewTimer = null;
   let photoImgCache = {};
+
+  // Preload praying hands image for step 2 left panel
+  let prayingHandsImg = null;
+  const _ph = new Image();
+  _ph.onload = () => { prayingHandsImg = _ph; if (step2Active) schedulePreview(); };
+  _ph.src = '/praying-hands.png';
+
   let selectedTemplateThumb  = null;
   let step2Active            = false;
   let selectedTemplatePanels = null;
@@ -1314,6 +1321,21 @@
 
       y += H * 0.02;
       drawGoldLine();
+
+      // Praying hands image above Acknowledgements
+      const imgH = Math.round(H * 0.14);
+      const imgW = imgH; // square crop
+      const imgX = (W - imgW) / 2;
+      if (prayingHandsImg) {
+        const ir = prayingHandsImg.width / prayingHandsImg.height;
+        const dw = ir >= 1 ? imgW : imgH * ir;
+        const dh = ir >= 1 ? imgW / ir : imgH;
+        ctx.drawImage(prayingHandsImg, (W - dw) / 2, y, dw, dh);
+        y += dh + Math.round(H * 0.015);
+      } else {
+        y += Math.round(H * 0.015);
+      }
+
       drawSectionHeader('Acknowledgements');
       const ackVal = document.getElementById('acknowledgements').value.trim();
       drawBodyText(ackVal || 'Acknowledgements will appear here…', Math.round(W * 0.030), ackVal ? '#333' : '#bbb', !ackVal);
