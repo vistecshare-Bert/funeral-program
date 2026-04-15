@@ -1163,8 +1163,15 @@
     const fullName   = [firstName, lastName].filter(Boolean).join(' ') || 'Full Name';
     const dates      = (dob || dod) ? `${dob || '?'} — ${dod || '?'}` : 'Date of Birth — Date of Death';
 
-    // Pick correct panel thumbnail (Step 2 always uses plain white)
-    if (!step2Active && selectedTemplatePanels) {
+    // Step 2: plain white canvas with content text only
+    if (step2Active) {
+      drawWhiteBg(W, H);
+      drawStep2Panel(W, H, fontFamily, activePanel);
+      return;
+    }
+
+    // Pick correct panel thumbnail
+    if (selectedTemplatePanels) {
       const panelKey = activePanel === 'cover' ? 'front' : activePanel === 'inside' ? 'inside' : 'back';
       selectedTemplateThumb = selectedTemplatePanels[panelKey] || null;
     } else {
@@ -1174,6 +1181,108 @@
     if (activePanel === 'cover') drawCoverPanel(W, H, fontFamily, fullName, dates);
     else if (activePanel === 'inside') drawInsidePanel(W, H, fontFamily);
     else if (activePanel === 'back') drawBackPanel(W, H, fontFamily);
+  }
+
+  // ── Step 2 panel renderer ─────────────────────────────────────────────
+  function drawStep2Panel(W, H, font, panel) {
+    const pad   = W * 0.07;
+    const maxW  = W - pad * 2;
+    let   y     = H * 0.06;
+
+    function drawSectionHeader(label) {
+      ctx.fillStyle = '#1a2744';
+      ctx.fillRect(pad, y, maxW, Math.round(W * 0.072));
+      ctx.fillStyle = '#ffffff';
+      ctx.font = `700 ${Math.round(W * 0.034)}px Arial, sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.fillText(label.toUpperCase(), W / 2, y + Math.round(W * 0.050), maxW);
+      y += Math.round(W * 0.072) + Math.round(H * 0.018);
+    }
+
+    function drawGoldLine() {
+      ctx.strokeStyle = '#c8a96e';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(pad, y); ctx.lineTo(pad + maxW, y);
+      ctx.stroke();
+      y += Math.round(H * 0.018);
+    }
+
+    function drawBodyText(text, size, color, italic) {
+      if (!text) return;
+      ctx.fillStyle = color || '#222222';
+      ctx.font = `${italic ? 'italic ' : ''}${size}px ${font}`;
+      ctx.textAlign = 'left';
+      const words = text.split(/\s+/);
+      let line = '';
+      const lh = size * 1.6;
+      for (const w of words) {
+        const test = line ? line + ' ' + w : w;
+        if (ctx.measureText(test).width > maxW) {
+          if (y + size > H - pad) return;
+          ctx.fillText(line, pad, y, maxW);
+          y += lh; line = w;
+        } else { line = test; }
+      }
+      if (line && y + size < H - pad) { ctx.fillText(line, pad, y, maxW); y += lh; }
+      y += size * 0.5;
+    }
+
+    if (panel === 'cover') {
+      // ── Left: Celebration of Life + Acknowledgements ──────────────
+      drawSectionHeader('Celebration of Life');
+      const rows = document.querySelectorAll('#serviceOrderList .service-row');
+      const itemSize = Math.round(W * 0.033);
+      ctx.font = `${itemSize}px Arial, sans-serif`;
+      const lh = itemSize * 1.75;
+      rows.forEach(row => {
+        const inputs = row.querySelectorAll('input');
+        const evt    = inputs[0]?.value.trim();
+        const person = inputs[1]?.value.trim();
+        if (!evt && !person) return;
+        if (y + itemSize > H - pad) return;
+        ctx.textAlign = 'left';
+        ctx.fillStyle = '#1a1a1a';
+        ctx.font = `600 ${itemSize}px Arial, sans-serif`;
+        ctx.fillText(evt || '', pad, y, maxW * 0.62);
+        if (person) {
+          ctx.textAlign = 'right';
+          ctx.fillStyle = '#555555';
+          ctx.font = `italic ${Math.round(itemSize * 0.92)}px Arial, sans-serif`;
+          ctx.fillText(person, pad + maxW, y, maxW * 0.55);
+        }
+        // dotted leader line
+        ctx.strokeStyle = '#cccccc';
+        ctx.lineWidth = 0.8;
+        ctx.setLineDash([2, 3]);
+        const evtW   = ctx.measureText(evt || '').width + 6;
+        ctx.beginPath();
+        ctx.moveTo(pad + evtW, y - itemSize * 0.25);
+        ctx.lineTo(pad + maxW - (person ? ctx.measureText(person).width + 6 : 0), y - itemSize * 0.25);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        y += lh;
+      });
+      if (rows.length === 0) { ctx.fillStyle = '#bbbbbb'; ctx.font = `italic ${itemSize}px Arial`; ctx.textAlign = 'left'; ctx.fillText('No items added yet', pad, y); y += lh; }
+
+      y += H * 0.02;
+      drawGoldLine();
+      drawSectionHeader('Acknowledgements');
+      const ackVal = document.getElementById('acknowledgements').value.trim();
+      drawBodyText(ackVal || 'Acknowledgements will appear here…', Math.round(W * 0.030), ackVal ? '#333' : '#bbb', !ackVal);
+
+    } else if (panel === 'inside') {
+      // ── Center: Obituary ──────────────────────────────────────────
+      drawSectionHeader('Obituary');
+      const obVal = document.getElementById('obituaryText').value.trim();
+      drawBodyText(obVal || 'Obituary text will appear here…', Math.round(W * 0.030), obVal ? '#222' : '#bbb', !obVal);
+
+    } else if (panel === 'back') {
+      // ── Right: Additional Message ─────────────────────────────────
+      drawSectionHeader('Additional Message');
+      const addVal = document.getElementById('additionalMessage').value.trim();
+      drawBodyText(addVal || 'Additional message will appear here…', Math.round(W * 0.030), addVal ? '#333' : '#bbb', !addVal);
+    }
   }
 
   // ── White background ──────────────────────────────────────────────
@@ -1954,7 +2063,14 @@
   document.getElementById('addServiceItemBtn').addEventListener('click', () => {
     addServiceRow();
     serviceOrderList.lastElementChild?.querySelector('input')?.focus();
+    if (step2Active) schedulePreview();
   });
+
+  // Refresh step 2 canvas as user types
+  document.getElementById('obituaryText').addEventListener('input', () => { if (step2Active) schedulePreview(); });
+  document.getElementById('additionalMessage').addEventListener('input', () => { if (step2Active) schedulePreview(); });
+  document.getElementById('acknowledgements').addEventListener('input', () => { if (step2Active) schedulePreview(); });
+  document.getElementById('serviceOrderList').addEventListener('input', () => { if (step2Active) schedulePreview(); });
 
   // ── Form submit ──────────────────────────────────────────────────────
   const form      = document.getElementById('programForm');
