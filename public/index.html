@@ -782,50 +782,30 @@
   <div class="preview-panel">
     <div class="preview-label">Live Preview</div>
 
-    <!-- Step 1 preview: canvas -->
-    <div id="step1Preview">
+    <!-- Step 1 tabs (Front Cover / Inside / Back Cover) — unchanged -->
+    <div id="step1Tabs">
       <div class="preview-tabs" id="previewTabs">
         <button class="preview-tab active" data-panel="cover">Front Cover</button>
         <button class="preview-tab" data-panel="inside">Inside</button>
         <button class="preview-tab" data-panel="back">Back Cover</button>
       </div>
-      <div class="canvas-wrap">
-        <canvas id="previewCanvas" width="640" height="1242"></canvas>
-      </div>
-      <div class="preview-hint">Updates as you fill in the form.<br/>Final PDF may differ slightly.</div>
-      <button type="button" id="fullscreenBtn" style="margin-top:8px;width:100%;padding:7px;background:#1a2740;color:#fff;border:none;border-radius:6px;font-size:13px;cursor:pointer;font-weight:600;">⛶ Full Screen Preview</button>
     </div>
 
-    <!-- Step 2 preview: content layout -->
-    <div id="step2Preview" style="display:none;">
-      <div class="preview-hint" style="margin-bottom:10px;">Content preview — updates as you type.</div>
-      <div id="contentPreviewPanel" style="
-        background:#fff;
-        border:1px solid var(--border);
-        border-radius:6px;
-        box-shadow:0 4px 20px rgba(0,0,0,0.12);
-        overflow:hidden;
-        font-family:Georgia,serif;
-      ">
-        <!-- Celebration of Life panel -->
-        <div style="background:var(--navy);color:#fff;padding:5px 8px;font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;text-align:center;">Celebration of Life</div>
-        <div id="pv_serviceList" style="padding:8px 10px;min-height:60px;font-size:9px;line-height:1.7;border-bottom:1px solid var(--border);"></div>
-        <div style="background:var(--navy);color:#fff;padding:5px 8px;font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;text-align:center;">Acknowledgements</div>
-        <div id="pv_ack" style="padding:8px 10px;font-size:8.5px;line-height:1.6;color:#333;min-height:40px;white-space:pre-wrap;"></div>
-
-        <div style="height:1px;background:var(--gold);margin:0 8px;"></div>
-
-        <!-- Obituary panel -->
-        <div style="background:var(--navy);color:#fff;padding:5px 8px;font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;text-align:center;margin-top:6px;">Obituary</div>
-        <div id="pv_obituary" style="padding:8px 10px;font-size:8.5px;line-height:1.65;color:#222;min-height:80px;white-space:pre-wrap;max-height:280px;overflow:hidden;"></div>
-
-        <div style="height:1px;background:var(--gold);margin:0 8px;"></div>
-
-        <!-- Additional message panel -->
-        <div style="background:var(--navy);color:#fff;padding:5px 8px;font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;text-align:center;margin-top:6px;">Additional Message</div>
-        <div id="pv_additional" style="padding:8px 10px;font-size:8.5px;line-height:1.65;color:#333;min-height:40px;white-space:pre-wrap;max-height:160px;overflow:hidden;"></div>
+    <!-- Step 2 tabs (Left / Center / Right) — same canvas, different labels -->
+    <div id="step2Tabs" style="display:none;">
+      <div class="preview-tabs">
+        <button class="preview-tab" id="s2tab_left"   data-panel="cover">Left</button>
+        <button class="preview-tab active" id="s2tab_center" data-panel="inside">Center</button>
+        <button class="preview-tab" id="s2tab_right"  data-panel="back">Right</button>
       </div>
     </div>
+
+    <!-- Shared canvas (always visible) -->
+    <div class="canvas-wrap">
+      <canvas id="previewCanvas" width="640" height="1242"></canvas>
+    </div>
+    <div class="preview-hint">Updates as you fill in the form.<br/>Final PDF may differ slightly.</div>
+    <button type="button" id="fullscreenBtn" style="margin-top:8px;width:100%;padding:7px;background:#1a2740;color:#fff;border:none;border-radius:6px;font-size:13px;cursor:pointer;font-weight:600;">⛶ Full Screen Preview</button>
 
   </div>
 
@@ -1900,14 +1880,14 @@
   const bubble2   = document.getElementById('bubble2');
   const stepLine  = document.getElementById('stepLine');
 
-  const step1Preview = document.getElementById('step1Preview');
-  const step2Preview = document.getElementById('step2Preview');
+  const step1Tabs = document.getElementById('step1Tabs');
+  const step2Tabs = document.getElementById('step2Tabs');
 
   function showStep1() {
     step1El.style.display = 'block';
     step2El.style.display = 'none';
-    step1Preview.style.display = 'block';
-    step2Preview.style.display = 'none';
+    step1Tabs.style.display = 'block';
+    step2Tabs.style.display = 'none';
     bubble1.className = 'step-bubble active';
     bubble1.textContent = '1';
     bubble2.className = 'step-bubble pending';
@@ -1918,67 +1898,32 @@
   function showStep2() {
     step1El.style.display = 'none';
     step2El.style.display = 'block';
-    step1Preview.style.display = 'none';
-    step2Preview.style.display = 'block';
+    step1Tabs.style.display = 'none';
+    step2Tabs.style.display = 'block';
     bubble1.className = 'step-bubble done';
     bubble1.textContent = '✓';
     bubble2.className = 'step-bubble active';
     stepLine.className = 'step-line done';
-    updateContentPreview();
+    // Default to Center (inside panel) when entering step 2
+    activePanel = 'inside';
+    document.querySelectorAll('#step2Tabs .preview-tab').forEach(t => t.classList.remove('active'));
+    document.getElementById('s2tab_center').classList.add('active');
+    schedulePreview();
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   document.getElementById('nextBtn').addEventListener('click', showStep2);
   document.getElementById('backBtn').addEventListener('click', showStep1);
 
-  // ── Step 2 live preview updater ───────────────────────────────────────
-  const pvServiceList = document.getElementById('pv_serviceList');
-  const pvAck         = document.getElementById('pv_ack');
-  const pvObituary    = document.getElementById('pv_obituary');
-  const pvAdditional  = document.getElementById('pv_additional');
-
-  function updateContentPreview() {
-    // Celebration of Life
-    const rows = serviceOrderList.querySelectorAll('.service-row');
-    let serviceHTML = '';
-    rows.forEach(row => {
-      const inputs = row.querySelectorAll('input');
-      const evt    = inputs[0]?.value.trim() || '';
-      const person = inputs[1]?.value.trim() || '';
-      if (evt || person) {
-        serviceHTML += `<div style="display:flex;justify-content:space-between;border-bottom:1px dotted #ddd;padding:1px 0;">
-          <span style="font-weight:600;">${escHtml(evt)}</span>
-          <span style="color:#555;font-style:italic;">${escHtml(person)}</span>
-        </div>`;
-      }
+  // Wire up Step 2 tabs to the same canvas activePanel logic
+  document.querySelectorAll('#step2Tabs .preview-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('#step2Tabs .preview-tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      activePanel = tab.dataset.panel;
+      drawPreview();
     });
-    pvServiceList.innerHTML = serviceHTML || '<span style="color:#bbb;font-size:8px;">No items added yet</span>';
-
-    // Acknowledgements
-    const ackVal = document.getElementById('acknowledgements').value.trim();
-    pvAck.textContent = ackVal || '';
-    pvAck.style.color = ackVal ? '#333' : '#bbb';
-    if (!ackVal) pvAck.textContent = 'Acknowledgements will appear here…';
-
-    // Obituary
-    const obVal = document.getElementById('obituaryText').value.trim();
-    pvObituary.textContent = obVal || '';
-    pvObituary.style.color = obVal ? '#222' : '#bbb';
-    if (!obVal) pvObituary.textContent = 'Obituary text will appear here…';
-
-    // Additional message
-    const addVal = document.getElementById('additionalMessage').value.trim();
-    pvAdditional.textContent = addVal || '';
-    pvAdditional.style.color = addVal ? '#333' : '#bbb';
-    if (!addVal) pvAdditional.textContent = 'Additional message will appear here…';
-  }
-
-  // Update preview on any input change in step 2
-  document.getElementById('obituaryText').addEventListener('input', updateContentPreview);
-  document.getElementById('additionalMessage').addEventListener('input', updateContentPreview);
-  document.getElementById('acknowledgements').addEventListener('input', updateContentPreview);
-  // Service list changes (delegated)
-  document.getElementById('serviceOrderList').addEventListener('input', updateContentPreview);
+  });
 
   // ── Celebration of Life order-of-service builder ─────────────────────
   const serviceOrderList = document.getElementById('serviceOrderList');
