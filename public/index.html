@@ -718,15 +718,15 @@
             <label>Font Size</label>
             <div class="radio-group">
               <label class="radio-option"><input type="radio" name="headingSize" value="small"> Small</label>
-              <label class="radio-option selected"><input type="radio" name="headingSize" value="medium" checked> Medium</label>
-              <label class="radio-option"><input type="radio" name="headingSize" value="large"> Large</label>
+              <label class="radio-option"><input type="radio" name="headingSize" value="medium"> Medium</label>
+              <label class="radio-option selected"><input type="radio" name="headingSize" value="large" checked> Large</label>
             </div>
           </div>
           <div class="field">
             <label>Font Style</label>
             <div class="radio-group">
-              <label class="radio-option selected"><input type="radio" name="headingStyle" value="bold" checked> Bold</label>
-              <label class="radio-option"><input type="radio" name="headingStyle" value="normal"> Normal</label>
+              <label class="radio-option"><input type="radio" name="headingStyle" value="bold"> Bold</label>
+              <label class="radio-option selected"><input type="radio" name="headingStyle" value="normal" checked> Normal</label>
               <label class="radio-option"><input type="radio" name="headingStyle" value="italic"> Italic</label>
               <label class="radio-option"><input type="radio" name="headingStyle" value="bolditalic"> Bold Italic</label>
             </div>
@@ -734,9 +734,9 @@
           <div class="field">
             <label>Font Family</label>
             <div class="radio-group">
-              <label class="radio-option selected"><input type="radio" name="headingFont" value="serif" checked> Serif</label>
+              <label class="radio-option"><input type="radio" name="headingFont" value="serif"> Serif</label>
               <label class="radio-option"><input type="radio" name="headingFont" value="sans"> Sans</label>
-              <label class="radio-option"><input type="radio" name="headingFont" value="cursive"> Cursive</label>
+              <label class="radio-option selected"><input type="radio" name="headingFont" value="cursive" checked> Cursive</label>
             </div>
           </div>
         </div>
@@ -1232,9 +1232,9 @@
     function drawSectionHeader(label, noUnderline = false) {
       // Read heading style controls
       const sizeMap  = { small: 0.038, medium: 0.050, large: 0.065 };
-      const sizeKey  = (document.querySelector('input[name="headingSize"]:checked') || {}).value || 'medium';
-      const styleKey = (document.querySelector('input[name="headingStyle"]:checked') || {}).value || 'bold';
-      const fontKey  = (document.querySelector('input[name="headingFont"]:checked') || {}).value || 'serif';
+      const sizeKey  = (document.querySelector('input[name="headingSize"]:checked') || {}).value || 'large';
+      const styleKey = (document.querySelector('input[name="headingStyle"]:checked') || {}).value || 'normal';
+      const fontKey  = (document.querySelector('input[name="headingFont"]:checked') || {}).value || 'cursive';
       const hPx      = Math.round(W * (sizeMap[sizeKey] || 0.050));
       const hWeight  = (styleKey === 'bold' || styleKey === 'bolditalic') ? '700' : '400';
       const hItalic  = (styleKey === 'italic' || styleKey === 'bolditalic') ? 'italic ' : '';
