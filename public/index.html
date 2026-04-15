@@ -736,6 +736,7 @@
             <div class="radio-group">
               <label class="radio-option selected"><input type="radio" name="headingFont" value="serif" checked> Serif</label>
               <label class="radio-option"><input type="radio" name="headingFont" value="sans"> Sans</label>
+              <label class="radio-option"><input type="radio" name="headingFont" value="cursive"> Cursive</label>
             </div>
           </div>
         </div>
@@ -1168,6 +1169,7 @@
 
   let selectedTemplateThumb  = null;
   let step2Active            = false;
+  let obituaryOverflow       = null; // null = not yet computed
   let selectedTemplatePanels = null;
   let selectedTemplateName   = null;
   let templateThumbImgCache  = {};
@@ -1227,7 +1229,7 @@
     const maxW  = W - pad * 2;
     let   y     = H * 0.06;
 
-    function drawSectionHeader(label) {
+    function drawSectionHeader(label, noUnderline = false) {
       // Read heading style controls
       const sizeMap  = { small: 0.038, medium: 0.050, large: 0.065 };
       const sizeKey  = (document.querySelector('input[name="headingSize"]:checked') || {}).value || 'medium';
@@ -1236,7 +1238,9 @@
       const hPx      = Math.round(W * (sizeMap[sizeKey] || 0.050));
       const hWeight  = (styleKey === 'bold' || styleKey === 'bolditalic') ? '700' : '400';
       const hItalic  = (styleKey === 'italic' || styleKey === 'bolditalic') ? 'italic ' : '';
-      const hFamily  = fontKey === 'sans' ? 'Arial, sans-serif' : 'Georgia, serif';
+      const hFamily  = fontKey === 'cursive'
+        ? "'Dancing Script','Great Vibes',cursive"
+        : fontKey === 'sans' ? 'Arial, sans-serif' : 'Georgia, serif';
 
       ctx.fillStyle = '#1a2744';
       ctx.font = `${hItalic}${hWeight} ${hPx}px ${hFamily}`;
@@ -1244,12 +1248,13 @@
       ctx.fillText(label, W / 2, y, maxW);
       y += hPx * 0.3;
 
-      // Gold underline
-      ctx.strokeStyle = '#c8a96e';
-      ctx.lineWidth = 1.5;
-      ctx.beginPath();
-      ctx.moveTo(pad, y + 4); ctx.lineTo(pad + maxW, y + 4);
-      ctx.stroke();
+      if (!noUnderline) {
+        ctx.strokeStyle = '#c8a96e';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(pad, y + 4); ctx.lineTo(pad + maxW, y + 4);
+        ctx.stroke();
+      }
       y += hPx * 0.8 + Math.round(H * 0.015);
     }
 
@@ -1262,24 +1267,49 @@
       y += Math.round(H * 0.018);
     }
 
+    // Returns any text that didn't fit (overflow)
     function drawBodyText(text, size, color, italic) {
-      if (!text) return;
+      if (!text) return '';
       ctx.fillStyle = color || '#222222';
       ctx.font = `${italic ? 'italic ' : ''}${size}px ${font}`;
       ctx.textAlign = 'left';
       const words = text.split(/\s+/);
       let line = '';
       const lh = size * 1.6;
-      for (const w of words) {
+      for (let i = 0; i < words.length; i++) {
+        const w = words[i];
         const test = line ? line + ' ' + w : w;
         if (ctx.measureText(test).width > maxW) {
-          if (y + size > H - pad) return;
+          if (y + size > H - pad) return words.slice(i).join(' ');
           ctx.fillText(line, pad, y, maxW);
           y += lh; line = w;
         } else { line = test; }
       }
-      if (line && y + size < H - pad) { ctx.fillText(line, pad, y, maxW); y += lh; }
+      if (line) {
+        if (y + size > H - pad) return line;
+        ctx.fillText(line, pad, y, maxW); y += lh;
+      }
       y += size * 0.5;
+      return '';
+    }
+
+    // Measure-only: returns overflow without drawing anything
+    function measureOverflow(text, size, startY) {
+      if (!text) return '';
+      ctx.font = `${size}px ${font}`;
+      const words = text.split(/\s+/);
+      let line = '', my = startY;
+      const lh = size * 1.6;
+      for (let i = 0; i < words.length; i++) {
+        const w = words[i];
+        const test = line ? line + ' ' + w : w;
+        if (ctx.measureText(test).width > maxW) {
+          if (my + size > H - pad) return words.slice(i).join(' ');
+          my += lh; line = w;
+        } else { line = test; }
+      }
+      if (line && my + size > H - pad) return line;
+      return '';
     }
 
     if (panel === 'cover') {
@@ -1319,8 +1349,7 @@
       });
       if (rows.length === 0) { ctx.fillStyle = '#bbbbbb'; ctx.font = `italic ${itemSize}px Arial`; ctx.textAlign = 'left'; ctx.fillText('No items added yet', pad, y); y += lh; }
 
-      y += H * 0.02;
-      drawGoldLine();
+      y += H * 0.02 + 30; // +30px top padding before Acknowledgements
 
       // Praying hands image above Acknowledgements
       const imgH = Math.round(H * 0.14);
@@ -1336,21 +1365,48 @@
         y += Math.round(H * 0.015);
       }
 
-      drawSectionHeader('Acknowledgements');
+      drawSectionHeader('Acknowledgements', true); // no gold underline
       const ackVal = document.getElementById('acknowledgements').value.trim();
       drawBodyText(ackVal || 'Acknowledgements will appear here…', Math.round(W * 0.030), ackVal ? '#333' : '#bbb', !ackVal);
 
     } else if (panel === 'inside') {
-      // ── Center: Obituary ──────────────────────────────────────────
+      // ── Center: Obituary — store overflow for right panel ─────────
       drawSectionHeader('Obituary');
       const obVal = document.getElementById('obituaryText').value.trim();
-      drawBodyText(obVal || 'Obituary text will appear here…', Math.round(W * 0.030), obVal ? '#222' : '#bbb', !obVal);
+      if (obVal) {
+        obituaryOverflow = drawBodyText(obVal, Math.round(W * 0.030), '#222', false);
+      } else {
+        obituaryOverflow = '';
+        drawBodyText('Obituary text will appear here…', Math.round(W * 0.030), '#bbb', true);
+      }
 
     } else if (panel === 'back') {
-      // ── Right: Additional Message ─────────────────────────────────
-      drawSectionHeader('Additional Message');
+      // ── Right: obituary overflow first, then additional message ───
+      const bodySize = Math.round(W * 0.030);
+
+      // Compute overflow fresh (in case inside panel wasn't rendered first)
+      if (obituaryOverflow === null) {
+        const obVal = document.getElementById('obituaryText').value.trim();
+        // Estimate y after Obituary header in inside panel
+        const sizeMap = { small: 0.038, medium: 0.050, large: 0.065 };
+        const sizeKey = (document.querySelector('input[name="headingSize"]:checked') || {}).value || 'medium';
+        const hPx = Math.round(W * (sizeMap[sizeKey] || 0.050));
+        const headerEndY = H * 0.06 + hPx * 0.3 + hPx * 0.8 + Math.round(H * 0.015);
+        obituaryOverflow = obVal ? measureOverflow(obVal, bodySize, headerEndY) : '';
+      }
+
+      if (obituaryOverflow) {
+        drawSectionHeader('Obituary (continued)');
+        drawBodyText(obituaryOverflow, bodySize, '#222', false);
+        y += Math.round(H * 0.02);
+      }
+
       const addVal = document.getElementById('additionalMessage').value.trim();
-      drawBodyText(addVal || 'Additional message will appear here…', Math.round(W * 0.030), addVal ? '#333' : '#bbb', !addVal);
+      if (addVal) {
+        drawSectionHeader('Additional Message');
+        drawBodyText(addVal, bodySize, '#333', false);
+      }
+      // No placeholder shown for additional message
     }
   }
 
@@ -2155,7 +2211,7 @@
   });
 
   // Refresh step 2 canvas as user types
-  document.getElementById('obituaryText').addEventListener('input', () => { if (step2Active) schedulePreview(); });
+  document.getElementById('obituaryText').addEventListener('input', () => { obituaryOverflow = null; if (step2Active) schedulePreview(); });
   document.getElementById('additionalMessage').addEventListener('input', () => { if (step2Active) schedulePreview(); });
   document.getElementById('acknowledgements').addEventListener('input', () => { if (step2Active) schedulePreview(); });
   document.getElementById('serviceOrderList').addEventListener('input', () => { if (step2Active) schedulePreview(); });
