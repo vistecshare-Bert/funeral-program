@@ -1428,10 +1428,13 @@
             ctx.drawImage(img, sx, sy, sw, sh, x, y, cellW, cellH);
             ctx.restore();
           } else {
-            ctx.save(); rrPath();
-            ctx.fillStyle = 'rgba(255,255,255,0.35)';
-            ctx.strokeStyle = '#c8a96e'; ctx.lineWidth = 1.5;
-            ctx.fill(); ctx.stroke(); ctx.restore();
+            // Only draw placeholder box when no template is active
+            if (!selectedTemplateThumb) {
+              ctx.save(); rrPath();
+              ctx.fillStyle = 'rgba(255,255,255,0.35)';
+              ctx.strokeStyle = '#c8a96e'; ctx.lineWidth = 1.5;
+              ctx.fill(); ctx.stroke(); ctx.restore();
+            }
             const img2 = new Image();
             img2.onload = () => { photoImgCache[item.dataURL] = img2; schedulePreview(); };
             img2.src = item.dataURL;
@@ -1544,10 +1547,12 @@
             ctx.drawImage(img, sx, sy, sw, sh, x, y, cellW, cellH);
             ctx.restore();
           } else {
-            ctx.save(); rndPath(x, y, cellW, cellH, rad);
-            ctx.fillStyle = 'rgba(255,255,255,0.35)';
-            ctx.strokeStyle = '#c8a96e'; ctx.lineWidth = 1.5;
-            ctx.fill(); ctx.stroke(); ctx.restore();
+            if (!selectedTemplateThumb) {
+              ctx.save(); rndPath(x, y, cellW, cellH, rad);
+              ctx.fillStyle = 'rgba(255,255,255,0.35)';
+              ctx.strokeStyle = '#c8a96e'; ctx.lineWidth = 1.5;
+              ctx.fill(); ctx.stroke(); ctx.restore();
+            }
             const img2 = new Image();
             img2.onload = () => { photoImgCache[item.dataURL] = img2; schedulePreview(); };
             img2.src = item.dataURL;
@@ -1555,12 +1560,16 @@
         });
       }
 
-      ctx.fillStyle = '#f0f0f0';
-      ctx.fillRect(0, H*0.96, W, H*0.04);
-      ctx.fillStyle = '#888888';
-      ctx.font = `bold 9px Arial`;
-      ctx.textAlign = 'center';
-      ctx.fillText('Printed By  VISTEC GraphX', W/2, H*0.985);
+      // Only draw code-generated footer when no template thumbnail is active
+      // (template images already include their own footer design)
+      if (!selectedTemplateThumb) {
+        ctx.fillStyle = '#f0f0f0';
+        ctx.fillRect(0, H*0.96, W, H*0.04);
+        ctx.fillStyle = '#888888';
+        ctx.font = `bold 9px Arial`;
+        ctx.textAlign = 'center';
+        ctx.fillText('Printed By  VISTEC GraphX', W/2, H*0.985);
+      }
       onDone && onDone();
     };
 
