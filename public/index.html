@@ -1786,11 +1786,14 @@
   // ── INSIDE PANEL ─────────────────────────────────────────────────
   function drawInsidePanel(W, H, font, onDone) {
     const finish = () => {
-      // ── Top: Dynamic photo grid (slots 0–9) — left portion only ──
-      const gStartX  = W * 0.08;
-      const leftW    = W * 0.46 + 50;              // 50px wider to the right
-      const gStartY  = 60;
-      const photoAreaH = H * 0.73 - gStartY - 35;  // 20px extra gap above Final Rites
+      // ── Top: Dynamic photo grid (slots 0–9) ───────────────────────
+      const isBlackTrifoldInside = selectedTemplateName &&
+        selectedTemplateName.toLowerCase().includes('black trifold');
+      // Black Trifold: full-width photo area below the decorative header
+      const gStartX  = isBlackTrifoldInside ? W * 0.05 : W * 0.08;
+      const leftW    = isBlackTrifoldInside ? W * 0.90 : W * 0.46 + 50;
+      const gStartY  = isBlackTrifoldInside ? Math.round(H * 0.15) : 60;
+      const photoAreaH = H * 0.73 - gStartY - 35;
       const gap = 6;
 
       // Only the slots that actually have photos
