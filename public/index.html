@@ -2229,6 +2229,46 @@
   const submitBtn = document.getElementById('submitBtn');
   const statusMsg = document.getElementById('statusMsg');
 
+  // Capture all 6 panels (3 template+photo panels, 3 content panels)
+  function captureAllPanels() {
+    return new Promise(resolve => {
+      const urls       = [];
+      const savedStep2 = step2Active;
+      const savedPanel = activePanel;
+
+      const step1Panels = ['cover', 'inside', 'back'];
+      const step2Panels = ['cover', 'inside', 'back'];
+      const labels      = ['Front Cover', 'Inside', 'Back Cover',
+                           'Celebration of Life', 'Obituary', 'Additional Message'];
+
+      let idx = 0;
+
+      function next() {
+        if (idx < 3) {
+          step2Active = false;
+          snapshotPanel(step1Panels[idx], url => {
+            urls.push({ label: labels[idx], dataURL: url });
+            idx++;
+            next();
+          });
+        } else if (idx < 6) {
+          step2Active = true;
+          snapshotPanel(step2Panels[idx - 3], url => {
+            urls.push({ label: labels[idx], dataURL: url });
+            idx++;
+            next();
+          });
+        } else {
+          step2Active = savedStep2;
+          activePanel = savedPanel;
+          schedulePreview();
+          resolve(urls);
+        }
+      }
+      next();
+    });
+  }
+
   form.addEventListener('submit', async e => {
     e.preventDefault();
 
@@ -2236,35 +2276,31 @@
       showStatus('error', 'Please upload a portrait photo for the cover.');
       return;
     }
-    const fd = new FormData(form);
-    fd.append('portrait', portraitFile);
-    gallerySlots.forEach((item, i) => {
-      if (item) fd.append(`gallery_${i}`, item.file);
-    });
-    if (selectedTemplateId) fd.append('templateId', selectedTemplateId);
+    if (!getVal('firstName') || !getVal('lastName')) {
+      showStatus('error', 'Please enter the deceased\'s first and last name.');
+      return;
+    }
 
     submitBtn.disabled = true;
-    showStatus('processing', '<span class="spinner"></span> Generating your program — this may take up to 60 seconds…');
+    showStatus('processing', '<span class="spinner"></span> Capturing panels…');
 
     try {
-      const resp = await fetch('/generate', { method: 'POST', body: fd });
+      const panels = await captureAllPanels();
+
+      showStatus('processing', '<span class="spinner"></span> Building PDF…');
+
+      const resp = await fetch('/generate-canvas', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ panels })
+      });
       const data = await resp.json();
 
       if (data.success) {
-        let html = `<strong>✓ Program generated successfully!</strong>`;
-        if (data.warnings && data.warnings.length > 0) {
-          html += `<br/><br/><strong>Warnings:</strong><ul class="warning-list">`;
-          data.warnings.forEach(w => { html += `<li>${escHtml(w)}</li>`; });
-          html += `</ul>`;
-        }
-        html += `<div class="download-links">
-          <a href="${data.pdfPath}" class="download-btn" download>⬇ Download Print PDF</a>
-          <a href="${data.previewPath}" class="download-btn secondary" download>⬇ Download Preview</a>
-        </div>`;
-        if (data.previewPath) {
-          html += `<img src="${data.previewPath}" class="preview-img" alt="Program Preview" />`;
-        }
-        showStatus(data.warnings && data.warnings.length > 0 ? 'warning' : 'success', html);
+        showStatus('success', `<strong>✓ Program generated successfully!</strong>
+          <div class="download-links">
+            <a href="${data.pdfPath}" class="download-btn" download>⬇ Download PDF</a>
+          </div>`);
       } else {
         showStatus('error', `<strong>Generation failed:</strong> ${escHtml(data.error || 'Unknown error.')}`);
       }

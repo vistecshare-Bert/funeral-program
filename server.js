@@ -5,6 +5,7 @@ const { v4: uuidv4 } = require('uuid');
 const path = require('path');
 const fs = require('fs');
 const { execFile } = require('child_process');
+const { PDFDocument } = require('pdf-lib');
 
 const { validatePhotos } = require('./src/validator');
 
@@ -363,6 +364,39 @@ app.post('/generate', (req, res, next) => {
   } catch (err) {
     console.error('Unexpected error:', err);
     res.status(500).json({ success: false, error: `Server error: ${err.message}` });
+  }
+});
+
+// ── Canvas-based PDF generation (matches live preview exactly) ───────
+app.post('/generate-canvas', express.json({ limit: '80mb' }), async (req, res) => {
+  try {
+    const { panels } = req.body;
+    if (!panels || !panels.length) {
+      return res.status(400).json({ success: false, error: 'No panel images provided.' });
+    }
+
+    const orderId = uuidv4();
+    const pdfDoc  = await PDFDocument.create();
+
+    for (const panel of panels) {
+      const b64      = panel.dataURL.replace(/^data:image\/\w+;base64,/, '');
+      const imgBytes = Buffer.from(b64, 'base64');
+      const img      = await pdfDoc.embedJpg(imgBytes);
+      const { width, height } = img.scale(1);
+      const page = pdfDoc.addPage([width, height]);
+      page.drawImage(img, { x: 0, y: 0, width, height });
+    }
+
+    const pdfBytes  = await pdfDoc.save();
+    const outputDir = path.join(__dirname, 'outputs');
+    if (!fs.existsSync(outputDir)) fs.mkdirSync(outputDir);
+    const pdfPath   = path.join(outputDir, `${orderId}_print.pdf`);
+    fs.writeFileSync(pdfPath, pdfBytes);
+
+    res.json({ success: true, pdfPath: `/download/${orderId}_print.pdf` });
+  } catch (err) {
+    console.error('Canvas PDF error:', err);
+    res.status(500).json({ success: false, error: err.message });
   }
 });
 
