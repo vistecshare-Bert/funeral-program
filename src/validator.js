@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 
 const MAX_FILE_SIZE_MB = parseInt(process.env.MAX_UPLOAD_SIZE_MB) || 20;
-const MIN_SHORT_SIDE_PX = 300;   // hard fail below this — truly unusable
+const MIN_SHORT_SIDE_PX = 1;     // accept any resolution
 const WARN_SHORT_SIDE_PX = 1200; // warn but still allow — may be slightly soft in print
 const ALLOWED_TYPES = ['.jpg', '.jpeg', '.png'];
 
