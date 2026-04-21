@@ -1923,10 +1923,10 @@
         selectedTemplateName.toLowerCase().includes('black trifold');
       // Black Trifold: full-width photo area below the decorative header
       const gStartX  = isBlackTrifoldInside ? W * 0.05 + 20 : W * 0.08;
-      const leftW    = isBlackTrifoldInside ? W * 0.90 - 40 : W * 0.46 + 50;
+      const leftW    = isBlackTrifoldInside ? W * 0.90 - 45 : W * 0.46 + 50;
       const gStartY  = isBlackTrifoldInside ? Math.round(H * 0.22) : 60;
       const photoAreaH = H * 0.73 - gStartY - 35;
-      const gap = 6;
+      const gap = 10;
 
       // Only the slots that actually have photos
       const insidePhotos = gallerySlots.slice(0, INSIDE_SLOTS).filter(Boolean);
@@ -1948,7 +1948,7 @@
           const offsetX = (leftW - rowW) / 2;
           const x = gStartX + offsetX + col * (cellW + gap);
           const y = gStartY + row * (cellH + gap);
-          const rad = 20;
+          const rad = 40;
 
           function rrPath() {
             ctx.beginPath();
@@ -2080,7 +2080,7 @@
           const offsetX = (gridW - rowW) / 2;
           const x = padX + offsetX + col * (cellW + gap);
           const y = padY + row * (cellH + gap);
-          const rad = 20;
+          const rad = 40;
 
           if (photoImgCache[item.dataURL]) {
             ctx.save(); rndPath(x, y, cellW, cellH, rad); ctx.clip();
