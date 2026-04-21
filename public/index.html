@@ -1127,6 +1127,18 @@
 
       list.forEach(t => templatePickerGrid.appendChild(makeTemplateCard(t)));
 
+      // Preload all panel thumbnails into cache so clicks render instantly
+      list.forEach(t => {
+        [t.thumbnail_front, t.thumbnail_inside, t.thumbnail_back,
+         t.thumbnail, t.thumbnail_full].filter(Boolean).forEach(url => {
+          if (!templateThumbImgCache[url]) {
+            const img = new Image();
+            img.onload = () => { templateThumbImgCache[url] = img; };
+            img.src = url;
+          }
+        });
+      });
+
       function makeTemplateCard(t) {
         const div = document.createElement('div');
         div.dataset.id = t.id;
