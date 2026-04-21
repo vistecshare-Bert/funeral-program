@@ -1127,17 +1127,38 @@
 
       list.forEach(t => templatePickerGrid.appendChild(makeTemplateCard(t)));
 
-      // Preload all panel thumbnails into cache so clicks render instantly
+      // Preload thumbnails — auto-click first template only after its front thumb loads
+      const firstT = list[0];
+      const firstFrontUrl = firstT && (firstT.thumbnail_front || firstT.thumbnail);
+      let autoClicked = false;
+
+      function tryAutoClick() {
+        if (autoClicked) return;
+        autoClicked = true;
+        const first = templatePickerGrid.querySelector('[data-id]:not([data-id="__none__"])');
+        if (first) first.click();
+        else templatePickerGrid.querySelector('[data-id]')?.click();
+      }
+
       list.forEach(t => {
         [t.thumbnail_front, t.thumbnail_inside, t.thumbnail_back,
          t.thumbnail, t.thumbnail_full].filter(Boolean).forEach(url => {
           if (!templateThumbImgCache[url]) {
             const img = new Image();
-            img.onload = () => { templateThumbImgCache[url] = img; };
+            img.onload  = () => {
+              templateThumbImgCache[url] = img;
+              if (url === firstFrontUrl) tryAutoClick();
+            };
+            img.onerror = () => { if (url === firstFrontUrl) tryAutoClick(); };
             img.src = url;
+          } else if (url === firstFrontUrl) {
+            tryAutoClick();
           }
         });
       });
+
+      // Fallback: auto-click after 4s even if thumbnails are still loading
+      setTimeout(tryAutoClick, 4000);
 
       function makeTemplateCard(t) {
         const div = document.createElement('div');
@@ -1172,10 +1193,7 @@
         return div;
       }
 
-      // auto-select first real template card
-      const first = templatePickerGrid.querySelector('[data-id]:not([data-id="__none__"])');
-      if (first) first.click();
-      else templatePickerGrid.querySelector('[data-id]')?.click();
+      // auto-click is handled by tryAutoClick() above (fires after first thumbnail loads)
     })
     .catch(() => {
       templatePickerGrid.innerHTML = '<div style="color:var(--muted);font-size:13px;">Could not load templates.</div>';
@@ -1505,7 +1523,8 @@
     }
     if (templateThumbImgCache[thumbURL]) { render(templateThumbImgCache[thumbURL]); return; }
     const img = new Image();
-    img.onload = () => { templateThumbImgCache[thumbURL] = img; render(img); };
+    img.onload  = () => { templateThumbImgCache[thumbURL] = img; render(img); };
+    img.onerror = () => { cb && cb(); }; // never hang if thumbnail fails to load
     img.src = thumbURL;
   }
 
