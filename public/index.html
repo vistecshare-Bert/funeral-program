@@ -1923,7 +1923,7 @@
         selectedTemplateName.toLowerCase().includes('black trifold');
       // Black Trifold: full-width photo area below the decorative header
       const gStartX  = isBlackTrifoldInside ? W * 0.05 + 20 : W * 0.08;
-      const leftW    = isBlackTrifoldInside ? W * 0.90 - 35 : W * 0.46 + 50;
+      const leftW    = isBlackTrifoldInside ? W * 0.90 - 40 : W * 0.46 + 50;
       const gStartY  = isBlackTrifoldInside ? Math.round(H * 0.22) : 60;
       const photoAreaH = H * 0.73 - gStartY - 35;
       const gap = 6;
@@ -1948,7 +1948,7 @@
           const offsetX = (leftW - rowW) / 2;
           const x = gStartX + offsetX + col * (cellW + gap);
           const y = gStartY + row * (cellH + gap);
-          const rad = 6;
+          const rad = 20;
 
           function rrPath() {
             ctx.beginPath();
@@ -1968,6 +1968,10 @@
             else         { sw = img.width;  sh = sw / cr; sx = 0; sy = (img.height-sh)*oy; }
             ctx.drawImage(img, sx, sy, sw, sh, x, y, cellW, cellH);
             ctx.restore();
+            // Gold border
+            ctx.save(); rrPath();
+            ctx.strokeStyle = '#c8a96e'; ctx.lineWidth = 3;
+            ctx.stroke(); ctx.restore();
           } else {
             // Only draw placeholder box when no template is active
             if (!selectedTemplateThumb) {
@@ -2076,7 +2080,7 @@
           const offsetX = (gridW - rowW) / 2;
           const x = padX + offsetX + col * (cellW + gap);
           const y = padY + row * (cellH + gap);
-          const rad = 6;
+          const rad = 20;
 
           if (photoImgCache[item.dataURL]) {
             ctx.save(); rndPath(x, y, cellW, cellH, rad); ctx.clip();
@@ -2088,6 +2092,10 @@
             else         { sw = img.width;  sh = sw / cr; sx = 0; sy = (img.height-sh)*oy; }
             ctx.drawImage(img, sx, sy, sw, sh, x, y, cellW, cellH);
             ctx.restore();
+            // Gold border
+            ctx.save(); rndPath(x, y, cellW, cellH, rad);
+            ctx.strokeStyle = '#c8a96e'; ctx.lineWidth = 3;
+            ctx.stroke(); ctx.restore();
           } else {
             if (!selectedTemplateThumb) {
               ctx.save(); rndPath(x, y, cellW, cellH, rad);
