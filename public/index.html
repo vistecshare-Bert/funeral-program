@@ -654,7 +654,13 @@
           </div>
           <div class="field" style="grid-column:span 2">
             <label>Final Rites Entrusted To:</label>
-            <textarea name="finalRites" rows="4" placeholder="Long &amp; Son Mortuary Service, Inc.&#10;2312 Beatties Ford Road&#10;Charlotte, NC 28216&#10;Telephone: 704.394.1111  Fax: 704.394.1316"></textarea>
+            <select id="finalRitesSelect" onchange="onFinalRitesChange()" style="width:100%;padding:8px;border:1px solid #d1c5a8;border-radius:6px;font-size:14px;background:#fff;margin-bottom:6px;">
+              <option value="longson">Long &amp; Son Mortuary Services Inc.</option>
+              <option value="alexander">Alexander Funeral Home Inc.</option>
+              <option value="other">Other…</option>
+            </select>
+            <textarea id="finalRitesOther" name="finalRitesOther" rows="4" placeholder="Enter funeral home name and address…" style="display:none;width:100%;box-sizing:border-box;"></textarea>
+            <input type="hidden" name="finalRites" id="finalRitesHidden" />
           </div>
         </div>
       </div>
@@ -873,6 +879,38 @@
       return `${months[parseInt(m)-1]} ${parseInt(d)}, ${y}`;
     } catch { return val; }
   }
+  const FINAL_RITES_PRESETS = {
+    longson:   'Long & Son Mortuary Services Inc.\n2312 Beatties Ford Road\nCharlotte, NC 28216\nTelephone: 704.394.1111  Fax: 704.394.1316',
+    alexander: 'Alexander Funeral Home Inc.\n1424 Statesville Ave\nCharlotte, NC 28206\nTelephone: 704.333.1167  Fax: 704.333.1173',
+  };
+
+  function onFinalRitesChange() {
+    const sel   = document.getElementById('finalRitesSelect');
+    const other = document.getElementById('finalRitesOther');
+    const hidden = document.getElementById('finalRitesHidden');
+    if (sel.value === 'other') {
+      other.style.display = 'block';
+      hidden.value = other.value.trim();
+    } else {
+      other.style.display = 'none';
+      hidden.value = FINAL_RITES_PRESETS[sel.value] || '';
+    }
+    schedulePreview();
+  }
+
+  // Wire "Other" textarea to update the hidden field + preview
+  document.getElementById('finalRitesOther').addEventListener('input', () => {
+    document.getElementById('finalRitesHidden').value =
+      document.getElementById('finalRitesOther').value.trim();
+    schedulePreview();
+  });
+
+  // Expose to HTML onchange attribute (function is inside IIFE)
+  window.onFinalRitesChange = onFinalRitesChange;
+
+  // Init hidden field with default preset
+  onFinalRitesChange();
+
   function getVal(name) {
     const el = document.querySelector(`[name="${name}"]`);
     return el ? el.value.trim() : '';
