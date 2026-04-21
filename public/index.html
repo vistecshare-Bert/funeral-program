@@ -908,9 +908,6 @@
   // Expose to HTML onchange attribute (function is inside IIFE)
   window.onFinalRitesChange = onFinalRitesChange;
 
-  // Init hidden field with default preset
-  onFinalRitesChange();
-
   function getVal(name) {
     const el = document.querySelector(`[name="${name}"]`);
     return el ? el.value.trim() : '';
@@ -1227,6 +1224,7 @@
   const canvas  = document.getElementById('previewCanvas');
   const ctx     = canvas.getContext('2d');
   let previewTimer = null;
+  onFinalRitesChange(); // init hidden field — must run after previewTimer is declared
   let photoImgCache = {};
 
   // Preload praying hands image for step 2 left panel
