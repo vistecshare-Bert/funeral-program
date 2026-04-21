@@ -368,7 +368,7 @@ app.post('/generate', (req, res, next) => {
 });
 
 // ── Canvas-based PDF generation (matches live preview exactly) ───────
-app.post('/generate-canvas', express.json({ limit: '80mb' }), async (req, res) => {
+app.post('/generate-canvas', express.json({ limit: '300mb' }), async (req, res) => {
   try {
     const { panels } = req.body;
     if (!panels || !panels.length) {
@@ -379,9 +379,10 @@ app.post('/generate-canvas', express.json({ limit: '80mb' }), async (req, res) =
     const pdfDoc  = await PDFDocument.create();
 
     for (const panel of panels) {
-      const b64      = panel.dataURL.replace(/^data:image\/\w+;base64,/, '');
+      const isPng   = panel.dataURL.startsWith('data:image/png');
+      const b64     = panel.dataURL.replace(/^data:image\/\w+;base64,/, '');
       const imgBytes = Buffer.from(b64, 'base64');
-      const img      = await pdfDoc.embedJpg(imgBytes);
+      const img     = isPng ? await pdfDoc.embedPng(imgBytes) : await pdfDoc.embedJpg(imgBytes);
       const { width, height } = img.scale(1);
       const page = pdfDoc.addPage([width, height]);
       page.drawImage(img, { x: 0, y: 0, width, height });
