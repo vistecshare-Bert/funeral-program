@@ -1636,8 +1636,8 @@
       if (isBlackTrifold) {
         // ── Rectangular portrait zone for Black Trifold ──────────────
         // Position matches the grey box in the template (right-centre area)
-        const rx = W * 0.52, ry = H * 0.22, rw = W * 0.39, rh = H * 0.49;
-        const rad = 14;
+        const rx = W * 0.52 + 20, ry = H * 0.22, rw = W * 0.39 - 40, rh = H * 0.49 - 10;
+        const rad = 30;
 
         if (portraitDataURL) {
           const placeRectPortrait = (img) => {
@@ -1653,6 +1653,15 @@
             if (ir > cr) { sh = img.height; sw = sh * cr; sx = (img.width-sw)*portraitOffsetX; sy = 0; }
             else         { sw = img.width;  sh = sw / cr; sx = 0; sy = (img.height-sh)*portraitOffsetY; }
             ctx.drawImage(img, sx, sy, sw, sh, rx, ry, rw, rh);
+            ctx.restore();
+            // Gold border matching gallery style
+            ctx.save();
+            ctx.beginPath();
+            ctx.moveTo(rx+rad,ry); ctx.lineTo(rx+rw-rad,ry); ctx.quadraticCurveTo(rx+rw,ry,rx+rw,ry+rad);
+            ctx.lineTo(rx+rw,ry+rh-rad); ctx.quadraticCurveTo(rx+rw,ry+rh,rx+rw-rad,ry+rh);
+            ctx.lineTo(rx+rad,ry+rh); ctx.quadraticCurveTo(rx,ry+rh,rx,ry+rh-rad);
+            ctx.lineTo(rx,ry+rad); ctx.quadraticCurveTo(rx,ry,rx+rad,ry); ctx.closePath();
+            ctx.strokeStyle = '#c8a96e'; ctx.lineWidth = 3; ctx.stroke();
             ctx.restore();
             drawCoverText(W, H, font, name, dates);
             onDone && onDone();
