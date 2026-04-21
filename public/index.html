@@ -273,6 +273,15 @@
     }
     .gallery-slot.filled .slot-remove { display: block; }
     .gallery-slot.filled .slot-num { display: none; }
+    .gallery-slot.filled img { cursor: move; }
+    .gallery-slot .reposition-hint {
+      display: none; position: absolute; bottom: 0; left: 0; right: 0;
+      background: rgba(0,0,0,0.55); color: #fff; font-size: 9px;
+      text-align: center; padding: 2px 0; pointer-events: none; letter-spacing: .3px;
+    }
+    .gallery-slot.filled:hover .reposition-hint { display: block; }
+    .gallery-slot.dragging-reposition img { cursor: grabbing; }
+    .portrait-drop-zone.filled { cursor: move; }
 
     .frame-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(95px, 1fr)); gap: 8px; }
     .frame-option {
@@ -941,6 +950,8 @@
   const portraitClear = document.getElementById('portraitClear');
   let portraitFile    = null;
   let portraitDataURL = null;
+  let portraitOffsetX = 0.5;
+  let portraitOffsetY = 0.5;
 
   portraitZone.addEventListener('click', e => {
     if (e.target === portraitClear) return;
@@ -967,16 +978,41 @@
 
   function setPortraitFile(f) {
     portraitFile = f;
+    portraitOffsetX = 0.5; portraitOffsetY = 0.5; // reset crop on new photo
     const reader = new FileReader();
     reader.onload = e => {
       portraitDataURL = e.target.result;
       portraitThumb.src = portraitDataURL;
+      portraitThumb.style.objectPosition = '50% 50%';
       portraitThumb.style.display = 'block';
       portraitZone.classList.add('has-photo');
       schedulePreview();
     };
     reader.readAsDataURL(f);
   }
+
+  // Portrait drag-to-reposition
+  portraitZone.addEventListener('mousedown', e => {
+    if (!portraitDataURL || e.target === portraitZone.querySelector('button')) return;
+    e.preventDefault();
+    const startX = e.clientX, startY = e.clientY;
+    const startOX = portraitOffsetX, startOY = portraitOffsetY;
+    const onMove = mv => {
+      const dx = (mv.clientX - startX) / portraitZone.offsetWidth;
+      const dy = (mv.clientY - startY) / portraitZone.offsetHeight;
+      portraitOffsetX = Math.min(1, Math.max(0, startOX - dx));
+      portraitOffsetY = Math.min(1, Math.max(0, startOY - dy));
+      const th = portraitZone.querySelector('img');
+      if (th) th.style.objectPosition = `${portraitOffsetX*100}% ${portraitOffsetY*100}%`;
+      schedulePreview();
+    };
+    const onUp = () => {
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('mouseup', onUp);
+    };
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onUp);
+  });
 
   // ── Gallery drag-and-drop ─────────────────────────────────────────────
   const galleryUploadBtn = document.getElementById('galleryUploadBtn');
@@ -1008,7 +1044,7 @@
     const slot = document.createElement('div');
     slot.className = 'gallery-slot';
     slot.dataset.slot = i;
-    slot.innerHTML = `<span class="slot-num">${i+1}</span><button type="button" class="slot-remove" title="Remove">✕</button>`;
+    slot.innerHTML = `<span class="slot-num">${i+1}</span><button type="button" class="slot-remove" title="Remove">✕</button><span class="reposition-hint">⤢ drag to reposition</span>`;
     slot.addEventListener('dragover', e => { e.preventDefault(); slot.classList.add('dragover'); });
     slot.addEventListener('dragleave', () => slot.classList.remove('dragover'));
     slot.addEventListener('drop', e => {
@@ -1044,6 +1080,34 @@
         schedulePreview();
       }
     });
+
+    // Drag-to-reposition: mousedown on filled slot image adjusts crop offset
+    slot.addEventListener('mousedown', e => {
+      const idx = parseInt(slot.dataset.slot);
+      const item = gallerySlots[idx];
+      if (!item || e.target.classList.contains('slot-remove')) return;
+      e.preventDefault();
+      const startX = e.clientX, startY = e.clientY;
+      const startOX = item.offsetX ?? 0.5, startOY = item.offsetY ?? 0.5;
+      slot.classList.add('dragging-reposition');
+      const onMove = mv => {
+        const dx = (mv.clientX - startX) / slot.offsetWidth;
+        const dy = (mv.clientY - startY) / slot.offsetHeight;
+        item.offsetX = Math.min(1, Math.max(0, startOX - dx));
+        item.offsetY = Math.min(1, Math.max(0, startOY - dy));
+        const img = slot.querySelector('img');
+        if (img) img.style.objectPosition = `${item.offsetX*100}% ${item.offsetY*100}%`;
+        schedulePreview();
+      };
+      const onUp = () => {
+        slot.classList.remove('dragging-reposition');
+        document.removeEventListener('mousemove', onMove);
+        document.removeEventListener('mouseup', onUp);
+      };
+      document.addEventListener('mousemove', onMove);
+      document.addEventListener('mouseup', onUp);
+    });
+
     gallerySlotGrid.appendChild(slot);
   }
 
@@ -1088,6 +1152,7 @@
         const img = document.createElement('img');
         img.className = 'slot-photo';
         img.src = gallerySlots[i].dataURL;
+        img.style.objectPosition = `${(gallerySlots[i].offsetX??0.5)*100}% ${(gallerySlots[i].offsetY??0.5)*100}%`;
         img.draggable = true;
         img.addEventListener('dragstart', e => {
           dragSource = { type: 'slot', index: i };
@@ -1585,8 +1650,8 @@
             ctx.clip();
             const ir = img.width / img.height, cr = rw / rh;
             let sx, sy, sw, sh;
-            if (ir > cr) { sh = img.height; sw = sh * cr; sx = (img.width - sw) / 2; sy = 0; }
-            else         { sw = img.width;  sh = sw / cr; sx = 0; sy = (img.height - sh) / 2; }
+            if (ir > cr) { sh = img.height; sw = sh * cr; sx = (img.width-sw)*portraitOffsetX; sy = 0; }
+            else         { sw = img.width;  sh = sw / cr; sx = 0; sy = (img.height-sh)*portraitOffsetY; }
             ctx.drawImage(img, sx, sy, sw, sh, rx, ry, rw, rh);
             ctx.restore();
             drawCoverText(W, H, font, name, dates);
@@ -1898,8 +1963,9 @@
             const img = photoImgCache[item.dataURL];
             const ir = img.width / img.height, cr = cellW / cellH;
             let sx, sy, sw, sh;
-            if (ir > cr) { sh = img.height; sw = sh * cr; sx = (img.width-sw)/2; sy = 0; }
-            else         { sw = img.width;  sh = sw / cr; sx = 0; sy = (img.height-sh)/2; }
+            const ox = item.offsetX ?? 0.5, oy = item.offsetY ?? 0.5;
+            if (ir > cr) { sh = img.height; sw = sh * cr; sx = (img.width-sw)*ox; sy = 0; }
+            else         { sw = img.width;  sh = sw / cr; sx = 0; sy = (img.height-sh)*oy; }
             ctx.drawImage(img, sx, sy, sw, sh, x, y, cellW, cellH);
             ctx.restore();
           } else {
@@ -2017,8 +2083,9 @@
             const img = photoImgCache[item.dataURL];
             const ir = img.width / img.height, cr = cellW / cellH;
             let sx, sy, sw, sh;
-            if (ir > cr) { sh = img.height; sw = sh * cr; sx = (img.width-sw)/2; sy = 0; }
-            else         { sw = img.width;  sh = sw / cr; sx = 0; sy = (img.height-sh)/2; }
+            const ox = item.offsetX ?? 0.5, oy = item.offsetY ?? 0.5;
+            if (ir > cr) { sh = img.height; sw = sh * cr; sx = (img.width-sw)*ox; sy = 0; }
+            else         { sw = img.width;  sh = sw / cr; sx = 0; sy = (img.height-sh)*oy; }
             ctx.drawImage(img, sx, sy, sw, sh, x, y, cellW, cellH);
             ctx.restore();
           } else {
