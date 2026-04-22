@@ -160,6 +160,13 @@
       border-bottom-color: rgba(255,255,255,0.9);
     }
     .card-body { padding: 18px 20px; }
+    .content-section { border:1px solid #dde3ef; border-radius:6px; margin-bottom:10px; overflow:hidden; }
+    .content-section-head { background:#f4f6fb; padding:6px 10px; display:flex; align-items:center; gap:8px; border-bottom:1px solid #dde3ef; }
+    .content-section-head input { flex:1; border:none; background:transparent; font-size:12px; font-weight:600; color:#1a2744; outline:none; }
+    .content-section-head input::placeholder { font-weight:400; color:#aaa; }
+    .content-section textarea { width:100%; box-sizing:border-box; border:none; padding:10px 12px; font-size:13px; resize:vertical; outline:none; font-family:inherit; }
+    .remove-section-btn { background:none; border:none; color:#c00; cursor:pointer; font-size:15px; line-height:1; padding:0 2px; flex-shrink:0; }
+    .add-section-btn { margin-top:6px; background:#eef1f9; border:1px dashed #aab; color:#334; border-radius:5px; padding:6px 14px; font-size:12px; cursor:pointer; width:100%; }
 
     .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
     @media (max-width: 600px) { .grid-2 { grid-template-columns: 1fr; } }
@@ -849,11 +856,8 @@
           <div class="card">
             <div class="card-header"><input class="heading-edit" id="headingObituary" value="Obituary" oninput="switchToPanel('inside');drawPreview()" /></div>
             <div class="card-body">
-              <div class="field">
-                <textarea id="obituaryText" name="obituary" rows="30"
-                  placeholder="Write the full obituary here…&#10;&#10;[Name] was born on… She/He is survived by…"
-                  style="min-height:420px;"></textarea>
-              </div>
+              <div id="obituarySectionsList"></div>
+              <button type="button" class="add-section-btn" onclick="addContentSection('obituarySectionsList','inside')">+ Add Section</button>
             </div>
           </div>
         </div>
@@ -863,11 +867,8 @@
           <div class="card">
             <div class="card-header"><input class="heading-edit" id="headingAdditional" value="Additional Message" oninput="switchToPanel('back');drawPreview()" /></div>
             <div class="card-body">
-              <div class="field">
-                <textarea id="additionalMessage" name="additionalMessage" rows="20"
-                  placeholder="Continuation of obituary, scripture, poem, or any additional text for the right panel…"
-                  style="min-height:300px;"></textarea>
-              </div>
+              <div id="additionalSectionsList"></div>
+              <button type="button" class="add-section-btn" onclick="addContentSection('additionalSectionsList','back')">+ Add Section</button>
             </div>
           </div>
         </div>
@@ -1514,6 +1515,57 @@
       return '';
     }
 
+    function getContentSections(listId) {
+      return Array.from(document.querySelectorAll(`#${listId} .content-section`)).map(s => ({
+        subheading: s.querySelector('.section-subheading').value.trim(),
+        content:    s.querySelector('.section-content').value.trim()
+      }));
+    }
+
+    function drawSubHeading(text) {
+      if (!text) return;
+      const px = Math.round(W * 0.034);
+      ctx.fillStyle = '#2a3a5e';
+      ctx.font = `600 ${px}px 'Times New Roman', Times, serif`;
+      ctx.textAlign = 'left';
+      if (y + px > H - pad) return;
+      ctx.fillText(text, pad, y, maxW);
+      y += px * 0.35;
+      ctx.strokeStyle = '#c8a96e'; ctx.lineWidth = 0.8;
+      ctx.beginPath(); ctx.moveTo(pad, y); ctx.lineTo(pad + maxW * 0.55, y); ctx.stroke();
+      y += px * 0.65 + Math.round(H * 0.008);
+    }
+
+    // Draws sections, returns array of remaining sections that didn't fit
+    function drawContentSections(sections, size) {
+      for (let i = 0; i < sections.length; i++) {
+        const sec = sections[i];
+        if (!sec.subheading && !sec.content) continue;
+        if (sec.subheading) drawSubHeading(sec.subheading);
+        if (sec.content) {
+          const overflow = drawBodyText(sec.content, size, '#222', false);
+          if (overflow) {
+            const remaining = [{ subheading: '', content: overflow }, ...sections.slice(i + 1)];
+            return remaining;
+          }
+        }
+        if (i < sections.length - 1) y += size * 0.6;
+      }
+      return [];
+    }
+
+    // Virtual render to compute overflow without drawing
+    function drawContentSectionsVirtual(sections, size) {
+      const savedY = y;
+      const savedFill = ctx.fillStyle;
+      ctx.globalAlpha = 0;
+      const result = drawContentSections(sections, size);
+      ctx.globalAlpha = 1;
+      y = savedY;
+      ctx.fillStyle = savedFill;
+      return result;
+    }
+
     if (panel === 'cover') {
       // ── Left: Celebration of Life + Acknowledgements ──────────────
       drawSectionHeader(document.getElementById('headingCelebration').value.trim() || 'Celebration of Life');
@@ -1572,41 +1624,40 @@
       drawBodyText(ackVal || 'The family would like to express their gratitude to everyone for the expressions of sympathy, love and support shown during this time of bereavement…', Math.round(W * 0.030), ackVal ? '#333' : '#888', true);
 
     } else if (panel === 'inside') {
-      // ── Center: Obituary — store overflow for right panel ─────────
+      // ── Center: Obituary sections ─────────────────────────────────
+      const bodySize = Math.round(W * 0.030);
       drawSectionHeader(document.getElementById('headingObituary').value.trim() || 'Obituary');
-      const obVal = document.getElementById('obituaryText').value.trim();
-      if (obVal) {
-        obituaryOverflow = drawBodyText(obVal, Math.round(W * 0.030), '#222', false);
+      const obSections = getContentSections('obituarySectionsList');
+      const hasObContent = obSections.some(s => s.subheading || s.content);
+      if (!hasObContent) {
+        obituaryOverflow = [];
+        drawBodyText('Obituary text will appear here…', bodySize, '#bbb', true);
       } else {
-        obituaryOverflow = '';
-        drawBodyText('Obituary text will appear here…', Math.round(W * 0.030), '#bbb', true);
+        obituaryOverflow = drawContentSections(obSections, bodySize);
       }
 
     } else if (panel === 'back') {
-      // ── Right: obituary overflow first, then additional message ───
+      // ── Right: obituary overflow + additional message sections ────
       const bodySize = Math.round(W * 0.030);
 
-      // Compute overflow fresh (in case inside panel wasn't rendered first)
+      // Recompute overflow if needed
       if (obituaryOverflow === null) {
-        const obVal = document.getElementById('obituaryText').value.trim();
-        // Estimate y after Obituary header in inside panel
-        const sizeMap = { small: 0.038, medium: 0.050, large: 0.065 };
-        const sizeKey = (document.querySelector('input[name="headingSize"]:checked') || {}).value || 'medium';
-        const hPx = Math.round(W * (sizeMap[sizeKey] || 0.050));
-        const headerEndY = H * 0.06 + hPx * 0.3 + hPx * 0.8 + Math.round(H * 0.015);
-        obituaryOverflow = obVal ? measureOverflow(obVal, bodySize, headerEndY) : '';
+        const obSections = getContentSections('obituarySectionsList');
+        const hasOb = obSections.some(s => s.subheading || s.content);
+        obituaryOverflow = hasOb ? drawContentSectionsVirtual(obSections, bodySize) : [];
       }
 
-      if (obituaryOverflow) {
+      if (obituaryOverflow && obituaryOverflow.length > 0) {
         drawSectionHeader((document.getElementById('headingObituary').value.trim() || 'Obituary') + ' (continued)');
-        drawBodyText(obituaryOverflow, bodySize, '#222', false);
+        drawContentSections(obituaryOverflow, bodySize);
         y += Math.round(H * 0.02);
       }
 
-      const addVal = document.getElementById('additionalMessage').value.trim();
-      if (addVal) {
+      const addSections = getContentSections('additionalSectionsList');
+      const hasAdd = addSections.some(s => s.subheading || s.content);
+      if (hasAdd) {
         drawSectionHeader(document.getElementById('headingAdditional').value.trim() || 'Additional Message');
-        drawBodyText(addVal, bodySize, '#333', false);
+        drawContentSections(addSections, bodySize);
       }
       // No placeholder shown for additional message
     }
@@ -2422,6 +2473,44 @@
   document.getElementById('headingAcknowledgements').addEventListener('focus', () => { switchToPanel('cover');  drawPreview(); });
   document.getElementById('headingObituary').addEventListener('focus',         () => { switchToPanel('inside'); drawPreview(); });
   document.getElementById('headingAdditional').addEventListener('focus',       () => { switchToPanel('back');   drawPreview(); });
+
+  // ── Multi-section content builder (Obituary & Additional Message) ────
+  function getContentSections(listId) {
+    return Array.from(document.querySelectorAll(`#${listId} .content-section`)).map(s => ({
+      subheading: s.querySelector('.section-subheading').value.trim(),
+      content:    s.querySelector('.section-content').value.trim()
+    }));
+  }
+
+  function addContentSection(listId, panel, subheading, content) {
+    const list = document.getElementById(listId);
+    const div  = document.createElement('div');
+    div.className = 'content-section';
+    div.innerHTML = `
+      <div class="content-section-head">
+        <input class="section-subheading" type="text" placeholder="Sub-heading (optional, e.g. Biography)" value="${(subheading||'').replace(/"/g,'&quot;')}" />
+        <button type="button" class="remove-section-btn" title="Remove section">✕</button>
+      </div>
+      <textarea class="section-content" rows="8" placeholder="Write content here…">${content||''}</textarea>`;
+    div.querySelector('.remove-section-btn').addEventListener('click', () => {
+      div.remove();
+      obituaryOverflow = null;
+      schedulePreview();
+    });
+    div.querySelector('.section-subheading').addEventListener('input', () => {
+      switchToPanel(panel); obituaryOverflow = null; drawPreview();
+    });
+    div.querySelector('.section-content').addEventListener('input', () => {
+      switchToPanel(panel); obituaryOverflow = null; schedulePreview();
+    });
+    list.appendChild(div);
+    schedulePreview();
+  }
+  window.addContentSection = addContentSection;
+
+  // Seed each list with one empty section on load
+  addContentSection('obituarySectionsList',  'inside');
+  addContentSection('additionalSectionsList', 'back');
 
   // ── Celebration of Life order-of-service builder ─────────────────────
   const serviceOrderList = document.getElementById('serviceOrderList');
