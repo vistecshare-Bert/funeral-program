@@ -141,6 +141,24 @@
       text-transform: uppercase;
       letter-spacing: 0.8px;
     }
+    .card-header input.heading-edit {
+      background: transparent;
+      border: none;
+      border-bottom: 1px dashed rgba(255,255,255,0.4);
+      color: var(--white);
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      font-family: inherit;
+      width: 100%;
+      outline: none;
+      padding: 0;
+      cursor: text;
+    }
+    .card-header input.heading-edit:focus {
+      border-bottom-color: rgba(255,255,255,0.9);
+    }
     .card-body { padding: 18px 20px; }
 
     .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
@@ -762,7 +780,7 @@
         <!-- Left: Celebration of Life + Acknowledgements -->
         <div>
           <div class="card">
-            <div class="card-header">Celebration of Life</div>
+            <div class="card-header"><input class="heading-edit" id="headingCelebration" value="Celebration of Life" oninput="schedulePreview()" /></div>
             <div class="card-body">
               <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-bottom:6px;">
                 <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;">Event / Program Item</div>
@@ -773,7 +791,7 @@
             </div>
           </div>
           <div class="card">
-            <div class="card-header">Acknowledgements</div>
+            <div class="card-header"><input class="heading-edit" id="headingAcknowledgements" value="Acknowledgements" oninput="schedulePreview()" /></div>
             <div class="card-body">
               <div class="field">
                 <textarea id="acknowledgements" name="acknowledgements" rows="6"
@@ -786,7 +804,7 @@
         <!-- Center: Obituary -->
         <div>
           <div class="card">
-            <div class="card-header">Obituary</div>
+            <div class="card-header"><input class="heading-edit" id="headingObituary" value="Obituary" oninput="schedulePreview()" /></div>
             <div class="card-body">
               <div class="field">
                 <textarea id="obituaryText" name="obituary" rows="30"
@@ -800,7 +818,7 @@
         <!-- Right: Additional Message -->
         <div>
           <div class="card">
-            <div class="card-header">Additional Message</div>
+            <div class="card-header"><input class="heading-edit" id="headingAdditional" value="Additional Message" oninput="schedulePreview()" /></div>
             <div class="card-body">
               <div class="field">
                 <textarea id="additionalMessage" name="additionalMessage" rows="20"
@@ -1445,7 +1463,7 @@
 
     if (panel === 'cover') {
       // ── Left: Celebration of Life + Acknowledgements ──────────────
-      drawSectionHeader('Celebration of Life');
+      drawSectionHeader(document.getElementById('headingCelebration').value.trim() || 'Celebration of Life');
       const rows = document.querySelectorAll('#serviceOrderList .service-row');
       const itemSize = Math.round(W * 0.033);
       ctx.font = `${itemSize}px Arial, sans-serif`;
@@ -1496,13 +1514,13 @@
         y += Math.round(H * 0.015);
       }
 
-      drawSectionHeader('Acknowledgements', true); // no gold underline
+      drawSectionHeader(document.getElementById('headingAcknowledgements').value.trim() || 'Acknowledgements', true);
       const ackVal = document.getElementById('acknowledgements').value.trim();
       drawBodyText(ackVal || 'Acknowledgements will appear here…', Math.round(W * 0.030), ackVal ? '#333' : '#bbb', !ackVal);
 
     } else if (panel === 'inside') {
       // ── Center: Obituary — store overflow for right panel ─────────
-      drawSectionHeader('Obituary');
+      drawSectionHeader(document.getElementById('headingObituary').value.trim() || 'Obituary');
       const obVal = document.getElementById('obituaryText').value.trim();
       if (obVal) {
         obituaryOverflow = drawBodyText(obVal, Math.round(W * 0.030), '#222', false);
@@ -1527,14 +1545,14 @@
       }
 
       if (obituaryOverflow) {
-        drawSectionHeader('Obituary (continued)');
+        drawSectionHeader((document.getElementById('headingObituary').value.trim() || 'Obituary') + ' (continued)');
         drawBodyText(obituaryOverflow, bodySize, '#222', false);
         y += Math.round(H * 0.02);
       }
 
       const addVal = document.getElementById('additionalMessage').value.trim();
       if (addVal) {
-        drawSectionHeader('Additional Message');
+        drawSectionHeader(document.getElementById('headingAdditional').value.trim() || 'Additional Message');
         drawBodyText(addVal, bodySize, '#333', false);
       }
       // No placeholder shown for additional message
