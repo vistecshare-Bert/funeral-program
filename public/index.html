@@ -559,21 +559,10 @@
         <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px;">Deceased Name</div>
         <div class="grid-2">
           <div class="field">
-            <label>Name Font Size</label>
-            <div class="radio-group">
-              <label class="radio-option" style="flex:1;justify-content:center;">
-                <input type="radio" name="nameFontSize" value="small" />
-                <span style="font-size:11px;">Small</span>
-              </label>
-              <label class="radio-option" style="flex:1;justify-content:center;">
-                <input type="radio" name="nameFontSize" value="medium" />
-                <span style="font-size:13px;">Medium</span>
-              </label>
-              <label class="radio-option selected" style="flex:1;justify-content:center;">
-                <input type="radio" name="nameFontSize" value="large" checked />
-                <span style="font-size:16px;">Large</span>
-              </label>
-            </div>
+            <label>Name Font Size — <span id="nameFontSizeVal" style="font-weight:700;color:var(--gold);">50px</span></label>
+            <input type="range" id="nameFontSize" min="20" max="80" step="1" value="50"
+              style="width:100%;accent-color:var(--gold);"
+              oninput="document.getElementById('nameFontSizeVal').textContent=this.value+'px';schedulePreview()" />
           </div>
           <div class="field">
             <label>Name Font Weight</label>
@@ -632,21 +621,10 @@
         </div>
         <div class="grid-2">
           <div class="field">
-            <label>Date Font Size</label>
-            <div class="radio-group">
-              <label class="radio-option selected" style="flex:1;justify-content:center;">
-                <input type="radio" name="dateFontSize" value="small" checked />
-                <span style="font-size:11px;">Small</span>
-              </label>
-              <label class="radio-option" style="flex:1;justify-content:center;">
-                <input type="radio" name="dateFontSize" value="medium" />
-                <span style="font-size:13px;">Medium</span>
-              </label>
-              <label class="radio-option" style="flex:1;justify-content:center;">
-                <input type="radio" name="dateFontSize" value="large" />
-                <span style="font-size:16px;">Large</span>
-              </label>
-            </div>
+            <label>Date Font Size — <span id="dateFontSizeVal" style="font-weight:700;color:var(--gold);">22px</span></label>
+            <input type="range" id="dateFontSize" min="12" max="60" step="1" value="22"
+              style="width:100%;accent-color:var(--gold);"
+              oninput="document.getElementById('dateFontSizeVal').textContent=this.value+'px';schedulePreview()" />
           </div>
           <div class="field">
             <label>Date Font Style</label>
@@ -774,12 +752,10 @@
         <div class="card-header">Heading Style</div>
         <div class="card-body" style="display:flex;gap:24px;flex-wrap:wrap;align-items:flex-end;">
           <div class="field">
-            <label>Font Size</label>
-            <div class="radio-group">
-              <label class="radio-option"><input type="radio" name="headingSize" value="small"> Small</label>
-              <label class="radio-option"><input type="radio" name="headingSize" value="medium"> Medium</label>
-              <label class="radio-option selected"><input type="radio" name="headingSize" value="large" checked> Large</label>
-            </div>
+            <label>Font Size — <span id="headingSizeVal" style="font-weight:700;color:var(--gold);">38px</span></label>
+            <input type="range" id="headingSize" min="18" max="70" step="1" value="38"
+              style="width:100%;accent-color:var(--gold);"
+              oninput="document.getElementById('headingSizeVal').textContent=this.value+'px';drawPreview()" />
           </div>
           <div class="field">
             <label>Font Style</label>
@@ -1451,11 +1427,9 @@
 
     function drawSectionHeader(label, noUnderline = false) {
       // Read heading style controls
-      const sizeMap  = { small: 0.038, medium: 0.050, large: 0.065 };
-      const sizeKey  = (document.querySelector('input[name="headingSize"]:checked') || {}).value || 'large';
       const styleKey = (document.querySelector('input[name="headingStyle"]:checked') || {}).value || 'normal';
       const fontKey  = (document.querySelector('input[name="headingFont"]:checked') || {}).value || 'cursive';
-      const hPx      = Math.round(W * (sizeMap[sizeKey] || 0.050));
+      const hPx      = parseInt(document.getElementById('headingSize')?.value || '38');
       const hWeight  = (styleKey === 'bold' || styleKey === 'bolditalic') ? '700' : '400';
       const hItalic  = (styleKey === 'italic' || styleKey === 'bolditalic') ? 'italic ' : '';
       const hFamily  = fontKey === 'cursive'
@@ -1883,14 +1857,12 @@
       const firstName = getVal('firstName');
       const lastName  = getVal('lastName');
       if (firstName || lastName) {
-        const sizeKey   = getRadio('nameFontSize')   || 'medium';
-        const sizeMap   = { small: 0.052, medium: 0.068, large: 0.086 };
         const weightKey = getRadio('nameFontWeight') || 'bold';
         const weightMap = { normal: '400', bold: '700', extrabold: '900' };
         const fontWeight = weightMap[weightKey] || '700';
         const isCursive  = getRadio('fontFamily') === 'cursive';
         const nameFont   = isCursive ? "'Dancing Script','Great Vibes',cursive" : font;
-        const maxPx      = Math.round(W * (sizeMap[sizeKey] || 0.068));
+        const maxPx      = parseInt(document.getElementById('nameFontSize')?.value || '50');
         const minPx      = Math.round(W * 0.030);
         const ns         = fitFontSize(firstName || lastName, nameFont, lw, maxPx, minPx);
         const lineH      = ns * 1.15;
@@ -1906,7 +1878,6 @@
 
       // ── Dates: inside the yellow lines, white, full width centre ───
       if (hasDates) {
-        const dateSizeKey   = getRadio('dateFontSize')   || 'small';
         const dateStyleKey  = getRadio('dateFontStyle')  || 'italic';
         const dateFamilyKey = getRadio('dateFontFamily') || 'serif';
         const dateFontMap   = {
@@ -1916,9 +1887,8 @@
           trebuchet: "'Trebuchet MS',Arial,sans-serif",
           century: "'Century Gothic','Futura',Arial,sans-serif"
         };
-        const dateFont    = dateFontMap[dateFamilyKey] || 'Georgia, serif';
-        const dateSizeMap = { small: 0.034, medium: 0.044, large: 0.055 };
-        const datePx      = Math.round(W * (dateSizeMap[dateSizeKey] || 0.034));
+        const dateFont = dateFontMap[dateFamilyKey] || 'Georgia, serif';
+        const datePx   = parseInt(document.getElementById('dateFontSize')?.value || '22');
         const dateStyle   = dateStyleKey === 'italic' ? 'italic ' : dateStyleKey === 'bold' ? 'bold ' : dateStyleKey === 'bolditalic' ? 'bold italic ' : dateStyleKey === 'light' ? '300 ' : '';
         ctx.textAlign = 'center';
         ctx.font      = `${dateStyle}${datePx}px ${dateFont}`;
@@ -1983,10 +1953,8 @@
     // Skip if no data entered yet
     if (!hasName && !hasDates) return;
 
-    // Font size multiplier from selector
-    const sizeKey = getRadio('nameFontSize') || 'medium';
-    const sizeMap = { small: 0.055, medium: 0.072, large: 0.092 };
-    const maxSize = Math.round(W * (sizeMap[sizeKey] || 0.072));
+    // Font size from slider
+    const maxSize = parseInt(document.getElementById('nameFontSize')?.value || '50');
     const minSize = Math.round(W * 0.030);
 
     // Font weight from selector
@@ -2010,7 +1978,6 @@
     let dateBottomY = textY + ns * 0.5;
 
     if (hasDates) {
-      const dateSizeKey   = getRadio('dateFontSize')   || 'small';
       const dateStyleKey  = getRadio('dateFontStyle')  || 'italic';
       const dateFamilyKey = getRadio('dateFontFamily') || 'serif';
       const dateFontMap   = {
@@ -2021,9 +1988,8 @@
         trebuchet: "'Trebuchet MS',Arial,sans-serif",
         century:   "'Century Gothic','Futura',Arial,sans-serif"
       };
-      const dateFont    = dateFontMap[dateFamilyKey] || 'Georgia, serif';
-      const dateSizeMap = { small: 0.038, medium: 0.050, large: 0.062 };
-      const datePx      = Math.round(W * (dateSizeMap[dateSizeKey] || 0.038));
+      const dateFont = dateFontMap[dateFamilyKey] || 'Georgia, serif';
+      const datePx   = parseInt(document.getElementById('dateFontSize')?.value || '22');
       const dateStyle   = dateStyleKey === 'italic' ? 'italic ' : dateStyleKey === 'bold' ? 'bold ' : dateStyleKey === 'bolditalic' ? 'bold italic ' : dateStyleKey === 'light' ? '300 ' : '';
       const dateY       = textY + ns * 0.5 + datePx;
       ctx.font      = `${dateStyle}${datePx}px ${dateFont}`;
