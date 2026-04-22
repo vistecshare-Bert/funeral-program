@@ -347,6 +347,27 @@
     }
     .step-line.done { background: var(--gold); }
 
+    /* Card header with icon */
+    .card-header-icon { font-size:16px; margin-right:8px; }
+    .card-helper { font-size:12px; color:var(--muted); padding:10px 20px 0; line-height:1.5; }
+
+    /* Style sub-tabs (inside Style & Font card) */
+    .style-tab-bar {
+      display: flex; gap: 0; border-bottom: 2px solid var(--border);
+      margin: 0 -20px 18px; padding: 0 20px;
+    }
+    .style-tab-btn {
+      padding: 9px 18px; border: none; background: none; cursor: pointer;
+      font-size: 12px; font-weight: 600; color: var(--muted);
+      border-bottom: 2px solid transparent; margin-bottom: -2px;
+      font-family: inherit; transition: color 0.15s, border-color 0.15s;
+      letter-spacing: 0.3px; text-transform: uppercase;
+    }
+    .style-tab-btn:hover { color: var(--navy); }
+    .style-tab-btn.active { color: var(--navy); border-bottom-color: var(--gold); }
+    .style-tab-content { display: none; }
+    .style-tab-content.active { display: block; }
+
     /* Step 2 panel tabs */
     .panel-tab-bar {
       display: grid;
@@ -487,9 +508,11 @@
     <!-- ── STEP 1 ── -->
     <div id="step1">
 
+    <!-- 1. Template -->
     <div class="card">
-      <div class="card-header">Template Selection</div>
-      <div class="card-body">
+      <div class="card-header"><span class="card-header-icon">🗂️</span>Template Selection</div>
+      <p class="card-helper">Pick the program design to use as the base layout.</p>
+      <div class="card-body" style="padding-top:10px;">
         <div id="templatePickerGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;">
           <div style="color:var(--muted);font-size:13px;">Loading templates…</div>
         </div>
@@ -499,9 +522,11 @@
       </div>
     </div>
 
+    <!-- 2. Deceased Info -->
     <div class="card">
-      <div class="card-header">Deceased Information</div>
-      <div class="card-body">
+      <div class="card-header"><span class="card-header-icon">👤</span>Deceased Information</div>
+      <p class="card-helper">Full name and dates appear on the cover and back of the program.</p>
+      <div class="card-body" style="padding-top:10px;">
         <div class="grid-2">
           <div class="field">
             <label>First Name <span class="req">*</span></label>
@@ -523,157 +548,28 @@
       </div>
     </div>
 
+    <!-- 3. Portrait -->
     <div class="card">
-      <div class="card-header">Style &amp; Font</div>
-      <div class="card-body" style="display:flex;flex-direction:column;gap:14px;">
-        <div class="field">
-          <label>Font Style</label>
-          <div class="radio-group" style="flex-wrap:wrap;">
-            <label class="radio-option" style="flex-direction:column;gap:2px;min-width:90px;text-align:center;">
-              <input type="radio" name="fontFamily" value="times" />
-              <span style="font-family:'Times New Roman',Times,serif;font-size:15px;">Aa</span>
-              <span>Times New Roman</span>
-            </label>
-            <label class="radio-option" style="flex-direction:column;gap:2px;min-width:90px;text-align:center;">
-              <input type="radio" name="fontFamily" value="serif" />
-              <span style="font-family:Georgia,serif;font-size:15px;">Aa</span>
-              <span>Georgia</span>
-            </label>
-            <label class="radio-option" style="flex-direction:column;gap:2px;min-width:90px;text-align:center;">
-              <input type="radio" name="fontFamily" value="sans" />
-              <span style="font-family:Arial,sans-serif;font-size:15px;">Aa</span>
-              <span>Sans-Serif</span>
-            </label>
-            <label class="radio-option" style="flex-direction:column;gap:2px;min-width:90px;text-align:center;">
-              <input type="radio" name="fontFamily" value="garamond" />
-              <span style="font-family:'Garamond','Book Antiqua',Georgia,serif;font-size:15px;font-style:italic;">Aa</span>
-              <span>Garamond</span>
-            </label>
-            <label class="radio-option" style="flex-direction:column;gap:2px;min-width:90px;text-align:center;">
-              <input type="radio" name="fontFamily" value="palatino" />
-              <span style="font-family:'Palatino Linotype','Palatino',Georgia,serif;font-size:15px;">Aa</span>
-              <span>Palatino</span>
-            </label>
-            <label class="radio-option" style="flex-direction:column;gap:2px;min-width:90px;text-align:center;">
-              <input type="radio" name="fontFamily" value="trebuchet" />
-              <span style="font-family:'Trebuchet MS',Arial,sans-serif;font-size:15px;">Aa</span>
-              <span>Trebuchet</span>
-            </label>
-            <label class="radio-option" style="flex-direction:column;gap:2px;min-width:90px;text-align:center;">
-              <input type="radio" name="fontFamily" value="century" />
-              <span style="font-family:'Century Gothic','Futura',Arial,sans-serif;font-size:15px;">Aa</span>
-              <span>Century</span>
-            </label>
-            <label class="radio-option selected" style="flex-direction:column;gap:2px;min-width:90px;text-align:center;">
-              <input type="radio" name="fontFamily" value="cursive" checked />
-              <span style="font-family:'Dancing Script','Great Vibes',cursive;font-size:15px;">Aa</span>
-              <span>Cursive</span>
-            </label>
+      <div class="card-header"><span class="card-header-icon">📷</span>Main Portrait Photo</div>
+      <p class="card-helper">One photo — shown in the frame on the front cover. JPG or PNG, minimum 1200px on shortest side.</p>
+      <div class="card-body" style="padding-top:10px;">
+        <div class="portrait-zone" id="portraitZone">
+          <div class="placeholder">
+            <div class="icon">🖼️</div>
+            <div><strong>Click or drop portrait photo here</strong></div>
           </div>
+          <img class="portrait-thumb" id="portraitThumb" src="" alt="" style="display:none" />
+          <button type="button" class="clear-btn" id="portraitClear" title="Remove">✕</button>
         </div>
-
-        <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px;">Deceased Name</div>
-        <div class="grid-2">
-          <div class="field">
-            <label>Name Font Size — <span id="nameFontSizeVal" style="font-weight:700;color:var(--gold);">77px</span></label>
-            <input type="range" id="nameFontSize" min="20" max="120" step="1" value="77"
-              style="width:100%;accent-color:var(--gold);"
-              oninput="document.getElementById('nameFontSizeVal').textContent=this.value+'px';schedulePreview()" />
-          </div>
-          <div class="field">
-            <label>Name Font Weight</label>
-            <div class="radio-group">
-              <label class="radio-option" style="flex:1;justify-content:center;">
-                <input type="radio" name="nameFontWeight" value="normal" />
-                <span style="font-weight:400;">Normal</span>
-              </label>
-              <label class="radio-option selected" style="flex:1;justify-content:center;">
-                <input type="radio" name="nameFontWeight" value="bold" checked />
-                <span style="font-weight:700;">Bold</span>
-              </label>
-              <label class="radio-option" style="flex:1;justify-content:center;">
-                <input type="radio" name="nameFontWeight" value="extrabold" />
-                <span style="font-weight:900;">Extra Bold</span>
-              </label>
-            </div>
-          </div>
-        </div>
-
-        <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px;margin-top:6px;">Dates (Birth &amp; Death)</div>
-        <div class="field">
-          <label>Date Font Family</label>
-          <div class="radio-group" style="flex-wrap:wrap;">
-            <label class="radio-option selected" style="flex-direction:column;gap:2px;min-width:80px;text-align:center;">
-              <input type="radio" name="dateFontFamily" value="serif" checked />
-              <span style="font-family:Georgia,serif;font-size:14px;">Aa</span>
-              <span>Serif</span>
-            </label>
-            <label class="radio-option" style="flex-direction:column;gap:2px;min-width:80px;text-align:center;">
-              <input type="radio" name="dateFontFamily" value="sans" />
-              <span style="font-family:Arial,sans-serif;font-size:14px;">Aa</span>
-              <span>Sans-Serif</span>
-            </label>
-            <label class="radio-option" style="flex-direction:column;gap:2px;min-width:80px;text-align:center;">
-              <input type="radio" name="dateFontFamily" value="garamond" />
-              <span style="font-family:'Garamond','Book Antiqua',Georgia,serif;font-size:14px;font-style:italic;">Aa</span>
-              <span>Garamond</span>
-            </label>
-            <label class="radio-option" style="flex-direction:column;gap:2px;min-width:80px;text-align:center;">
-              <input type="radio" name="dateFontFamily" value="palatino" />
-              <span style="font-family:'Palatino Linotype','Palatino',Georgia,serif;font-size:14px;">Aa</span>
-              <span>Palatino</span>
-            </label>
-            <label class="radio-option" style="flex-direction:column;gap:2px;min-width:80px;text-align:center;">
-              <input type="radio" name="dateFontFamily" value="trebuchet" />
-              <span style="font-family:'Trebuchet MS',Arial,sans-serif;font-size:14px;">Aa</span>
-              <span>Trebuchet</span>
-            </label>
-            <label class="radio-option" style="flex-direction:column;gap:2px;min-width:80px;text-align:center;">
-              <input type="radio" name="dateFontFamily" value="century" />
-              <span style="font-family:'Century Gothic','Futura',Arial,sans-serif;font-size:14px;">Aa</span>
-              <span>Century</span>
-            </label>
-          </div>
-        </div>
-        <div class="grid-2">
-          <div class="field">
-            <label>Date Font Size — <span id="dateFontSizeVal" style="font-weight:700;color:var(--gold);">27px</span></label>
-            <input type="range" id="dateFontSize" min="12" max="60" step="1" value="27"
-              style="width:100%;accent-color:var(--gold);"
-              oninput="document.getElementById('dateFontSizeVal').textContent=this.value+'px';schedulePreview()" />
-          </div>
-          <div class="field">
-            <label>Date Font Style</label>
-            <div class="radio-group" style="flex-wrap:wrap;">
-              <label class="radio-option" style="flex:1;justify-content:center;min-width:70px;">
-                <input type="radio" name="dateFontStyle" value="normal" />
-                <span style="font-weight:400;">Normal</span>
-              </label>
-              <label class="radio-option selected" style="flex:1;justify-content:center;min-width:70px;">
-                <input type="radio" name="dateFontStyle" value="italic" checked />
-                <span style="font-style:italic;">Italic</span>
-              </label>
-              <label class="radio-option" style="flex:1;justify-content:center;min-width:70px;">
-                <input type="radio" name="dateFontStyle" value="bold" />
-                <span style="font-weight:700;">Bold</span>
-              </label>
-              <label class="radio-option" style="flex:1;justify-content:center;min-width:70px;">
-                <input type="radio" name="dateFontStyle" value="bolditalic" />
-                <span style="font-weight:700;font-style:italic;">Bold Italic</span>
-              </label>
-              <label class="radio-option" style="flex:1;justify-content:center;min-width:70px;">
-                <input type="radio" name="dateFontStyle" value="light" />
-                <span style="font-weight:300;">Light</span>
-              </label>
-            </div>
-          </div>
-        </div>
+        <input type="file" id="portraitInput" accept=".jpg,.jpeg,.png" style="display:none" />
       </div>
     </div>
 
+    <!-- 4. Service Info -->
     <div class="card">
-      <div class="card-header">Service Information</div>
-      <div class="card-body">
+      <div class="card-header"><span class="card-header-icon">⛪</span>Service Information</div>
+      <p class="card-helper">Service details printed on the cover and back panel.</p>
+      <div class="card-body" style="padding-top:10px;">
         <div class="grid-2">
           <div class="field">
             <label>Service Date <span class="req">*</span></label>
@@ -709,38 +605,15 @@
             <textarea id="finalRitesOther" name="finalRitesOther" rows="4" placeholder="Enter funeral home name and address…" style="display:none;width:100%;box-sizing:border-box;"></textarea>
             <input type="hidden" name="finalRites" id="finalRitesHidden" />
           </div>
-          <div class="field" style="grid-column:span 2">
-            <label>Service Info Font Size — <span id="svcFontSizeVal" style="font-weight:700;color:var(--gold);">30px</span></label>
-            <input type="range" id="svcFontSize" min="12" max="50" step="1" value="30"
-              style="width:100%;accent-color:var(--gold);"
-              oninput="document.getElementById('svcFontSizeVal').textContent=this.value+'px';schedulePreview()" />
-          </div>
         </div>
       </div>
     </div>
 
-
-    <!-- Portrait photo (cover) -->
+    <!-- 5. Gallery -->
     <div class="card">
-      <div class="card-header">Main Portrait Photo</div>
-      <div class="card-body">
-        <div class="portrait-zone" id="portraitZone">
-          <div class="placeholder">
-            <div class="icon">🖼️</div>
-            <div><strong>Click or drop portrait photo here</strong></div>
-            <div class="hint" style="font-size:12px;color:var(--muted);margin-top:4px;">1 photo only · JPG or PNG · appears in the circular frame on the cover</div>
-          </div>
-          <img class="portrait-thumb" id="portraitThumb" src="" alt="" style="display:none" />
-          <button type="button" class="clear-btn" id="portraitClear" title="Remove">✕</button>
-        </div>
-        <input type="file" id="portraitInput" accept=".jpg,.jpeg,.png" style="display:none" />
-      </div>
-    </div>
-
-    <!-- Gallery photos (drag into slots) -->
-    <div class="card">
-      <div class="card-header">Gallery Photos — Drag into Slots</div>
-      <div class="card-body">
+      <div class="card-header"><span class="card-header-icon">🖼️</span>Gallery Photos</div>
+      <p class="card-helper">Upload extra photos then drag them into the slots on the right. The order in the slots is the print order.</p>
+      <div class="card-body" style="padding-top:10px;">
         <div class="gallery-layout">
           <div class="gallery-pool-wrap">
             <div class="gallery-pool-label">Uploaded Photos</div>
@@ -754,6 +627,179 @@
             <div class="gallery-slot-grid" id="gallerySlotGrid"></div>
           </div>
         </div>
+      </div>
+    </div>
+
+    <!-- 6. Style & Font -->
+    <div class="card">
+      <div class="card-header"><span class="card-header-icon">🎨</span>Style &amp; Font</div>
+      <p class="card-helper">Adjust how the name, dates, and service info look on the cover. Changes reflect in the preview instantly.</p>
+      <div class="card-body" style="padding-top:14px;">
+
+        <!-- Sub-tabs -->
+        <div class="style-tab-bar">
+          <button type="button" class="style-tab-btn active" id="stab-name" onclick="switchStyleTab('name')">👤 Deceased Name</button>
+          <button type="button" class="style-tab-btn" id="stab-dates" onclick="switchStyleTab('dates')">📅 Dates</button>
+          <button type="button" class="style-tab-btn" id="stab-service" onclick="switchStyleTab('service')">⛪ Service Info</button>
+        </div>
+
+        <!-- Name tab -->
+        <div id="stabContent-name" class="style-tab-content active">
+          <div class="field" style="margin-bottom:14px;">
+            <label>Font Family</label>
+            <div class="radio-group" style="flex-wrap:wrap;">
+              <label class="radio-option" style="flex-direction:column;gap:2px;min-width:90px;text-align:center;">
+                <input type="radio" name="fontFamily" value="times" />
+                <span style="font-family:'Times New Roman',Times,serif;font-size:15px;">Aa</span>
+                <span>Times New Roman</span>
+              </label>
+              <label class="radio-option" style="flex-direction:column;gap:2px;min-width:90px;text-align:center;">
+                <input type="radio" name="fontFamily" value="serif" />
+                <span style="font-family:Georgia,serif;font-size:15px;">Aa</span>
+                <span>Georgia</span>
+              </label>
+              <label class="radio-option" style="flex-direction:column;gap:2px;min-width:90px;text-align:center;">
+                <input type="radio" name="fontFamily" value="sans" />
+                <span style="font-family:Arial,sans-serif;font-size:15px;">Aa</span>
+                <span>Sans-Serif</span>
+              </label>
+              <label class="radio-option" style="flex-direction:column;gap:2px;min-width:90px;text-align:center;">
+                <input type="radio" name="fontFamily" value="garamond" />
+                <span style="font-family:'Garamond','Book Antiqua',Georgia,serif;font-size:15px;font-style:italic;">Aa</span>
+                <span>Garamond</span>
+              </label>
+              <label class="radio-option" style="flex-direction:column;gap:2px;min-width:90px;text-align:center;">
+                <input type="radio" name="fontFamily" value="palatino" />
+                <span style="font-family:'Palatino Linotype','Palatino',Georgia,serif;font-size:15px;">Aa</span>
+                <span>Palatino</span>
+              </label>
+              <label class="radio-option" style="flex-direction:column;gap:2px;min-width:90px;text-align:center;">
+                <input type="radio" name="fontFamily" value="trebuchet" />
+                <span style="font-family:'Trebuchet MS',Arial,sans-serif;font-size:15px;">Aa</span>
+                <span>Trebuchet</span>
+              </label>
+              <label class="radio-option" style="flex-direction:column;gap:2px;min-width:90px;text-align:center;">
+                <input type="radio" name="fontFamily" value="century" />
+                <span style="font-family:'Century Gothic','Futura',Arial,sans-serif;font-size:15px;">Aa</span>
+                <span>Century</span>
+              </label>
+              <label class="radio-option selected" style="flex-direction:column;gap:2px;min-width:90px;text-align:center;">
+                <input type="radio" name="fontFamily" value="cursive" checked />
+                <span style="font-family:'Dancing Script','Great Vibes',cursive;font-size:15px;">Aa</span>
+                <span>Cursive</span>
+              </label>
+            </div>
+          </div>
+          <div class="grid-2">
+            <div class="field">
+              <label>Font Size — <span id="nameFontSizeVal" style="font-weight:700;color:var(--gold);">77px</span></label>
+              <input type="range" id="nameFontSize" min="20" max="120" step="1" value="77"
+                style="width:100%;accent-color:var(--gold);"
+                oninput="document.getElementById('nameFontSizeVal').textContent=this.value+'px';schedulePreview()" />
+            </div>
+            <div class="field">
+              <label>Font Weight</label>
+              <div class="radio-group">
+                <label class="radio-option" style="flex:1;justify-content:center;">
+                  <input type="radio" name="nameFontWeight" value="normal" />
+                  <span style="font-weight:400;">Normal</span>
+                </label>
+                <label class="radio-option selected" style="flex:1;justify-content:center;">
+                  <input type="radio" name="nameFontWeight" value="bold" checked />
+                  <span style="font-weight:700;">Bold</span>
+                </label>
+                <label class="radio-option" style="flex:1;justify-content:center;">
+                  <input type="radio" name="nameFontWeight" value="extrabold" />
+                  <span style="font-weight:900;">Extra Bold</span>
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Dates tab -->
+        <div id="stabContent-dates" class="style-tab-content">
+          <div class="field" style="margin-bottom:14px;">
+            <label>Font Family</label>
+            <div class="radio-group" style="flex-wrap:wrap;">
+              <label class="radio-option selected" style="flex-direction:column;gap:2px;min-width:80px;text-align:center;">
+                <input type="radio" name="dateFontFamily" value="serif" checked />
+                <span style="font-family:Georgia,serif;font-size:14px;">Aa</span>
+                <span>Serif</span>
+              </label>
+              <label class="radio-option" style="flex-direction:column;gap:2px;min-width:80px;text-align:center;">
+                <input type="radio" name="dateFontFamily" value="sans" />
+                <span style="font-family:Arial,sans-serif;font-size:14px;">Aa</span>
+                <span>Sans-Serif</span>
+              </label>
+              <label class="radio-option" style="flex-direction:column;gap:2px;min-width:80px;text-align:center;">
+                <input type="radio" name="dateFontFamily" value="garamond" />
+                <span style="font-family:'Garamond','Book Antiqua',Georgia,serif;font-size:14px;font-style:italic;">Aa</span>
+                <span>Garamond</span>
+              </label>
+              <label class="radio-option" style="flex-direction:column;gap:2px;min-width:80px;text-align:center;">
+                <input type="radio" name="dateFontFamily" value="palatino" />
+                <span style="font-family:'Palatino Linotype','Palatino',Georgia,serif;font-size:14px;">Aa</span>
+                <span>Palatino</span>
+              </label>
+              <label class="radio-option" style="flex-direction:column;gap:2px;min-width:80px;text-align:center;">
+                <input type="radio" name="dateFontFamily" value="trebuchet" />
+                <span style="font-family:'Trebuchet MS',Arial,sans-serif;font-size:14px;">Aa</span>
+                <span>Trebuchet</span>
+              </label>
+              <label class="radio-option" style="flex-direction:column;gap:2px;min-width:80px;text-align:center;">
+                <input type="radio" name="dateFontFamily" value="century" />
+                <span style="font-family:'Century Gothic','Futura',Arial,sans-serif;font-size:14px;">Aa</span>
+                <span>Century</span>
+              </label>
+            </div>
+          </div>
+          <div class="grid-2">
+            <div class="field">
+              <label>Font Size — <span id="dateFontSizeVal" style="font-weight:700;color:var(--gold);">27px</span></label>
+              <input type="range" id="dateFontSize" min="12" max="60" step="1" value="27"
+                style="width:100%;accent-color:var(--gold);"
+                oninput="document.getElementById('dateFontSizeVal').textContent=this.value+'px';schedulePreview()" />
+            </div>
+            <div class="field">
+              <label>Font Style</label>
+              <div class="radio-group" style="flex-wrap:wrap;">
+                <label class="radio-option" style="flex:1;justify-content:center;min-width:70px;">
+                  <input type="radio" name="dateFontStyle" value="normal" />
+                  <span style="font-weight:400;">Normal</span>
+                </label>
+                <label class="radio-option selected" style="flex:1;justify-content:center;min-width:70px;">
+                  <input type="radio" name="dateFontStyle" value="italic" checked />
+                  <span style="font-style:italic;">Italic</span>
+                </label>
+                <label class="radio-option" style="flex:1;justify-content:center;min-width:70px;">
+                  <input type="radio" name="dateFontStyle" value="bold" />
+                  <span style="font-weight:700;">Bold</span>
+                </label>
+                <label class="radio-option" style="flex:1;justify-content:center;min-width:70px;">
+                  <input type="radio" name="dateFontStyle" value="bolditalic" />
+                  <span style="font-weight:700;font-style:italic;">Bold Italic</span>
+                </label>
+                <label class="radio-option" style="flex:1;justify-content:center;min-width:70px;">
+                  <input type="radio" name="dateFontStyle" value="light" />
+                  <span style="font-weight:300;">Light</span>
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Service tab -->
+        <div id="stabContent-service" class="style-tab-content">
+          <div class="field">
+            <label>Font Size — <span id="svcFontSizeVal" style="font-weight:700;color:var(--gold);">30px</span></label>
+            <input type="range" id="svcFontSize" min="12" max="50" step="1" value="30"
+              style="width:100%;accent-color:var(--gold);"
+              oninput="document.getElementById('svcFontSizeVal').textContent=this.value+'px';schedulePreview()" />
+            <p style="font-size:12px;color:var(--muted);margin-top:6px;">Controls the size of the date, time, location, and officiant text on the cover and back panel.</p>
+          </div>
+        </div>
+
       </div>
     </div>
 
@@ -2531,6 +2577,16 @@
     switchToPanel(name);
   }
   window.switchPanelTab = switchPanelTab;
+
+  function switchStyleTab(name) {
+    ['name', 'dates', 'service'].forEach(t => {
+      const content = document.getElementById('stabContent-' + t);
+      const btn     = document.getElementById('stab-' + t);
+      if (content) content.classList.toggle('active', t === name);
+      if (btn)     btn.classList.toggle('active', t === name);
+    });
+  }
+  window.switchStyleTab = switchStyleTab;
 
   document.getElementById('headingCelebration').addEventListener('focus',      () => { switchToPanel('cover');  drawPreview(); });
   document.getElementById('headingAcknowledgements').addEventListener('focus', () => { switchToPanel('cover');  drawPreview(); });
