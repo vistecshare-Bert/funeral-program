@@ -543,6 +543,37 @@
           </div>
         </div>
 
+        <div class="field">
+          <label>Content Font <span style="font-weight:400;color:var(--muted);font-size:11px;">(obituary &amp; body text)</span></label>
+          <div class="radio-group" style="flex-wrap:wrap;">
+            <label class="radio-option selected" style="flex-direction:column;gap:2px;min-width:90px;text-align:center;">
+              <input type="radio" name="contentFont" value="times" checked onchange="schedulePreview()" />
+              <span style="font-family:'Times New Roman',Times,serif;font-size:15px;">Aa</span>
+              <span>Times New Roman</span>
+            </label>
+            <label class="radio-option" style="flex-direction:column;gap:2px;min-width:90px;text-align:center;">
+              <input type="radio" name="contentFont" value="serif" onchange="schedulePreview()" />
+              <span style="font-family:Georgia,serif;font-size:15px;">Aa</span>
+              <span>Georgia</span>
+            </label>
+            <label class="radio-option" style="flex-direction:column;gap:2px;min-width:90px;text-align:center;">
+              <input type="radio" name="contentFont" value="sans" onchange="schedulePreview()" />
+              <span style="font-family:Arial,sans-serif;font-size:15px;">Aa</span>
+              <span>Sans-Serif</span>
+            </label>
+            <label class="radio-option" style="flex-direction:column;gap:2px;min-width:90px;text-align:center;">
+              <input type="radio" name="contentFont" value="palatino" onchange="schedulePreview()" />
+              <span style="font-family:'Palatino Linotype','Palatino',Georgia,serif;font-size:15px;">Aa</span>
+              <span>Palatino</span>
+            </label>
+            <label class="radio-option" style="flex-direction:column;gap:2px;min-width:90px;text-align:center;">
+              <input type="radio" name="contentFont" value="garamond" onchange="schedulePreview()" />
+              <span style="font-family:'Garamond','Book Antiqua',Georgia,serif;font-size:15px;font-style:italic;">Aa</span>
+              <span>Garamond</span>
+            </label>
+          </div>
+        </div>
+
         <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px;">Deceased Name</div>
         <div class="grid-2">
           <div class="field">
@@ -785,7 +816,7 @@
         <!-- Left: Celebration of Life + Acknowledgements -->
         <div>
           <div class="card">
-            <div class="card-header"><input class="heading-edit" id="headingCelebration" value="Celebration of Life" oninput="schedulePreview()" /></div>
+            <div class="card-header"><input class="heading-edit" id="headingCelebration" value="Celebration of Life" oninput="drawPreview()" /></div>
             <div class="card-body">
               <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-bottom:6px;">
                 <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;">Event / Program Item</div>
@@ -796,7 +827,7 @@
             </div>
           </div>
           <div class="card">
-            <div class="card-header"><input class="heading-edit" id="headingAcknowledgements" value="Acknowledgements" oninput="schedulePreview()" /></div>
+            <div class="card-header"><input class="heading-edit" id="headingAcknowledgements" value="Acknowledgements" oninput="drawPreview()" /></div>
             <div class="card-body">
               <div class="field">
                 <textarea id="acknowledgements" name="acknowledgements" rows="6"
@@ -809,7 +840,7 @@
         <!-- Center: Obituary -->
         <div>
           <div class="card">
-            <div class="card-header"><input class="heading-edit" id="headingObituary" value="Obituary" oninput="schedulePreview()" /></div>
+            <div class="card-header"><input class="heading-edit" id="headingObituary" value="Obituary" oninput="drawPreview()" /></div>
             <div class="card-body">
               <div class="field">
                 <textarea id="obituaryText" name="obituary" rows="30"
@@ -823,7 +854,7 @@
         <!-- Right: Additional Message -->
         <div>
           <div class="card">
-            <div class="card-header"><input class="heading-edit" id="headingAdditional" value="Additional Message" oninput="schedulePreview()" /></div>
+            <div class="card-header"><input class="heading-edit" id="headingAdditional" value="Additional Message" oninput="drawPreview()" /></div>
             <div class="card-body">
               <div class="field">
                 <textarea id="additionalMessage" name="additionalMessage" rows="20"
@@ -1426,7 +1457,15 @@
     function drawBodyText(text, size, color, italic) {
       if (!text) return '';
       ctx.fillStyle = color || '#222222';
-      ctx.font = `${italic ? 'italic ' : ''}${size}px ${font}`;
+      const contentFontMap = {
+        times:    "'Times New Roman',Times,serif",
+        serif:    'Georgia, serif',
+        sans:     'Arial, sans-serif',
+        palatino: "'Palatino Linotype','Palatino',Georgia,serif",
+        garamond: "'Garamond','Book Antiqua',Georgia,serif",
+      };
+      const contentFont = contentFontMap[getRadio('contentFont')] || "'Times New Roman',Times,serif";
+      ctx.font = `${italic ? 'italic ' : ''}${size}px ${contentFont}`;
       ctx.textAlign = 'left';
       const words = text.split(/\s+/);
       let line = '';
@@ -1522,7 +1561,7 @@
 
       drawSectionHeader(document.getElementById('headingAcknowledgements').value.trim() || 'Acknowledgements', true);
       const ackVal = document.getElementById('acknowledgements').value.trim();
-      drawBodyText(ackVal || 'Acknowledgements will appear here…', Math.round(W * 0.030), ackVal ? '#333' : '#bbb', !ackVal);
+      drawBodyText(ackVal || 'The family would like to express their gratitude to everyone for the expressions of sympathy, love and support shown during this time of bereavement…', Math.round(W * 0.030), ackVal ? '#333' : '#888', true);
 
     } else if (panel === 'inside') {
       // ── Center: Obituary — store overflow for right panel ─────────
