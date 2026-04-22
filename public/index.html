@@ -690,12 +690,16 @@
             <input type="text" name="serviceTime" required placeholder="2:00 PM" />
           </div>
           <div class="field">
-            <label>Location <span class="req">*</span></label>
+            <label>Location Name <span class="req">*</span></label>
             <input type="text" name="serviceLocation" required placeholder="Grace Baptist Church" />
           </div>
           <div class="field">
-            <label>City &amp; State <span class="req">*</span></label>
-            <input type="text" name="serviceCityState" required placeholder="Charlotte, NC" />
+            <label>Location Address</label>
+            <input type="text" name="serviceAddress" placeholder="1234 Beatties Ford Road" />
+          </div>
+          <div class="field" style="grid-column:span 2">
+            <label>City, State &amp; Zip <span class="req">*</span></label>
+            <input type="text" name="serviceCityState" required placeholder="Charlotte, NC 28216" />
           </div>
           <div class="field" style="grid-column:span 2">
             <label>Officiant</label>
@@ -1923,13 +1927,13 @@
       }
 
       // ── Service info: 30px higher than before ──────────────────────
-      const svcDate      = getVal('serviceDate');
-      const svcTime      = getVal('serviceTime');
-      const svcLocationRaw  = getVal('serviceLocation');
-      const svcCityState = getVal('serviceCityState');
-      const svcLocation  = [svcLocationRaw, svcCityState].filter(Boolean).join(', ');
-      const svcOfficiant = getVal('officiant');
-      if (svcDate || svcTime || svcLocation || svcOfficiant) {
+      const svcDate       = getVal('serviceDate');
+      const svcTime       = getVal('serviceTime');
+      const svcLocName    = getVal('serviceLocation');
+      const svcLocAddr    = getVal('serviceAddress');
+      const svcCityState  = getVal('serviceCityState');
+      const svcOfficiant  = getVal('officiant');
+      if (svcDate || svcTime || svcLocName || svcOfficiant) {
         const svcPx = Math.round(W * 0.034);
         const gap   = svcPx * 1.3;
         let   svcY  = H * 0.815 - 30;
@@ -1940,10 +1944,20 @@
           ctx.fillStyle = '#ffffff';
           ctx.fillText(dtLine, W/2, svcY, W * 0.92); svcY += gap;
         }
-        if (svcLocation) {
+        if (svcLocName) {
           ctx.font      = `${Math.round(svcPx*0.86)}px Arial, sans-serif`;
           ctx.fillStyle = '#dddddd';
-          ctx.fillText(svcLocation, W/2, svcY, W * 0.92); svcY += gap * 0.9;
+          ctx.fillText(svcLocName, W/2, svcY, W * 0.92); svcY += gap * 0.9;
+        }
+        if (svcLocAddr) {
+          ctx.font      = `${Math.round(svcPx*0.82)}px Arial, sans-serif`;
+          ctx.fillStyle = '#dddddd';
+          ctx.fillText(svcLocAddr, W/2, svcY, W * 0.92); svcY += gap * 0.9;
+        }
+        if (svcCityState) {
+          ctx.font      = `${Math.round(svcPx*0.82)}px Arial, sans-serif`;
+          ctx.fillStyle = '#dddddd';
+          ctx.fillText(svcCityState, W/2, svcY, W * 0.92); svcY += gap * 0.9;
         }
         if (svcOfficiant) {
           ctx.font      = `italic ${Math.round(svcPx*0.82)}px Arial, sans-serif`;
@@ -2018,14 +2032,14 @@
       dateBottomY = dateY + datePx * 0.4;
     }
 
-    // ── Service info on cover (no label) ──────────────────────────
-    const svcDate     = getVal('serviceDate');
-    const svcTime     = getVal('serviceTime');
-    const svcLocationRaw2  = getVal('serviceLocation');
-    const svcCityState2    = getVal('serviceCityState');
-    const svcLocation = [svcLocationRaw2, svcCityState2].filter(Boolean).join(', ');
+    // ── Service info on back panel ────────────────────────────────
+    const svcDate      = getVal('serviceDate');
+    const svcTime      = getVal('serviceTime');
+    const svcLocName2  = getVal('serviceLocation');
+    const svcLocAddr2  = getVal('serviceAddress');
+    const svcCityState2 = getVal('serviceCityState');
     const svcOfficiant = getVal('officiant');
-    const hasService  = svcDate || svcTime || svcLocation || svcOfficiant;
+    const hasService   = svcDate || svcTime || svcLocName2 || svcOfficiant;
 
     if (hasService) {
       const svcPx   = Math.round(W * 0.036);
@@ -2039,33 +2053,26 @@
         ctx.fillText(dtLine, W/2, svcY, W*0.84);
         svcY += lineGap;
       }
-
-      if (svcLocation) {
-        const locPx  = Math.round(svcPx * 0.86);
-        const maxW   = W * 0.82;
-        ctx.font      = `${locPx}px Arial, sans-serif`;
+      if (svcLocName2) {
+        ctx.font      = `${Math.round(svcPx*0.86)}px Arial, sans-serif`;
         ctx.fillStyle = '#444444';
-        // wrap location across up to two lines
-        const words = svcLocation.split(' ');
-        let current = '', wrapped = false, line1 = '';
-        for (const w of words) {
-          const test = current ? current + ' ' + w : w;
-          if (!wrapped && ctx.measureText(test).width > maxW) {
-            line1 = current; current = w; wrapped = true;
-          } else { current = test; }
-        }
-        if (wrapped) {
-          ctx.fillText(line1, W/2, svcY, W*0.84);   svcY += lineGap * 0.88;
-          ctx.fillText(current, W/2, svcY, W*0.84);
-        } else {
-          ctx.fillText(current, W/2, svcY, W*0.84);
-        }
+        ctx.fillText(svcLocName2, W/2, svcY, W*0.84);
         svcY += lineGap * 0.88;
       }
-
+      if (svcLocAddr2) {
+        ctx.font      = `${Math.round(svcPx*0.82)}px Arial, sans-serif`;
+        ctx.fillStyle = '#555555';
+        ctx.fillText(svcLocAddr2, W/2, svcY, W*0.84);
+        svcY += lineGap * 0.88;
+      }
+      if (svcCityState2) {
+        ctx.font      = `${Math.round(svcPx*0.82)}px Arial, sans-serif`;
+        ctx.fillStyle = '#555555';
+        ctx.fillText(svcCityState2, W/2, svcY, W*0.84);
+        svcY += lineGap * 0.88;
+      }
       if (svcOfficiant) {
-        const offPx = Math.round(svcPx * 0.82);
-        ctx.font      = `italic ${offPx}px Arial, sans-serif`;
+        ctx.font      = `italic ${Math.round(svcPx*0.82)}px Arial, sans-serif`;
         ctx.fillStyle = '#555555';
         ctx.fillText(svcOfficiant, W/2, svcY, W*0.84);
       }
