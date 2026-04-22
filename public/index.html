@@ -1364,7 +1364,7 @@
     previewTimer = setTimeout(drawPreview, 80);
   }
 
-  window.drawPreview = function drawPreview() {
+  function drawPreview() {
     const W = canvas.width;
     const H = canvas.height;
     ctx.clearRect(0, 0, W, H);
@@ -1408,6 +1408,7 @@
     else if (activePanel === 'inside') drawInsidePanel(W, H, fontFamily);
     else if (activePanel === 'back') drawBackPanel(W, H, fontFamily);
   }
+  window.drawPreview = drawPreview;
 
   // ── Step 2 panel renderer ─────────────────────────────────────────────
   function drawStep2Panel(W, H, font, panel) {
@@ -2400,14 +2401,15 @@
     });
   });
 
-  window.switchToPanel = function switchToPanel(panel) {
+  function switchToPanel(panel) {
     if (activePanel === panel) return;
     activePanel = panel;
     document.querySelectorAll('#step2Tabs .preview-tab').forEach(t => t.classList.remove('active'));
     const tabId = panel === 'cover' ? 's2tab_left' : panel === 'inside' ? 's2tab_center' : 's2tab_right';
     const tab = document.getElementById(tabId);
     if (tab) tab.classList.add('active');
-  };
+  }
+  window.switchToPanel = switchToPanel;
 
   document.getElementById('headingCelebration').addEventListener('focus',      () => { switchToPanel('cover');  drawPreview(); });
   document.getElementById('headingAcknowledgements').addEventListener('focus', () => { switchToPanel('cover');  drawPreview(); });
