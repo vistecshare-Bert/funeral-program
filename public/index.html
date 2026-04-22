@@ -347,14 +347,30 @@
     }
     .step-line.done { background: var(--gold); }
 
-    /* Step 2 three-column layout */
-    .step2-grid {
+    /* Step 2 panel tabs */
+    .panel-tab-bar {
       display: grid;
-      grid-template-columns: 1fr 1.4fr 1fr;
-      gap: 16px;
-      align-items: start;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 20px;
     }
-    @media (max-width: 900px) { .step2-grid { grid-template-columns: 1fr; } }
+    .panel-tab-btn {
+      display: flex; flex-direction: column; align-items: center; gap: 3px;
+      padding: 14px 10px; border: 2px solid var(--border); border-radius: 10px;
+      background: var(--white); cursor: pointer; transition: all 0.18s;
+      text-align: center; font-family: inherit;
+    }
+    .panel-tab-btn:hover { border-color: var(--gold); background: #fdf8f0; }
+    .panel-tab-btn.active { border-color: var(--navy); background: var(--navy); color: var(--white); }
+    .ptab-icon { font-size: 20px; line-height: 1; }
+    .ptab-name { font-size: 13px; font-weight: 700; letter-spacing: 0.2px; }
+    .ptab-desc { font-size: 10px; color: var(--muted); line-height: 1.3; }
+    .panel-tab-btn.active .ptab-desc { color: rgba(255,255,255,0.65); }
+    .panel-tab-btn.active .ptab-name { color: var(--white); }
+    @media (max-width: 600px) {
+      .panel-tab-bar { grid-template-columns: 1fr; }
+      .panel-tab-btn { flex-direction: row; gap: 10px; text-align: left; }
+    }
 
     /* Service order list */
     .service-row {
@@ -827,55 +843,82 @@
         </div>
       </div>
 
-      <div class="step2-grid">
+      <!-- Panel tab bar -->
+      <div class="panel-tab-bar">
+        <button type="button" class="panel-tab-btn active" id="ptab-cover" onclick="switchPanelTab('cover')">
+          <span class="ptab-icon">🖼️</span>
+          <span class="ptab-name">Front Cover</span>
+          <span class="ptab-desc">Order of service &amp; acknowledgements</span>
+        </button>
+        <button type="button" class="panel-tab-btn" id="ptab-inside" onclick="switchPanelTab('inside')">
+          <span class="ptab-icon">📖</span>
+          <span class="ptab-name">Inside Panel</span>
+          <span class="ptab-desc">Obituary</span>
+        </button>
+        <button type="button" class="panel-tab-btn" id="ptab-back" onclick="switchPanelTab('back')">
+          <span class="ptab-icon">✉️</span>
+          <span class="ptab-name">Back Cover</span>
+          <span class="ptab-desc">Additional message</span>
+        </button>
+      </div>
 
-        <!-- Left: Celebration of Life + Acknowledgements -->
-        <div>
-          <div class="card">
-            <div class="card-header"><input class="heading-edit" id="headingCelebration" value="Celebration of Life" oninput="switchToPanel('cover');drawPreview()" /></div>
-            <div class="card-body">
-              <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-bottom:6px;">
-                <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;">Event / Program Item</div>
-                <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;">Person / Role</div>
-              </div>
-              <div id="serviceOrderList"></div>
-              <button type="button" class="add-service-btn" id="addServiceItemBtn">+ Add Item</button>
-            </div>
+      <!-- Front Cover content -->
+      <div id="panelContent-cover">
+        <div class="card">
+          <div class="card-header">
+            <input class="heading-edit" id="headingCelebration" value="Celebration of Life" oninput="drawPreview()" />
           </div>
-          <div class="card">
-            <div class="card-header"><input class="heading-edit" id="headingAcknowledgements" value="Acknowledgements" oninput="switchToPanel('cover');drawPreview()" /></div>
-            <div class="card-body">
-              <div class="field">
-                <textarea id="acknowledgements" name="acknowledgements" rows="6"
-                  placeholder="The family would like to express their gratitude to everyone for all the expressions of sympathy, love and support shown during this period of bereavement…"></textarea>
-              </div>
+          <div class="card-body">
+            <p style="font-size:12px;color:var(--muted);margin-bottom:12px;">List the order of service — e.g. Processional, Scripture Reading, Eulogy. Click the heading above to rename it.</p>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-bottom:6px;">
+              <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;">Event / Program Item</div>
+              <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;">Person / Role</div>
+            </div>
+            <div id="serviceOrderList"></div>
+            <button type="button" class="add-service-btn" id="addServiceItemBtn">+ Add Item</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <input class="heading-edit" id="headingAcknowledgements" value="Acknowledgements" oninput="drawPreview()" />
+          </div>
+          <div class="card-body">
+            <p style="font-size:12px;color:var(--muted);margin-bottom:10px;">A thank-you message from the family. Leave blank to use the default text.</p>
+            <div class="field">
+              <textarea id="acknowledgements" name="acknowledgements" rows="6"
+                placeholder="The family would like to express their gratitude to everyone for all the expressions of sympathy, love and support shown during this period of bereavement…"></textarea>
             </div>
           </div>
         </div>
+      </div>
 
-        <!-- Center: Obituary -->
-        <div>
-          <div class="card">
-            <div class="card-header"><input class="heading-edit" id="headingObituary" value="Obituary" oninput="switchToPanel('inside');drawPreview()" /></div>
-            <div class="card-body">
-              <div id="obituarySectionsList"></div>
-              <button type="button" class="add-section-btn" onclick="addContentSection('obituarySectionsList','inside')">+ Add Section</button>
-            </div>
+      <!-- Inside Panel content -->
+      <div id="panelContent-inside" style="display:none;">
+        <div class="card">
+          <div class="card-header">
+            <input class="heading-edit" id="headingObituary" value="Obituary" oninput="drawPreview()" />
+          </div>
+          <div class="card-body">
+            <p style="font-size:12px;color:var(--muted);margin-bottom:12px;">Add one or more sections. Each section can have a heading, body text, and an optional decorative image. Click the heading above to rename it.</p>
+            <div id="obituarySectionsList"></div>
+            <button type="button" class="add-section-btn" onclick="addContentSection('obituarySectionsList','inside')">+ Add Section</button>
           </div>
         </div>
+      </div>
 
-        <!-- Right: Additional Message -->
-        <div>
-          <div class="card">
-            <div class="card-header"><input class="heading-edit" id="headingAdditional" value="Additional Message" oninput="switchToPanel('back');drawPreview()" /></div>
-            <div class="card-body">
-              <div id="additionalSectionsList"></div>
-              <button type="button" class="add-section-btn" onclick="addContentSection('additionalSectionsList','back')">+ Add Section</button>
-            </div>
+      <!-- Back Cover content -->
+      <div id="panelContent-back" style="display:none;">
+        <div class="card">
+          <div class="card-header">
+            <input class="heading-edit" id="headingAdditional" value="Additional Message" oninput="drawPreview()" />
+          </div>
+          <div class="card-body">
+            <p style="font-size:12px;color:var(--muted);margin-bottom:12px;">Any closing message, poem, scripture, or note. Obituary overflow will flow here automatically if the inside panel runs out of space.</p>
+            <div id="additionalSectionsList"></div>
+            <button type="button" class="add-section-btn" onclick="addContentSection('additionalSectionsList','back')">+ Add Section</button>
           </div>
         </div>
-
-      </div><!-- end .step2-grid -->
+      </div>
 
       <div class="submit-area" style="display:flex;gap:12px;justify-content:center;margin-top:20px;">
         <button type="button" id="backBtn">← Back</button>
@@ -2477,6 +2520,17 @@
     if (tab) tab.classList.add('active');
   }
   window.switchToPanel = switchToPanel;
+
+  function switchPanelTab(name) {
+    ['cover', 'inside', 'back'].forEach(p => {
+      const content = document.getElementById('panelContent-' + p);
+      const btn     = document.getElementById('ptab-' + p);
+      if (content) content.style.display = p === name ? 'block' : 'none';
+      if (btn)     btn.classList.toggle('active', p === name);
+    });
+    switchToPanel(name);
+  }
+  window.switchPanelTab = switchPanelTab;
 
   document.getElementById('headingCelebration').addEventListener('focus',      () => { switchToPanel('cover');  drawPreview(); });
   document.getElementById('headingAcknowledgements').addEventListener('focus', () => { switchToPanel('cover');  drawPreview(); });
