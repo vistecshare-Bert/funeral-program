@@ -227,6 +227,21 @@ app.delete('/admin/templates/:id', (req, res) => {
   }
 });
 
+app.use('/decorations', express.static(path.join(__dirname, 'public', 'decorations')));
+
+app.get('/decorations', (req, res) => {
+  const dir = path.join(__dirname, 'public', 'decorations');
+  try {
+    fs.mkdirSync(dir, { recursive: true });
+    const files = fs.readdirSync(dir)
+      .filter(f => /\.(png|jpg|jpeg)$/i.test(f))
+      .map(f => ({ filename: f, url: `/decorations/${f}`, name: f.replace(/\.[^.]+$/, '').replace(/[-_]/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) }));
+    res.json(files);
+  } catch {
+    res.json([]);
+  }
+});
+
 app.get('/frames', (req, res) => {
   const framesDir = path.join(__dirname, 'frames');
   try {

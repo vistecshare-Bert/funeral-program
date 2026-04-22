@@ -167,6 +167,12 @@
     .content-section textarea { width:100%; box-sizing:border-box; border:none; padding:10px 12px; font-size:13px; resize:vertical; outline:none; font-family:inherit; }
     .remove-section-btn { background:none; border:none; color:#c00; cursor:pointer; font-size:15px; line-height:1; padding:0 2px; flex-shrink:0; }
     .add-section-btn { margin-top:6px; background:#eef1f9; border:1px dashed #aab; color:#334; border-radius:5px; padding:6px 14px; font-size:12px; cursor:pointer; width:100%; }
+    .decoration-picker { padding:8px 12px; border-top:1px solid #eee; background:#fafafa; display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+    .decoration-picker-label { font-size:10px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.5px; white-space:nowrap; }
+    .decoration-thumb { width:52px; height:40px; object-fit:contain; border:2px solid transparent; border-radius:4px; cursor:pointer; background:#fff; padding:2px; }
+    .decoration-thumb.selected { border-color:var(--gold); }
+    .decoration-none { width:52px; height:40px; border:2px solid #ddd; border-radius:4px; cursor:pointer; background:#fff; font-size:10px; color:#aaa; display:flex; align-items:center; justify-content:center; }
+    .decoration-none.selected { border-color:var(--gold); color:var(--gold); }
 
     .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
     @media (max-width: 600px) { .grid-2 { grid-template-columns: 1fr; } }
@@ -1517,8 +1523,9 @@
 
     function getContentSections(listId) {
       return Array.from(document.querySelectorAll(`#${listId} .content-section`)).map(s => ({
-        heading: s.querySelector('.section-subheading').value.trim(),
-        content:    s.querySelector('.section-content').value.trim()
+        heading:    s.querySelector('.section-subheading').value.trim(),
+        content:    s.querySelector('.section-content').value.trim(),
+        decoration: s.dataset.decoration || ''
       }));
     }
 
@@ -1526,13 +1533,28 @@
     function drawContentSections(sections, size) {
       for (let i = 0; i < sections.length; i++) {
         const sec = sections[i];
-        if (!sec.heading && !sec.content) continue;
+        if (!sec.heading && !sec.content && !sec.decoration) continue;
         if (sec.heading) drawSectionHeader(sec.heading);
         if (sec.content) {
           const overflow = drawBodyText(sec.content, size, '#222', false);
           if (overflow) {
-            const remaining = [{ heading: '', content: overflow }, ...sections.slice(i + 1)];
+            const remaining = [{ heading: '', content: overflow, decoration: sec.decoration }, ...sections.slice(i + 1)];
             return remaining;
+          }
+        }
+        // Draw decoration image centred after content
+        if (sec.decoration && decorationImgCache[sec.decoration]) {
+          const dimg = decorationImgCache[sec.decoration];
+          if (dimg.complete && dimg.naturalWidth) {
+            const maxDW = Math.round(W * 0.55);
+            const scale = Math.min(maxDW / dimg.naturalWidth, Math.round(H * 0.14) / dimg.naturalHeight);
+            const dw = Math.round(dimg.naturalWidth * scale);
+            const dh = Math.round(dimg.naturalHeight * scale);
+            const gap = Math.round(H * 0.012);
+            if (y + gap + dh < H - pad) {
+              ctx.drawImage(dimg, (W - dw) / 2, y + gap, dw, dh);
+              y += gap + dh + gap;
+            }
           }
         }
         if (i < sections.length - 1) y += size * 0.6;
@@ -2461,27 +2483,72 @@
   document.getElementById('headingAdditional').addEventListener('focus',       () => { switchToPanel('back');   drawPreview(); });
 
   // ── Multi-section content builder (Obituary & Additional Message) ────
+  let decorationList = [];        // [{filename, url, name}] loaded from server
+  let decorationImgCache = {};    // url → HTMLImageElement
+
   function getContentSections(listId) {
     return Array.from(document.querySelectorAll(`#${listId} .content-section`)).map(s => ({
-      heading: s.querySelector('.section-subheading').value.trim(),
-      content:    s.querySelector('.section-content').value.trim()
+      heading:    s.querySelector('.section-subheading').value.trim(),
+      content:    s.querySelector('.section-content').value.trim(),
+      decoration: s.dataset.decoration || ''   // url of selected decoration
     }));
+  }
+
+  function buildDecorationPicker(div, panel) {
+    const picker = div.querySelector('.decoration-picker');
+    picker.innerHTML = '';
+    const label = document.createElement('span');
+    label.className = 'decoration-picker-label';
+    label.textContent = 'Flower after section:';
+    picker.appendChild(label);
+
+    // None option
+    const none = document.createElement('div');
+    none.className = 'decoration-none selected';
+    none.textContent = 'None';
+    none.addEventListener('click', () => {
+      div.dataset.decoration = '';
+      picker.querySelectorAll('.decoration-thumb,.decoration-none').forEach(el => el.classList.remove('selected'));
+      none.classList.add('selected');
+      switchToPanel(panel); schedulePreview();
+    });
+    picker.appendChild(none);
+
+    decorationList.forEach(d => {
+      const img = document.createElement('img');
+      img.src = d.url;
+      img.className = 'decoration-thumb';
+      img.title = d.name;
+      // preload into cache
+      if (!decorationImgCache[d.url]) {
+        const ci = new Image(); ci.src = d.url;
+        ci.onload = () => { decorationImgCache[d.url] = ci; };
+        decorationImgCache[d.url] = ci;
+      }
+      img.addEventListener('click', () => {
+        picker.querySelectorAll('.decoration-thumb,.decoration-none').forEach(el => el.classList.remove('selected'));
+        img.classList.add('selected');
+        div.dataset.decoration = d.url;
+        switchToPanel(panel); schedulePreview();
+      });
+      picker.appendChild(img);
+    });
   }
 
   function addContentSection(listId, panel, subheading, content) {
     const list = document.getElementById(listId);
     const div  = document.createElement('div');
     div.className = 'content-section';
+    div.dataset.decoration = '';
     div.innerHTML = `
       <div class="content-section-head">
         <input class="section-subheading" type="text" placeholder="Heading (optional, e.g. Survivors, Legacy)" value="${(subheading||'').replace(/"/g,'&quot;')}" />
         <button type="button" class="remove-section-btn" title="Remove section">✕</button>
       </div>
-      <textarea class="section-content" rows="8" placeholder="Write content here…">${content||''}</textarea>`;
+      <textarea class="section-content" rows="8" placeholder="Write content here…">${content||''}</textarea>
+      <div class="decoration-picker"></div>`;
     div.querySelector('.remove-section-btn').addEventListener('click', () => {
-      div.remove();
-      obituaryOverflow = null;
-      schedulePreview();
+      div.remove(); obituaryOverflow = null; schedulePreview();
     });
     div.querySelector('.section-subheading').addEventListener('input', () => {
       switchToPanel(panel); obituaryOverflow = null; drawPreview();
@@ -2490,13 +2557,20 @@
       switchToPanel(panel); obituaryOverflow = null; schedulePreview();
     });
     list.appendChild(div);
+    buildDecorationPicker(div, panel);
     schedulePreview();
   }
   window.addContentSection = addContentSection;
 
-  // Seed each list with one empty section on load
-  addContentSection('obituarySectionsList',  'inside');
-  addContentSection('additionalSectionsList', 'back');
+  // Load decorations then seed sections
+  fetch('/decorations').then(r => r.json()).then(list => {
+    decorationList = list;
+    addContentSection('obituarySectionsList',  'inside');
+    addContentSection('additionalSectionsList', 'back');
+  }).catch(() => {
+    addContentSection('obituarySectionsList',  'inside');
+    addContentSection('additionalSectionsList', 'back');
+  });
 
   // ── Celebration of Life order-of-service builder ─────────────────────
   const serviceOrderList = document.getElementById('serviceOrderList');
