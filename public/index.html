@@ -2400,6 +2400,20 @@
     });
   });
 
+  function switchToPanel(panel) {
+    if (activePanel === panel) return;
+    activePanel = panel;
+    document.querySelectorAll('#step2Tabs .preview-tab').forEach(t => t.classList.remove('active'));
+    const tabId = panel === 'cover' ? 's2tab_left' : panel === 'inside' ? 's2tab_center' : 's2tab_right';
+    const tab = document.getElementById(tabId);
+    if (tab) tab.classList.add('active');
+  }
+
+  document.getElementById('headingCelebration').addEventListener('focus',      () => { switchToPanel('cover');  drawPreview(); });
+  document.getElementById('headingAcknowledgements').addEventListener('focus', () => { switchToPanel('cover');  drawPreview(); });
+  document.getElementById('headingObituary').addEventListener('focus',         () => { switchToPanel('inside'); drawPreview(); });
+  document.getElementById('headingAdditional').addEventListener('focus',       () => { switchToPanel('back');   drawPreview(); });
+
   // ── Celebration of Life order-of-service builder ─────────────────────
   const serviceOrderList = document.getElementById('serviceOrderList');
   const defaultItems = [
