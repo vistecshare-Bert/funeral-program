@@ -693,6 +693,12 @@
             <textarea id="finalRitesOther" name="finalRitesOther" rows="4" placeholder="Enter funeral home name and address…" style="display:none;width:100%;box-sizing:border-box;"></textarea>
             <input type="hidden" name="finalRites" id="finalRitesHidden" />
           </div>
+          <div class="field" style="grid-column:span 2">
+            <label>Service Info Font Size — <span id="svcFontSizeVal" style="font-weight:700;color:var(--gold);">22px</span></label>
+            <input type="range" id="svcFontSize" min="12" max="50" step="1" value="22"
+              style="width:100%;accent-color:var(--gold);"
+              oninput="document.getElementById('svcFontSizeVal').textContent=this.value+'px';schedulePreview()" />
+          </div>
         </div>
       </div>
     </div>
@@ -1905,7 +1911,7 @@
       const svcCityState  = getVal('serviceCityState');
       const svcOfficiant  = getVal('officiant');
       if (svcDate || svcTime || svcLocName || svcOfficiant) {
-        const svcPx = Math.round(W * 0.034);
+        const svcPx = parseInt(document.getElementById('svcFontSize')?.value || '22');
         const gap   = svcPx * 1.3;
         let   svcY  = H * 0.815 - 30;
         ctx.textAlign = 'center';
@@ -2009,7 +2015,7 @@
     const hasService   = svcDate || svcTime || svcLocName2 || svcOfficiant;
 
     if (hasService) {
-      const svcPx   = Math.round(W * 0.036);
+      const svcPx   = parseInt(document.getElementById('svcFontSize')?.value || '22');
       const lineGap = svcPx * 1.35;
       let   svcY    = dateBottomY + svcPx * 2.0;
 
