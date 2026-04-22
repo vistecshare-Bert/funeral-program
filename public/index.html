@@ -1517,35 +1517,21 @@
 
     function getContentSections(listId) {
       return Array.from(document.querySelectorAll(`#${listId} .content-section`)).map(s => ({
-        subheading: s.querySelector('.section-subheading').value.trim(),
+        heading: s.querySelector('.section-subheading').value.trim(),
         content:    s.querySelector('.section-content').value.trim()
       }));
-    }
-
-    function drawSubHeading(text) {
-      if (!text) return;
-      const px = Math.round(W * 0.034);
-      ctx.fillStyle = '#2a3a5e';
-      ctx.font = `600 ${px}px 'Times New Roman', Times, serif`;
-      ctx.textAlign = 'left';
-      if (y + px > H - pad) return;
-      ctx.fillText(text, pad, y, maxW);
-      y += px * 0.35;
-      ctx.strokeStyle = '#c8a96e'; ctx.lineWidth = 0.8;
-      ctx.beginPath(); ctx.moveTo(pad, y); ctx.lineTo(pad + maxW * 0.55, y); ctx.stroke();
-      y += px * 0.65 + Math.round(H * 0.008);
     }
 
     // Draws sections, returns array of remaining sections that didn't fit
     function drawContentSections(sections, size) {
       for (let i = 0; i < sections.length; i++) {
         const sec = sections[i];
-        if (!sec.subheading && !sec.content) continue;
-        if (sec.subheading) drawSubHeading(sec.subheading);
+        if (!sec.heading && !sec.content) continue;
+        if (sec.heading) drawSectionHeader(sec.heading);
         if (sec.content) {
           const overflow = drawBodyText(sec.content, size, '#222', false);
           if (overflow) {
-            const remaining = [{ subheading: '', content: overflow }, ...sections.slice(i + 1)];
+            const remaining = [{ heading: '', content: overflow }, ...sections.slice(i + 1)];
             return remaining;
           }
         }
@@ -1628,7 +1614,7 @@
       const bodySize = Math.round(W * 0.030);
       drawSectionHeader(document.getElementById('headingObituary').value.trim() || 'Obituary');
       const obSections = getContentSections('obituarySectionsList');
-      const hasObContent = obSections.some(s => s.subheading || s.content);
+      const hasObContent = obSections.some(s => s.heading || s.content);
       if (!hasObContent) {
         obituaryOverflow = [];
         drawBodyText('Obituary text will appear here…', bodySize, '#bbb', true);
@@ -1643,7 +1629,7 @@
       // Recompute overflow if needed
       if (obituaryOverflow === null) {
         const obSections = getContentSections('obituarySectionsList');
-        const hasOb = obSections.some(s => s.subheading || s.content);
+        const hasOb = obSections.some(s => s.heading || s.content);
         obituaryOverflow = hasOb ? drawContentSectionsVirtual(obSections, bodySize) : [];
       }
 
@@ -1654,7 +1640,7 @@
       }
 
       const addSections = getContentSections('additionalSectionsList');
-      const hasAdd = addSections.some(s => s.subheading || s.content);
+      const hasAdd = addSections.some(s => s.heading || s.content);
       if (hasAdd) {
         drawSectionHeader(document.getElementById('headingAdditional').value.trim() || 'Additional Message');
         drawContentSections(addSections, bodySize);
@@ -2477,7 +2463,7 @@
   // ── Multi-section content builder (Obituary & Additional Message) ────
   function getContentSections(listId) {
     return Array.from(document.querySelectorAll(`#${listId} .content-section`)).map(s => ({
-      subheading: s.querySelector('.section-subheading').value.trim(),
+      heading: s.querySelector('.section-subheading').value.trim(),
       content:    s.querySelector('.section-content').value.trim()
     }));
   }
@@ -2488,7 +2474,7 @@
     div.className = 'content-section';
     div.innerHTML = `
       <div class="content-section-head">
-        <input class="section-subheading" type="text" placeholder="Sub-heading (optional, e.g. Biography)" value="${(subheading||'').replace(/"/g,'&quot;')}" />
+        <input class="section-subheading" type="text" placeholder="Heading (optional, e.g. Survivors, Legacy)" value="${(subheading||'').replace(/"/g,'&quot;')}" />
         <button type="button" class="remove-section-btn" title="Remove section">✕</button>
       </div>
       <textarea class="section-content" rows="8" placeholder="Write content here…">${content||''}</textarea>`;
