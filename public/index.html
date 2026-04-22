@@ -501,9 +501,14 @@
           <label>Font Style</label>
           <div class="radio-group" style="flex-wrap:wrap;">
             <label class="radio-option selected" style="flex-direction:column;gap:2px;min-width:90px;text-align:center;">
-              <input type="radio" name="fontFamily" value="serif" checked />
+              <input type="radio" name="fontFamily" value="times" checked />
+              <span style="font-family:'Times New Roman',Times,serif;font-size:15px;">Aa</span>
+              <span>Times New Roman</span>
+            </label>
+            <label class="radio-option" style="flex-direction:column;gap:2px;min-width:90px;text-align:center;">
+              <input type="radio" name="fontFamily" value="serif" />
               <span style="font-family:Georgia,serif;font-size:15px;">Aa</span>
-              <span>Serif</span>
+              <span>Georgia</span>
             </label>
             <label class="radio-option" style="flex-direction:column;gap:2px;min-width:90px;text-align:center;">
               <input type="radio" name="fontFamily" value="sans" />
@@ -1336,6 +1341,7 @@
     ctx.imageSmoothingQuality = 'high';
 
     const fontMap = {
+      times:     "'Times New Roman',Times,serif",
       serif:     'Georgia, serif',
       sans:      'Arial, sans-serif',
       garamond:  "'Garamond','Book Antiqua',Georgia,serif",
@@ -1344,7 +1350,7 @@
       century:   "'Century Gothic','Futura',Arial,sans-serif",
       cursive:   "'Dancing Script','Great Vibes',cursive",
     };
-    const fontFamily = fontMap[getRadio('fontFamily')] || 'Georgia, serif';
+    const fontFamily = fontMap[getRadio('fontFamily')] || "'Times New Roman',Times,serif";
     const firstName  = getVal('firstName');
     const lastName   = getVal('lastName');
     const dob        = fmtDate(getVal('dateOfBirth'));
@@ -2204,6 +2210,7 @@
     ctx.imageSmoothingQuality = 'high';
 
     const fontMap = {
+      times:     "'Times New Roman',Times,serif",
       serif:     'Georgia, serif',
       sans:      'Arial, sans-serif',
       garamond:  "'Garamond','Book Antiqua',Georgia,serif",
@@ -2212,7 +2219,7 @@
       century:   "'Century Gothic','Futura',Arial,sans-serif",
       cursive:   "'Dancing Script','Great Vibes',cursive",
     };
-    const fontFamily = fontMap[getRadio('fontFamily')] || 'Georgia, serif';
+    const fontFamily = fontMap[getRadio('fontFamily')] || "'Times New Roman',Times,serif";
     const firstName  = getVal('firstName');
     const lastName   = getVal('lastName');
     const dob        = fmtDate(getVal('dateOfBirth'));
