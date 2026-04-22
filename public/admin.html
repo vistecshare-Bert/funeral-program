@@ -23,7 +23,7 @@
     header a { color: var(--gold); font-size: 13px; text-decoration: none; font-weight: 600; }
     header a:hover { text-decoration: underline; }
 
-    .container { max-width: 900px; margin: 32px auto; padding: 0 20px 60px; }
+    .container { max-width: 960px; margin: 32px auto; padding: 0 20px 60px; }
 
     .card { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); margin-bottom: 28px; overflow: hidden; }
     .card-header { background: var(--navy); color: #fff; padding: 11px 18px; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.8px; }
@@ -43,26 +43,26 @@
 
     .file-drop {
       border: 2px dashed var(--border); border-radius: var(--radius);
-      padding: 24px 16px; text-align: center; cursor: pointer;
+      padding: 20px 12px; text-align: center; cursor: pointer;
       transition: border-color 0.15s, background 0.15s; background: var(--cream);
     }
     .file-drop:hover, .file-drop.dragover { border-color: var(--gold); background: #fdf8f0; }
-    .file-drop .icon { font-size: 28px; margin-bottom: 6px; }
-    .file-drop .hint { font-size: 12px; color: var(--muted); margin-top: 3px; }
-    .file-drop .chosen { font-size: 13px; font-weight: 600; color: var(--navy); margin-top: 6px; }
-    .mini-drop { padding: 12px 8px; }
-    .btn-secondary { background: var(--navy); color: #fff; border: none; }
+    .file-drop .icon { font-size: 26px; margin-bottom: 4px; }
+    .file-drop .hint { font-size: 11px; color: var(--muted); margin-top: 3px; }
+    .file-drop .chosen { font-size: 12px; font-weight: 600; color: var(--navy); margin-top: 5px; word-break: break-all; }
+    .file-drop .current-thumb { width: 100%; max-height: 80px; object-fit: cover; border-radius: 4px; margin-bottom: 6px; }
+    .mini-drop { padding: 10px 8px; }
 
     .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-    @media (max-width: 600px) { .grid-2 { grid-template-columns: 1fr; } }
+    .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+    @media (max-width: 640px) { .grid-2, .grid-3 { grid-template-columns: 1fr; } }
 
-    .btn {
-      padding: 10px 28px; border: none; border-radius: var(--radius);
-      font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.15s;
-    }
+    .btn { padding: 10px 24px; border: none; border-radius: var(--radius); font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.15s; }
     .btn-primary { background: var(--navy); color: #fff; }
     .btn-primary:hover { background: #243660; }
     .btn-primary:disabled { background: #9ca3af; cursor: not-allowed; }
+    .btn-edit { background: #eef1f9; color: var(--navy); border: 1px solid #c5cde8; padding: 6px 14px; font-size: 12px; }
+    .btn-edit:hover { background: #dde3f5; }
     .btn-danger { background: #fef2f2; color: var(--error); border: 1px solid #fecaca; padding: 6px 14px; font-size: 12px; }
     .btn-danger:hover { background: #fee2e2; }
 
@@ -70,23 +70,45 @@
     #uploadMsg.success { display: block; background: #f0fdf4; border: 1px solid #bbf7d0; color: var(--success); }
     #uploadMsg.error   { display: block; background: #fef2f2; border: 1px solid #fecaca; color: var(--error); }
 
-    /* Template grid */
-    .template-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 16px; }
-    .template-card {
-      border: 1px solid var(--border); border-radius: var(--radius);
-      overflow: hidden; background: var(--white); box-shadow: var(--shadow);
-    }
-    .template-card .thumb-wrap {
-      height: 140px; background: #e8e2da; display: flex; align-items: center; justify-content: center; overflow: hidden;
-    }
+    .template-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; }
+    .template-card { border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; background: var(--white); box-shadow: var(--shadow); }
+    .template-card .thumb-wrap { height: 140px; background: #e8e2da; display: flex; align-items: center; justify-content: center; overflow: hidden; }
     .template-card .thumb-wrap img { width: 100%; height: 100%; object-fit: cover; }
     .template-card .thumb-wrap .no-thumb { font-size: 40px; }
     .template-card .meta { padding: 10px 12px; }
     .template-card .t-name { font-weight: 700; font-size: 14px; margin-bottom: 3px; }
     .template-card .t-format { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
     .template-card .t-date { font-size: 11px; color: var(--muted); margin-top: 2px; }
-    .template-card .t-actions { padding: 8px 12px 10px; border-top: 1px solid var(--border); }
+    .template-card .t-actions { padding: 8px 12px 10px; border-top: 1px solid var(--border); display: flex; gap: 6px; }
     .empty-state { color: var(--muted); font-size: 14px; text-align: center; padding: 32px; }
+
+    /* Modal */
+    .modal-overlay {
+      display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+      z-index: 1000; align-items: center; justify-content: center; padding: 20px;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+      background: var(--white); border-radius: 10px; box-shadow: 0 8px 40px rgba(0,0,0,0.25);
+      width: 100%; max-width: 700px; max-height: 90vh; overflow-y: auto;
+    }
+    .modal-header {
+      background: var(--navy); color: #fff; padding: 14px 20px;
+      display: flex; align-items: center; justify-content: space-between;
+      border-radius: 10px 10px 0 0;
+    }
+    .modal-header h2 { font-size: 15px; font-weight: 700; }
+    .modal-close { background: none; border: none; color: #fff; font-size: 22px; cursor: pointer; line-height: 1; opacity: 0.8; }
+    .modal-close:hover { opacity: 1; }
+    .modal-body { padding: 22px; }
+    .modal-footer { padding: 14px 22px; border-top: 1px solid var(--border); display: flex; gap: 10px; justify-content: flex-end; }
+
+    .section-label { font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 10px; margin-top: 16px; padding-bottom: 4px; border-bottom: 1px solid var(--border); }
+    .panel-label { font-size: 12px; font-weight: 600; margin-bottom: 6px; color: var(--navy); }
+
+    #editMsg { margin-top: 12px; padding: 10px 14px; border-radius: var(--radius); font-size: 13px; display: none; }
+    #editMsg.success { display: block; background: #f0fdf4; border: 1px solid #bbf7d0; color: var(--success); }
+    #editMsg.error   { display: block; background: #fef2f2; border: 1px solid #fecaca; color: var(--error); }
 
     .spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: spin 0.8s linear infinite; margin-right: 6px; vertical-align: middle; }
     @keyframes spin { to { transform: rotate(360deg); } }
@@ -104,7 +126,7 @@
 
 <div class="container">
 
-  <!-- Upload form -->
+  <!-- Upload new template -->
   <div class="card">
     <div class="card-header">Upload New Template</div>
     <div class="card-body">
@@ -133,7 +155,7 @@
             <div class="file-drop" id="pdfDrop">
               <div class="icon">📄</div>
               <div>Click to select PDF</div>
-              <div class="hint">CorelDraw export — CMYK, 300 DPI, with bleed</div>
+              <div class="hint">CorelDraw export — CMYK, 300 DPI</div>
               <div class="chosen" id="pdfChosen"></div>
               <input type="file" id="pdfInput" accept=".pdf" style="display:none" />
             </div>
@@ -141,22 +163,19 @@
           <div class="field">
             <label>Front Cover Preview <span style="color:var(--muted);font-weight:400">(optional)</span></label>
             <div class="file-drop" id="thumbFrontDrop">
-              <div class="icon">🖼️</div>
-              <div>Click to select image</div>
-              <div class="hint">JPG or PNG · front cover panel</div>
+              <div class="icon">🖼️</div><div>Click to select image</div>
+              <div class="hint">JPG or PNG</div>
               <div class="chosen" id="thumbFrontChosen"></div>
               <input type="file" id="thumbFrontInput" accept=".jpg,.jpeg,.png" style="display:none" />
             </div>
           </div>
         </div>
-
         <div class="grid-2" style="margin-top:14px">
           <div class="field">
             <label>Inside Panel Preview <span style="color:var(--muted);font-weight:400">(optional)</span></label>
             <div class="file-drop" id="thumbInsideDrop">
-              <div class="icon">🖼️</div>
-              <div>Click to select image</div>
-              <div class="hint">JPG or PNG · inside spread panel</div>
+              <div class="icon">🖼️</div><div>Click to select image</div>
+              <div class="hint">JPG or PNG</div>
               <div class="chosen" id="thumbInsideChosen"></div>
               <input type="file" id="thumbInsideInput" accept=".jpg,.jpeg,.png" style="display:none" />
             </div>
@@ -164,9 +183,8 @@
           <div class="field">
             <label>Back Cover Preview <span style="color:var(--muted);font-weight:400">(optional)</span></label>
             <div class="file-drop" id="thumbBackDrop">
-              <div class="icon">🖼️</div>
-              <div>Click to select image</div>
-              <div class="hint">JPG or PNG · back cover panel</div>
+              <div class="icon">🖼️</div><div>Click to select image</div>
+              <div class="hint">JPG or PNG</div>
               <div class="chosen" id="thumbBackChosen"></div>
               <input type="file" id="thumbBackInput" accept=".jpg,.jpeg,.png" style="display:none" />
             </div>
@@ -193,107 +211,253 @@
 
 </div>
 
+<!-- Edit Modal -->
+<div class="modal-overlay" id="editModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>Edit Template</h2>
+      <button class="modal-close" id="modalClose">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="editId" />
+
+      <div class="grid-2">
+        <div class="field">
+          <label>Template Name <span class="req">*</span></label>
+          <input type="text" id="editName" placeholder="Template name" />
+        </div>
+        <div class="field">
+          <label>Format <span class="req">*</span></label>
+          <select id="editFormat">
+            <option value="letter-bifold">Letter Bi-fold (8.5"×11")</option>
+            <option value="legal-bifold">Legal Bi-fold (8.5"×14")</option>
+            <option value="legal-trifold">Legal Tri-fold (8.5"×14")</option>
+            <option value="11x17-bifold">11"×17" Bi-fold</option>
+            <option value="11x17-trifold">11"×17" Tri-fold</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="section-label">Replace PDF (optional — leave empty to keep current)</div>
+      <div class="file-drop" id="editPdfDrop">
+        <div class="icon">📄</div>
+        <div style="font-size:13px;">Click to select new PDF</div>
+        <div class="hint">Only upload if replacing the template PDF</div>
+        <div class="chosen" id="editPdfChosen"></div>
+        <input type="file" id="editPdfInput" accept=".pdf" style="display:none" />
+      </div>
+
+      <div class="section-label">Panel Preview Images (optional — leave empty to keep current)</div>
+      <div class="grid-3">
+        <div>
+          <div class="panel-label">Front Cover</div>
+          <div class="file-drop mini-drop" id="editFrontDrop">
+            <img class="current-thumb" id="editFrontCurrent" src="" style="display:none" />
+            <div class="icon" style="font-size:20px;">🖼️</div>
+            <div style="font-size:11px;">Click to replace</div>
+            <div class="chosen" id="editFrontChosen" style="font-size:10px;"></div>
+            <input type="file" id="editFrontInput" accept=".jpg,.jpeg,.png" style="display:none" />
+          </div>
+        </div>
+        <div>
+          <div class="panel-label">Inside Panel</div>
+          <div class="file-drop mini-drop" id="editInsideDrop">
+            <img class="current-thumb" id="editInsideCurrent" src="" style="display:none" />
+            <div class="icon" style="font-size:20px;">🖼️</div>
+            <div style="font-size:11px;">Click to replace</div>
+            <div class="chosen" id="editInsideChosen" style="font-size:10px;"></div>
+            <input type="file" id="editInsideInput" accept=".jpg,.jpeg,.png" style="display:none" />
+          </div>
+        </div>
+        <div>
+          <div class="panel-label">Back Cover</div>
+          <div class="file-drop mini-drop" id="editBackDrop">
+            <img class="current-thumb" id="editBackCurrent" src="" style="display:none" />
+            <div class="icon" style="font-size:20px;">🖼️</div>
+            <div style="font-size:11px;">Click to replace</div>
+            <div class="chosen" id="editBackChosen" style="font-size:10px;"></div>
+            <input type="file" id="editBackInput" accept=".jpg,.jpeg,.png" style="display:none" />
+          </div>
+        </div>
+      </div>
+
+      <div id="editMsg"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" style="background:#f3f4f6;color:#374151;" id="modalCancelBtn">Cancel</button>
+      <button class="btn btn-primary" id="editSaveBtn">Save Changes</button>
+    </div>
+  </div>
+</div>
+
 <script>
 (function () {
   'use strict';
 
-  // File drop helpers
   function wireFileDrop(dropId, inputId, chosenId) {
     const drop   = document.getElementById(dropId);
     const input  = document.getElementById(inputId);
     const chosen = document.getElementById(chosenId);
-
     drop.addEventListener('click', () => input.click());
     drop.addEventListener('dragover', e => { e.preventDefault(); drop.classList.add('dragover'); });
     drop.addEventListener('dragleave', () => drop.classList.remove('dragover'));
     drop.addEventListener('drop', e => {
       e.preventDefault(); drop.classList.remove('dragover');
-      if (e.dataTransfer.files[0]) {
-        setFile(input, e.dataTransfer.files[0], chosen);
-      }
+      if (e.dataTransfer.files[0]) setFile(input, e.dataTransfer.files[0], chosen);
     });
-    input.addEventListener('change', () => {
-      if (input.files[0]) chosen.textContent = input.files[0].name;
-    });
+    input.addEventListener('change', () => { if (input.files[0]) chosen.textContent = input.files[0].name; });
   }
 
   function setFile(input, file, chosenEl) {
-    const dt = new DataTransfer();
-    dt.items.add(file);
-    input.files = dt.files;
-    chosenEl.textContent = file.name;
+    const dt = new DataTransfer(); dt.items.add(file);
+    input.files = dt.files; chosenEl.textContent = file.name;
   }
 
+  function esc(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  // Wire upload form drops
   wireFileDrop('pdfDrop',        'pdfInput',        'pdfChosen');
   wireFileDrop('thumbFrontDrop', 'thumbFrontInput', 'thumbFrontChosen');
   wireFileDrop('thumbInsideDrop','thumbInsideInput','thumbInsideChosen');
   wireFileDrop('thumbBackDrop',  'thumbBackInput',  'thumbBackChosen');
 
-  // Upload form
-  const form      = document.getElementById('uploadForm');
-  const uploadBtn = document.getElementById('uploadBtn');
-  const uploadMsg = document.getElementById('uploadMsg');
+  // Wire edit modal drops
+  wireFileDrop('editPdfDrop',    'editPdfInput',    'editPdfChosen');
+  wireFileDrop('editFrontDrop',  'editFrontInput',  'editFrontChosen');
+  wireFileDrop('editInsideDrop', 'editInsideInput', 'editInsideChosen');
+  wireFileDrop('editBackDrop',   'editBackInput',   'editBackChosen');
 
-  form.addEventListener('submit', async e => {
+  // ── Upload form ──────────────────────────────────────────────────────
+  const uploadMsg = document.getElementById('uploadMsg');
+  document.getElementById('uploadForm').addEventListener('submit', async e => {
     e.preventDefault();
     const name   = document.getElementById('tName').value.trim();
     const format = document.getElementById('tFormat').value;
     const pdf    = document.getElementById('pdfInput').files[0];
-
-    if (!name)   return showMsg('error', 'Template name is required.');
-    if (!format) return showMsg('error', 'Please select a format.');
-    if (!pdf)    return showMsg('error', 'Please select a PDF file.');
+    if (!name)   return showUploadMsg('error', 'Template name is required.');
+    if (!format) return showUploadMsg('error', 'Please select a format.');
+    if (!pdf)    return showUploadMsg('error', 'Please select a PDF file.');
 
     const fd = new FormData();
-    fd.append('name', name);
-    fd.append('format', format);
-    fd.append('templatePdf', pdf);
-    const thumbFront  = document.getElementById('thumbFrontInput').files[0];
-    const thumbInside = document.getElementById('thumbInsideInput').files[0];
-    const thumbBack   = document.getElementById('thumbBackInput').files[0];
-    if (thumbFront)  fd.append('thumbnail_front',  thumbFront);
-    if (thumbInside) fd.append('thumbnail_inside', thumbInside);
-    if (thumbBack)   fd.append('thumbnail_back',   thumbBack);
+    fd.append('name', name); fd.append('format', format); fd.append('templatePdf', pdf);
+    const tf = document.getElementById('thumbFrontInput').files[0];
+    const ti = document.getElementById('thumbInsideInput').files[0];
+    const tb = document.getElementById('thumbBackInput').files[0];
+    if (tf) fd.append('thumbnail_front', tf);
+    if (ti) fd.append('thumbnail_inside', ti);
+    if (tb) fd.append('thumbnail_back', tb);
 
-    uploadBtn.disabled = true;
-    uploadBtn.innerHTML = '<span class="spinner"></span> Uploading…';
-
+    const btn = document.getElementById('uploadBtn');
+    btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> Uploading…';
     try {
       const resp = await fetch('/admin/upload-template', { method: 'POST', body: fd });
       const data = await resp.json();
       if (data.success) {
-        showMsg('success', `✓ Template "${data.template.name}" uploaded successfully.`);
-        form.reset();
-        document.getElementById('pdfChosen').textContent        = '';
-        document.getElementById('thumbFrontChosen').textContent  = '';
-        document.getElementById('thumbInsideChosen').textContent = '';
-        document.getElementById('thumbBackChosen').textContent   = '';
+        showUploadMsg('success', `✓ Template "${data.template.name}" uploaded successfully.`);
+        document.getElementById('uploadForm').reset();
+        ['pdfChosen','thumbFrontChosen','thumbInsideChosen','thumbBackChosen'].forEach(id => document.getElementById(id).textContent = '');
         loadTemplates();
       } else {
-        showMsg('error', data.error || 'Upload failed.');
+        showUploadMsg('error', data.error || 'Upload failed.');
       }
     } catch (err) {
-      showMsg('error', `Network error: ${err.message}`);
+      showUploadMsg('error', `Network error: ${err.message}`);
     } finally {
-      uploadBtn.disabled = false;
-      uploadBtn.innerHTML = 'Upload Template';
+      btn.disabled = false; btn.innerHTML = 'Upload Template';
     }
   });
 
-  function showMsg(type, text) {
-    uploadMsg.className = type;
-    uploadMsg.textContent = text;
+  function showUploadMsg(type, text) {
+    uploadMsg.className = type; uploadMsg.textContent = text;
     uploadMsg.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }
 
-  // Load & render template library
+  // ── Edit Modal ───────────────────────────────────────────────────────
+  const modal      = document.getElementById('editModal');
+  const editMsg    = document.getElementById('editMsg');
+  const editSaveBtn = document.getElementById('editSaveBtn');
+
+  function openEditModal(t) {
+    document.getElementById('editId').value      = t.id;
+    document.getElementById('editName').value    = t.name;
+    document.getElementById('editFormat').value  = t.format;
+    document.getElementById('editPdfChosen').textContent   = '';
+    document.getElementById('editFrontChosen').textContent = '';
+    document.getElementById('editInsideChosen').textContent= '';
+    document.getElementById('editBackChosen').textContent  = '';
+    document.getElementById('editPdfInput').value   = '';
+    document.getElementById('editFrontInput').value = '';
+    document.getElementById('editInsideInput').value= '';
+    document.getElementById('editBackInput').value  = '';
+    editMsg.style.display = 'none';
+
+    // Show current thumbnails
+    const showThumb = (imgId, url) => {
+      const img = document.getElementById(imgId);
+      if (url) { img.src = url; img.style.display = 'block'; }
+      else { img.style.display = 'none'; }
+    };
+    showThumb('editFrontCurrent',  t.thumbnail_front  || t.thumbnail || '');
+    showThumb('editInsideCurrent', t.thumbnail_inside || '');
+    showThumb('editBackCurrent',   t.thumbnail_back   || '');
+
+    modal.classList.add('open');
+  }
+
+  function closeModal() { modal.classList.remove('open'); }
+
+  document.getElementById('modalClose').addEventListener('click', closeModal);
+  document.getElementById('modalCancelBtn').addEventListener('click', closeModal);
+  modal.addEventListener('click', e => { if (e.target === modal) closeModal(); });
+
+  editSaveBtn.addEventListener('click', async () => {
+    const id     = document.getElementById('editId').value;
+    const name   = document.getElementById('editName').value.trim();
+    const format = document.getElementById('editFormat').value;
+    if (!name) return showEditMsg('error', 'Template name is required.');
+
+    const fd = new FormData();
+    fd.append('name', name);
+    fd.append('format', format);
+    const pdf    = document.getElementById('editPdfInput').files[0];
+    const front  = document.getElementById('editFrontInput').files[0];
+    const inside = document.getElementById('editInsideInput').files[0];
+    const back   = document.getElementById('editBackInput').files[0];
+    if (pdf)    fd.append('templatePdf',      pdf);
+    if (front)  fd.append('thumbnail_front',  front);
+    if (inside) fd.append('thumbnail_inside', inside);
+    if (back)   fd.append('thumbnail_back',   back);
+
+    editSaveBtn.disabled = true; editSaveBtn.innerHTML = '<span class="spinner"></span> Saving…';
+    try {
+      const resp = await fetch(`/admin/templates/${id}/edit`, { method: 'POST', body: fd });
+      const data = await resp.json();
+      if (data.success) {
+        showEditMsg('success', '✓ Template updated successfully.');
+        setTimeout(() => { closeModal(); loadTemplates(); }, 900);
+      } else {
+        showEditMsg('error', data.error || 'Save failed.');
+      }
+    } catch (err) {
+      showEditMsg('error', `Network error: ${err.message}`);
+    } finally {
+      editSaveBtn.disabled = false; editSaveBtn.innerHTML = 'Save Changes';
+    }
+  });
+
+  function showEditMsg(type, text) {
+    editMsg.className = type; editMsg.textContent = text; editMsg.style.display = 'block';
+  }
+
+  // ── Template library ─────────────────────────────────────────────────
   async function loadTemplates() {
     const grid = document.getElementById('templateGrid');
     try {
-      const resp = await fetch('/templates');
-      const list = await resp.json();
+      const list = await fetch('/templates').then(r => r.json());
       if (list.length === 0) {
-        grid.innerHTML = '<div class="empty-state">No templates uploaded yet. Upload your first template above.</div>';
+        grid.innerHTML = '<div class="empty-state">No templates uploaded yet.</div>';
         return;
       }
       grid.innerHTML = '';
@@ -313,90 +477,18 @@
             <div class="t-name">${esc(t.name)}</div>
             <div class="t-format">${esc(t.format)}</div>
             <div class="t-date">Added ${esc(t.uploadedAt)}</div>
-            <div class="t-panels" style="font-size:11px;margin-top:4px;color:${hasPanels ? 'var(--success)' : '#b45309'}">
+            <div style="font-size:11px;margin-top:4px;color:${hasPanels ? 'var(--success)' : '#b45309'}">
               ${hasPanels ? '✓ Panel previews set' : '⚠ No panel previews'}
             </div>
           </div>
           <div class="t-actions">
-            <button class="btn btn-secondary add-previews-btn" data-id="${esc(t.id)}" data-name="${esc(t.name)}">🖼 Add Previews</button>
-            <button class="btn btn-danger" data-id="${esc(t.id)}">🗑 Delete</button>
-          </div>
-          <div class="preview-upload-form" id="puf-${esc(t.id)}" style="display:none;margin-top:12px;border-top:1px solid var(--border);padding-top:12px;">
-            <div style="font-size:12px;font-weight:700;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px;">Panel Preview Images</div>
-            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;">
-              <div>
-                <div style="font-size:11px;font-weight:600;margin-bottom:4px;">Front Cover</div>
-                <div class="file-drop mini-drop" id="puf-front-drop-${esc(t.id)}">
-                  <div class="icon" style="font-size:18px;">🖼️</div>
-                  <div style="font-size:11px;">Click to select</div>
-                  <div class="chosen" id="puf-front-chosen-${esc(t.id)}" style="font-size:10px;"></div>
-                  <input type="file" id="puf-front-${esc(t.id)}" accept=".jpg,.jpeg,.png" style="display:none" />
-                </div>
-              </div>
-              <div>
-                <div style="font-size:11px;font-weight:600;margin-bottom:4px;">Inside Panel</div>
-                <div class="file-drop mini-drop" id="puf-inside-drop-${esc(t.id)}">
-                  <div class="icon" style="font-size:18px;">🖼️</div>
-                  <div style="font-size:11px;">Click to select</div>
-                  <div class="chosen" id="puf-inside-chosen-${esc(t.id)}" style="font-size:10px;"></div>
-                  <input type="file" id="puf-inside-${esc(t.id)}" accept=".jpg,.jpeg,.png" style="display:none" />
-                </div>
-              </div>
-              <div>
-                <div style="font-size:11px;font-weight:600;margin-bottom:4px;">Back Cover</div>
-                <div class="file-drop mini-drop" id="puf-back-drop-${esc(t.id)}">
-                  <div class="icon" style="font-size:18px;">🖼️</div>
-                  <div style="font-size:11px;">Click to select</div>
-                  <div class="chosen" id="puf-back-chosen-${esc(t.id)}" style="font-size:10px;"></div>
-                  <input type="file" id="puf-back-${esc(t.id)}" accept=".jpg,.jpeg,.png" style="display:none" />
-                </div>
-              </div>
-            </div>
-            <button class="btn btn-primary save-previews-btn" data-id="${esc(t.id)}" style="margin-top:10px;width:100%;">Save Previews</button>
-            <div class="preview-msg" id="puf-msg-${esc(t.id)}" style="display:none;margin-top:8px;font-size:13px;padding:8px 12px;border-radius:6px;"></div>
+            <button class="btn btn-edit edit-btn">✏ Edit</button>
+            <button class="btn btn-danger delete-btn">🗑 Delete</button>
           </div>`;
 
-        card.querySelector('.btn-danger').addEventListener('click', () => deleteTemplate(t.id, t.name));
-
-        // Toggle preview upload form
-        card.querySelector('.add-previews-btn').addEventListener('click', () => {
-          const puf = card.querySelector('.preview-upload-form');
-          puf.style.display = puf.style.display === 'none' ? 'block' : 'none';
-        });
-
-        // Save previews
-        card.querySelector('.save-previews-btn').addEventListener('click', async () => {
-          const fd     = new FormData();
-          const front  = card.querySelector(`#puf-front-${t.id}`).files[0];
-          const inside = card.querySelector(`#puf-inside-${t.id}`).files[0];
-          const back   = card.querySelector(`#puf-back-${t.id}`).files[0];
-          if (!front && !inside && !back) {
-            showPufMsg(t.id, 'error', 'Select at least one panel image.');
-            return;
-          }
-          if (front)  fd.append('thumbnail_front',  front);
-          if (inside) fd.append('thumbnail_inside', inside);
-          if (back)   fd.append('thumbnail_back',   back);
-          try {
-            const resp = await fetch(`/admin/templates/${t.id}/thumbnails`, { method: 'POST', body: fd });
-            const data = await resp.json();
-            if (data.success) {
-              showPufMsg(t.id, 'success', '✓ Previews saved.');
-              setTimeout(loadTemplates, 800);
-            } else {
-              showPufMsg(t.id, 'error', data.error || 'Save failed.');
-            }
-          } catch (err) {
-            showPufMsg(t.id, 'error', `Network error: ${err.message}`);
-          }
-        });
-
+        card.querySelector('.edit-btn').addEventListener('click',   () => openEditModal(t));
+        card.querySelector('.delete-btn').addEventListener('click', () => deleteTemplate(t.id, t.name));
         grid.appendChild(card);
-
-        // Wire mini file drops AFTER card is in the DOM
-        ['front', 'inside', 'back'].forEach(panel => {
-          wireFileDrop(`puf-${panel}-drop-${t.id}`, `puf-${panel}-${t.id}`, `puf-${panel}-chosen-${t.id}`);
-        });
       });
     } catch {
       grid.innerHTML = '<div class="empty-state">Could not load templates.</div>';
@@ -413,19 +505,6 @@
     } catch (err) {
       alert('Network error: ' + err.message);
     }
-  }
-
-  function showPufMsg(id, type, text) {
-    const el = document.getElementById(`puf-msg-${id}`);
-    el.style.display = 'block';
-    el.style.background = type === 'success' ? '#f0fdf4' : '#fef2f2';
-    el.style.border     = type === 'success' ? '1px solid #bbf7d0' : '1px solid #fecaca';
-    el.style.color      = type === 'success' ? 'var(--success)' : 'var(--error)';
-    el.textContent = text;
-  }
-
-  function esc(s) {
-    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   }
 
   loadTemplates();

@@ -201,6 +201,45 @@ app.post('/admin/templates/:id/thumbnails', templateUpload.fields([
   }
 });
 
+// Edit template — name, format, optional PDF replacement, optional new thumbnails
+app.post('/admin/templates/:id/edit', templateUpload.fields([
+  { name: 'templatePdf',      maxCount: 1 },
+  { name: 'thumbnail_front',  maxCount: 1 },
+  { name: 'thumbnail_inside', maxCount: 1 },
+  { name: 'thumbnail_back',   maxCount: 1 }
+]), (req, res) => {
+  try {
+    const meta  = readMeta();
+    const entry = meta.find(t => t.id === req.params.id);
+    if (!entry) return res.status(404).json({ success: false, error: 'Template not found.' });
+
+    const { name, format } = req.body;
+    if (name && name.trim())  entry.name   = name.trim();
+    if (format)               entry.format = format;
+
+    // Replace PDF if provided
+    const pdfFile = (req.files['templatePdf'] || [])[0];
+    if (pdfFile) {
+      const oldPdf = path.join(__dirname, 'templates', entry.filename);
+      if (fs.existsSync(oldPdf)) fs.unlinkSync(oldPdf);
+      entry.filename = pdfFile.filename;
+    }
+
+    // Replace thumbnails if provided
+    const frontFile  = (req.files['thumbnail_front']  || [])[0];
+    const insideFile = (req.files['thumbnail_inside'] || [])[0];
+    const backFile   = (req.files['thumbnail_back']   || [])[0];
+    if (frontFile)  { if (entry.thumbnail_front)  { const p = path.join(__dirname, entry.thumbnail_front.replace(/^\//,'')); if (fs.existsSync(p)) fs.unlinkSync(p); } entry.thumbnail_front  = `/template-thumbs/${frontFile.filename}`;  }
+    if (insideFile) { if (entry.thumbnail_inside) { const p = path.join(__dirname, entry.thumbnail_inside.replace(/^\//,'')); if (fs.existsSync(p)) fs.unlinkSync(p); } entry.thumbnail_inside = `/template-thumbs/${insideFile.filename}`; }
+    if (backFile)   { if (entry.thumbnail_back)   { const p = path.join(__dirname, entry.thumbnail_back.replace(/^\//,'')); if (fs.existsSync(p)) fs.unlinkSync(p); } entry.thumbnail_back   = `/template-thumbs/${backFile.filename}`;  }
+
+    writeMeta(meta);
+    res.json({ success: true, template: entry });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 app.delete('/admin/templates/:id', (req, res) => {
   try {
     const meta    = readMeta();
