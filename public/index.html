@@ -956,6 +956,17 @@
       return `${months[parseInt(m)-1]} ${parseInt(d)}, ${y}`;
     } catch { return val; }
   }
+
+  function fmtServiceDate(val) {
+    if (!val) return '';
+    try {
+      const [y,m,d] = val.split('-');
+      const days   = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+      const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+      const date   = new Date(parseInt(y), parseInt(m)-1, parseInt(d));
+      return `${days[date.getDay()]}, ${months[parseInt(m)-1]} ${parseInt(d)}, ${y}`;
+    } catch { return val; }
+  }
   const FINAL_RITES_PRESETS = {
     longson:   'Long & Son Mortuary Services Inc.\n2312 Beatties Ford Road\nCharlotte, NC 28216\nTelephone: 704.394.1111  Fax: 704.394.1316',
     alexander: 'Alexander Funeral Home Inc.\n1424 Statesville Ave\nCharlotte, NC 28206\nTelephone: 704.333.1167  Fax: 704.333.1173',
@@ -1919,7 +1930,7 @@
         let   svcY  = H * 0.815 - 30;
         ctx.textAlign = 'center';
         if (svcDate || svcTime) {
-          const dtLine = [fmtDate(svcDate), svcTime].filter(Boolean).join(' at ');
+          const dtLine = [fmtServiceDate(svcDate), svcTime].filter(Boolean).join(' at ');
           ctx.font      = `bold ${svcPx}px Arial, sans-serif`;
           ctx.fillStyle = '#ffffff';
           ctx.fillText(dtLine, W/2, svcY, W * 0.92); svcY += gap;
@@ -2015,7 +2026,7 @@
       let   svcY    = dateBottomY + svcPx * 2.0;
 
       if (svcDate || svcTime) {
-        const dtLine = [fmtDate(svcDate), svcTime].filter(Boolean).join(' at ');
+        const dtLine = [fmtServiceDate(svcDate), svcTime].filter(Boolean).join(' at ');
         ctx.font      = `bold ${svcPx}px Arial, sans-serif`;
         ctx.fillStyle = '#222222';
         ctx.fillText(dtLine, W/2, svcY, W*0.84);
