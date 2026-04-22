@@ -814,6 +814,12 @@
               <span style="font-size:10px;">Garamond</span>
             </label>
           </div>
+          <div style="margin-top:10px;">
+            <label style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;">Body Text Size — <span id="bodyFontSizeVal" style="font-weight:700;color:var(--gold);">19px</span></label>
+            <input type="range" id="bodyFontSize" min="10" max="36" step="1" value="19"
+              style="width:100%;accent-color:var(--gold);margin-top:4px;"
+              oninput="document.getElementById('bodyFontSizeVal').textContent=this.value+'px';drawPreview()" />
+          </div>
         </div>
         <div style="display:flex;align-items:center;gap:10px;background:#fff8e1;border:1px solid #f0d070;border-radius:6px;padding:10px 14px;font-size:12px;color:#7a6000;align-self:center;">
           <span style="font-size:18px;">✏️</span>
@@ -1629,11 +1635,11 @@
 
       drawSectionHeader(document.getElementById('headingAcknowledgements').value.trim() || 'Acknowledgements', true);
       const ackVal = document.getElementById('acknowledgements').value.trim();
-      drawBodyText(ackVal || 'The family would like to express their gratitude to everyone for the expressions of sympathy, love and support shown during this time of bereavement…', Math.round(W * 0.030), ackVal ? '#333' : '#888', true);
+      drawBodyText(ackVal || 'The family would like to express their gratitude to everyone for the expressions of sympathy, love and support shown during this time of bereavement…', parseInt(document.getElementById('bodyFontSize')?.value || '19'), ackVal ? '#333' : '#888', true);
 
     } else if (panel === 'inside') {
       // ── Center: Obituary sections ─────────────────────────────────
-      const bodySize = Math.round(W * 0.030);
+      const bodySize = parseInt(document.getElementById('bodyFontSize')?.value || '19');
       drawSectionHeader(document.getElementById('headingObituary').value.trim() || 'Obituary');
       const obSections = getContentSections('obituarySectionsList');
       const hasObContent = obSections.some(s => s.heading || s.content);
@@ -1646,7 +1652,7 @@
 
     } else if (panel === 'back') {
       // ── Right: obituary overflow + additional message sections ────
-      const bodySize = Math.round(W * 0.030);
+      const bodySize = parseInt(document.getElementById('bodyFontSize')?.value || '19');
 
       // Recompute overflow if needed
       if (obituaryOverflow === null) {
@@ -2142,9 +2148,6 @@
       ctx.font = `bold ${W*0.030}px Arial`;
       ctx.textAlign = 'center';
       ctx.fillText('Final Rites Entrusted To:', centerX, infoY, maxW);
-      ctx.strokeStyle = lineColor;
-      ctx.lineWidth = 1;
-      ctx.beginPath(); ctx.moveTo(leftPad, infoY+H*0.015); ctx.lineTo(leftPad+maxW, infoY+H*0.015); ctx.stroke();
 
       // Use actual content or fall back to placeholder text
       const finalRitesPlaceholder = 'Long & Son Mortuary Service, Inc.\n2312 Beatties Ford Road\nCharlotte, NC 28216\nTelephone: 704.394.1111  Fax: 704.394.1316';
