@@ -559,8 +559,8 @@
         <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px;">Deceased Name</div>
         <div class="grid-2">
           <div class="field">
-            <label>Name Font Size — <span id="nameFontSizeVal" style="font-weight:700;color:var(--gold);">50px</span></label>
-            <input type="range" id="nameFontSize" min="20" max="80" step="1" value="50"
+            <label>Name Font Size — <span id="nameFontSizeVal" style="font-weight:700;color:var(--gold);">77px</span></label>
+            <input type="range" id="nameFontSize" min="20" max="120" step="1" value="77"
               style="width:100%;accent-color:var(--gold);"
               oninput="document.getElementById('nameFontSizeVal').textContent=this.value+'px';schedulePreview()" />
           </div>
@@ -621,8 +621,8 @@
         </div>
         <div class="grid-2">
           <div class="field">
-            <label>Date Font Size — <span id="dateFontSizeVal" style="font-weight:700;color:var(--gold);">22px</span></label>
-            <input type="range" id="dateFontSize" min="12" max="60" step="1" value="22"
+            <label>Date Font Size — <span id="dateFontSizeVal" style="font-weight:700;color:var(--gold);">27px</span></label>
+            <input type="range" id="dateFontSize" min="12" max="60" step="1" value="27"
               style="width:100%;accent-color:var(--gold);"
               oninput="document.getElementById('dateFontSizeVal').textContent=this.value+'px';schedulePreview()" />
           </div>
@@ -694,8 +694,8 @@
             <input type="hidden" name="finalRites" id="finalRitesHidden" />
           </div>
           <div class="field" style="grid-column:span 2">
-            <label>Service Info Font Size — <span id="svcFontSizeVal" style="font-weight:700;color:var(--gold);">22px</span></label>
-            <input type="range" id="svcFontSize" min="12" max="50" step="1" value="22"
+            <label>Service Info Font Size — <span id="svcFontSizeVal" style="font-weight:700;color:var(--gold);">30px</span></label>
+            <input type="range" id="svcFontSize" min="12" max="50" step="1" value="30"
               style="width:100%;accent-color:var(--gold);"
               oninput="document.getElementById('svcFontSizeVal').textContent=this.value+'px';schedulePreview()" />
           </div>
@@ -1869,7 +1869,7 @@
         const fontWeight = weightMap[weightKey] || '700';
         const isCursive  = getRadio('fontFamily') === 'cursive';
         const nameFont   = isCursive ? "'Dancing Script','Great Vibes',cursive" : font;
-        const maxPx      = parseInt(document.getElementById('nameFontSize')?.value || '50');
+        const maxPx      = parseInt(document.getElementById('nameFontSize')?.value || '77');
         const minPx      = Math.round(W * 0.030);
         const ns         = fitFontSize(firstName || lastName, nameFont, lw, maxPx, minPx);
         const lineH      = ns * 1.15;
@@ -1895,7 +1895,7 @@
           century: "'Century Gothic','Futura',Arial,sans-serif"
         };
         const dateFont = dateFontMap[dateFamilyKey] || 'Georgia, serif';
-        const datePx   = parseInt(document.getElementById('dateFontSize')?.value || '22');
+        const datePx   = parseInt(document.getElementById('dateFontSize')?.value || '27');
         const dateStyle   = dateStyleKey === 'italic' ? 'italic ' : dateStyleKey === 'bold' ? 'bold ' : dateStyleKey === 'bolditalic' ? 'bold italic ' : dateStyleKey === 'light' ? '300 ' : '';
         ctx.textAlign = 'center';
         ctx.font      = `${dateStyle}${datePx}px ${dateFont}`;
@@ -1911,9 +1911,9 @@
       const svcCityState  = getVal('serviceCityState');
       const svcOfficiant  = getVal('officiant');
       if (svcDate || svcTime || svcLocName || svcOfficiant) {
-        const svcPx = parseInt(document.getElementById('svcFontSize')?.value || '22');
+        const svcPx = parseInt(document.getElementById('svcFontSize')?.value || '30');
         const gap   = svcPx * 1.3;
-        let   svcY  = H * 0.815 - 30;
+        let   svcY  = H * 0.815 - 30 + 50;
         ctx.textAlign = 'center';
         if (svcDate || svcTime) {
           const dtLine = [fmtServiceDate(svcDate), svcTime].filter(Boolean).join(' at ');
@@ -1961,7 +1961,7 @@
     if (!hasName && !hasDates) return;
 
     // Font size from slider
-    const maxSize = parseInt(document.getElementById('nameFontSize')?.value || '50');
+    const maxSize = parseInt(document.getElementById('nameFontSize')?.value || '77');
     const minSize = Math.round(W * 0.030);
 
     // Font weight from selector
@@ -1996,7 +1996,7 @@
         century:   "'Century Gothic','Futura',Arial,sans-serif"
       };
       const dateFont = dateFontMap[dateFamilyKey] || 'Georgia, serif';
-      const datePx   = parseInt(document.getElementById('dateFontSize')?.value || '22');
+      const datePx   = parseInt(document.getElementById('dateFontSize')?.value || '27');
       const dateStyle   = dateStyleKey === 'italic' ? 'italic ' : dateStyleKey === 'bold' ? 'bold ' : dateStyleKey === 'bolditalic' ? 'bold italic ' : dateStyleKey === 'light' ? '300 ' : '';
       const dateY       = textY + ns * 0.5 + datePx;
       ctx.font      = `${dateStyle}${datePx}px ${dateFont}`;
@@ -2015,9 +2015,9 @@
     const hasService   = svcDate || svcTime || svcLocName2 || svcOfficiant;
 
     if (hasService) {
-      const svcPx   = parseInt(document.getElementById('svcFontSize')?.value || '22');
+      const svcPx   = parseInt(document.getElementById('svcFontSize')?.value || '30');
       const lineGap = svcPx * 1.35;
-      let   svcY    = dateBottomY + svcPx * 2.0;
+      let   svcY    = dateBottomY + svcPx * 2.0 + 50;
 
       if (svcDate || svcTime) {
         const dtLine = [fmtServiceDate(svcDate), svcTime].filter(Boolean).join(' at ');
