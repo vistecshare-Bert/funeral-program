@@ -689,9 +689,13 @@
             <label>Service Time <span class="req">*</span></label>
             <input type="text" name="serviceTime" required placeholder="2:00 PM" />
           </div>
-          <div class="field" style="grid-column:span 2">
+          <div class="field">
             <label>Location <span class="req">*</span></label>
-            <input type="text" name="serviceLocation" required placeholder="Grace Baptist Church, Charlotte NC" />
+            <input type="text" name="serviceLocation" required placeholder="Grace Baptist Church" />
+          </div>
+          <div class="field">
+            <label>City &amp; State <span class="req">*</span></label>
+            <input type="text" name="serviceCityState" required placeholder="Charlotte, NC" />
           </div>
           <div class="field" style="grid-column:span 2">
             <label>Officiant</label>
@@ -1921,7 +1925,9 @@
       // ── Service info: 30px higher than before ──────────────────────
       const svcDate      = getVal('serviceDate');
       const svcTime      = getVal('serviceTime');
-      const svcLocation  = getVal('serviceLocation');
+      const svcLocationRaw  = getVal('serviceLocation');
+      const svcCityState = getVal('serviceCityState');
+      const svcLocation  = [svcLocationRaw, svcCityState].filter(Boolean).join(', ');
       const svcOfficiant = getVal('officiant');
       if (svcDate || svcTime || svcLocation || svcOfficiant) {
         const svcPx = Math.round(W * 0.034);
@@ -2015,7 +2021,9 @@
     // ── Service info on cover (no label) ──────────────────────────
     const svcDate     = getVal('serviceDate');
     const svcTime     = getVal('serviceTime');
-    const svcLocation = getVal('serviceLocation');
+    const svcLocationRaw2  = getVal('serviceLocation');
+    const svcCityState2    = getVal('serviceCityState');
+    const svcLocation = [svcLocationRaw2, svcCityState2].filter(Boolean).join(', ');
     const svcOfficiant = getVal('officiant');
     const hasService  = svcDate || svcTime || svcLocation || svcOfficiant;
 
