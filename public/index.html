@@ -816,7 +816,7 @@
         <!-- Left: Celebration of Life + Acknowledgements -->
         <div>
           <div class="card">
-            <div class="card-header"><input class="heading-edit" id="headingCelebration" value="Celebration of Life" oninput="drawPreview()" /></div>
+            <div class="card-header"><input class="heading-edit" id="headingCelebration" value="Celebration of Life" oninput="switchToPanel('cover');drawPreview()" /></div>
             <div class="card-body">
               <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-bottom:6px;">
                 <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;">Event / Program Item</div>
@@ -827,7 +827,7 @@
             </div>
           </div>
           <div class="card">
-            <div class="card-header"><input class="heading-edit" id="headingAcknowledgements" value="Acknowledgements" oninput="drawPreview()" /></div>
+            <div class="card-header"><input class="heading-edit" id="headingAcknowledgements" value="Acknowledgements" oninput="switchToPanel('cover');drawPreview()" /></div>
             <div class="card-body">
               <div class="field">
                 <textarea id="acknowledgements" name="acknowledgements" rows="6"
@@ -840,7 +840,7 @@
         <!-- Center: Obituary -->
         <div>
           <div class="card">
-            <div class="card-header"><input class="heading-edit" id="headingObituary" value="Obituary" oninput="drawPreview()" /></div>
+            <div class="card-header"><input class="heading-edit" id="headingObituary" value="Obituary" oninput="switchToPanel('inside');drawPreview()" /></div>
             <div class="card-body">
               <div class="field">
                 <textarea id="obituaryText" name="obituary" rows="30"
@@ -854,7 +854,7 @@
         <!-- Right: Additional Message -->
         <div>
           <div class="card">
-            <div class="card-header"><input class="heading-edit" id="headingAdditional" value="Additional Message" oninput="drawPreview()" /></div>
+            <div class="card-header"><input class="heading-edit" id="headingAdditional" value="Additional Message" oninput="switchToPanel('back');drawPreview()" /></div>
             <div class="card-body">
               <div class="field">
                 <textarea id="additionalMessage" name="additionalMessage" rows="20"
@@ -1364,7 +1364,7 @@
     previewTimer = setTimeout(drawPreview, 80);
   }
 
-  function drawPreview() {
+  window.drawPreview = function drawPreview() {
     const W = canvas.width;
     const H = canvas.height;
     ctx.clearRect(0, 0, W, H);
@@ -2400,14 +2400,14 @@
     });
   });
 
-  function switchToPanel(panel) {
+  window.switchToPanel = function switchToPanel(panel) {
     if (activePanel === panel) return;
     activePanel = panel;
     document.querySelectorAll('#step2Tabs .preview-tab').forEach(t => t.classList.remove('active'));
     const tabId = panel === 'cover' ? 's2tab_left' : panel === 'inside' ? 's2tab_center' : 's2tab_right';
     const tab = document.getElementById(tabId);
     if (tab) tab.classList.add('active');
-  }
+  };
 
   document.getElementById('headingCelebration').addEventListener('focus',      () => { switchToPanel('cover');  drawPreview(); });
   document.getElementById('headingAcknowledgements').addEventListener('focus', () => { switchToPanel('cover');  drawPreview(); });
