@@ -543,37 +543,6 @@
           </div>
         </div>
 
-        <div class="field">
-          <label>Content Font <span style="font-weight:400;color:var(--muted);font-size:11px;">(obituary &amp; body text)</span></label>
-          <div class="radio-group" style="flex-wrap:wrap;">
-            <label class="radio-option selected" style="flex-direction:column;gap:2px;min-width:90px;text-align:center;">
-              <input type="radio" name="contentFont" value="times" checked onchange="schedulePreview()" />
-              <span style="font-family:'Times New Roman',Times,serif;font-size:15px;">Aa</span>
-              <span>Times New Roman</span>
-            </label>
-            <label class="radio-option" style="flex-direction:column;gap:2px;min-width:90px;text-align:center;">
-              <input type="radio" name="contentFont" value="serif" onchange="schedulePreview()" />
-              <span style="font-family:Georgia,serif;font-size:15px;">Aa</span>
-              <span>Georgia</span>
-            </label>
-            <label class="radio-option" style="flex-direction:column;gap:2px;min-width:90px;text-align:center;">
-              <input type="radio" name="contentFont" value="sans" onchange="schedulePreview()" />
-              <span style="font-family:Arial,sans-serif;font-size:15px;">Aa</span>
-              <span>Sans-Serif</span>
-            </label>
-            <label class="radio-option" style="flex-direction:column;gap:2px;min-width:90px;text-align:center;">
-              <input type="radio" name="contentFont" value="palatino" onchange="schedulePreview()" />
-              <span style="font-family:'Palatino Linotype','Palatino',Georgia,serif;font-size:15px;">Aa</span>
-              <span>Palatino</span>
-            </label>
-            <label class="radio-option" style="flex-direction:column;gap:2px;min-width:90px;text-align:center;">
-              <input type="radio" name="contentFont" value="garamond" onchange="schedulePreview()" />
-              <span style="font-family:'Garamond','Book Antiqua',Georgia,serif;font-size:15px;font-style:italic;">Aa</span>
-              <span>Garamond</span>
-            </label>
-          </div>
-        </div>
-
         <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px;">Deceased Name</div>
         <div class="grid-2">
           <div class="field">
@@ -808,6 +777,44 @@
               <label class="radio-option selected"><input type="radio" name="headingFont" value="cursive" checked> Cursive</label>
             </div>
           </div>
+        </div>
+      </div>
+
+      <!-- Content Font + heading tip row -->
+      <div style="display:flex;align-items:flex-start;gap:20px;flex-wrap:wrap;margin-bottom:16px;background:#f0f4ff;border:1px solid #d0d8f0;border-radius:8px;padding:14px 18px;">
+        <div style="flex:1;min-width:220px;">
+          <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;">Content Font <span style="font-weight:400;text-transform:none;letter-spacing:0;">(obituary &amp; body text)</span></div>
+          <div class="radio-group" style="flex-wrap:wrap;gap:6px;">
+            <label class="radio-option selected" style="flex-direction:column;gap:2px;min-width:80px;text-align:center;">
+              <input type="radio" name="contentFont" value="times" checked onchange="schedulePreview()" />
+              <span style="font-family:'Times New Roman',Times,serif;font-size:15px;">Aa</span>
+              <span style="font-size:10px;">Times New Roman</span>
+            </label>
+            <label class="radio-option" style="flex-direction:column;gap:2px;min-width:80px;text-align:center;">
+              <input type="radio" name="contentFont" value="serif" onchange="schedulePreview()" />
+              <span style="font-family:Georgia,serif;font-size:15px;">Aa</span>
+              <span style="font-size:10px;">Georgia</span>
+            </label>
+            <label class="radio-option" style="flex-direction:column;gap:2px;min-width:80px;text-align:center;">
+              <input type="radio" name="contentFont" value="sans" onchange="schedulePreview()" />
+              <span style="font-family:Arial,sans-serif;font-size:15px;">Aa</span>
+              <span style="font-size:10px;">Sans-Serif</span>
+            </label>
+            <label class="radio-option" style="flex-direction:column;gap:2px;min-width:80px;text-align:center;">
+              <input type="radio" name="contentFont" value="palatino" onchange="schedulePreview()" />
+              <span style="font-family:'Palatino Linotype','Palatino',Georgia,serif;font-size:15px;">Aa</span>
+              <span style="font-size:10px;">Palatino</span>
+            </label>
+            <label class="radio-option" style="flex-direction:column;gap:2px;min-width:80px;text-align:center;">
+              <input type="radio" name="contentFont" value="garamond" onchange="schedulePreview()" />
+              <span style="font-family:'Garamond','Book Antiqua',Georgia,serif;font-size:15px;font-style:italic;">Aa</span>
+              <span style="font-size:10px;">Garamond</span>
+            </label>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;background:#fff8e1;border:1px solid #f0d070;border-radius:6px;padding:10px 14px;font-size:12px;color:#7a6000;align-self:center;">
+          <span style="font-size:18px;">✏️</span>
+          <span><strong>Tip:</strong> Click any section heading (dark blue bar) to rename it — the preview updates instantly.</span>
         </div>
       </div>
 
