@@ -2627,71 +2627,92 @@
   const submitBtn = document.getElementById('submitBtn');
   const statusMsg = document.getElementById('statusMsg');
 
-  // Capture all 6 panels. scale=1 for preview quality, scale=3 for PDF.
+  // Capture 3 composited panels (template + photos + text overlay) for PDF.
   function captureAllPanels(scale = 1) {
     return new Promise(resolve => {
-      const urls       = [];
       const savedStep2 = step2Active;
       const savedPanel = activePanel;
-
-      // Scale up canvas for high-res capture (ctx ref stays valid after resize)
+      const savedThumb = selectedTemplateThumb;
       const origW = canvas.width;
       const origH = canvas.height;
+
       if (scale !== 1) {
         canvas.width  = origW * scale;
         canvas.height = origH * scale;
-        ctx.imageSmoothingEnabled = true;
-        ctx.imageSmoothingQuality = 'high';
       }
 
-      const step1Panels = ['cover', 'inside', 'back'];
-      const step2Panels = ['cover', 'inside', 'back'];
-      const labels      = ['Front Cover', 'Inside', 'Back Cover',
-                           'Celebration of Life', 'Obituary', 'Additional Message'];
-      const fmt = scale !== 1 ? 'image/png' : 'image/jpeg';
-      const q   = scale !== 1 ? 1.0 : 0.92;
+      const fmt = 'image/png';
+      const urls = [];
+      const panelNames = ['cover', 'inside', 'back'];
+      const labels     = ['Front Cover', 'Inside', 'Back Cover'];
 
-      // Patch snapshotPanel to use PNG when high-res
-      const origToDataURL = HTMLCanvasElement.prototype.toDataURL;
+      const fontMap = {
+        times:     "'Times New Roman',Times,serif",
+        serif:     'Georgia, serif',
+        sans:      'Arial, sans-serif',
+        garamond:  "'Garamond','Book Antiqua',Georgia,serif",
+        palatino:  "'Palatino Linotype','Palatino',Georgia,serif",
+        trebuchet: "'Trebuchet MS',Arial,sans-serif",
+        century:   "'Century Gothic','Futura',Arial,sans-serif",
+        cursive:   "'Dancing Script','Great Vibes',cursive",
+      };
+      const fontFamily = fontMap[getRadio('fontFamily')] || "'Dancing Script','Great Vibes',cursive";
+      const firstName  = getVal('firstName');
+      const lastName   = getVal('lastName');
+      const dob        = fmtDate(getVal('dateOfBirth'));
+      const dod        = fmtDate(getVal('dateOfDeath'));
+      const fullName   = [firstName, lastName].filter(Boolean).join(' ') || 'Full Name';
+      const dates      = (dob || dod) ? `${dob || '?'} — ${dod || '?'}` : '';
+
+      obituaryOverflow = null; // recompute fresh for inside→back overflow
 
       let idx = 0;
-      function next() {
-        if (idx < 3) {
-          step2Active = false;
-          snapshotPanel(step1Panels[idx], url => {
-            urls.push({ label: labels[idx], dataURL: url });
-            idx++; next();
-          });
-        } else if (idx < 6) {
-          step2Active = true;
-          snapshotPanel(step2Panels[idx - 3], url => {
-            urls.push({ label: labels[idx], dataURL: url });
-            idx++; next();
-          });
-        } else {
-          // Restore canvas to original size
-          canvas.width  = origW;
-          canvas.height = origH;
-          step2Active   = savedStep2;
-          activePanel   = savedPanel;
+
+      function captureOne() {
+        if (idx >= panelNames.length) {
+          // Restore everything
+          canvas.width        = origW;
+          canvas.height       = origH;
+          step2Active         = savedStep2;
+          activePanel         = savedPanel;
+          selectedTemplateThumb = savedThumb;
           schedulePreview();
           resolve(urls);
+          return;
         }
+
+        const panelName = panelNames[idx];
+        const W = canvas.width, H = canvas.height;
+        ctx.clearRect(0, 0, W, H);
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
+
+        // Set the correct template thumbnail for this panel
+        if (selectedTemplatePanels) {
+          const key = panelName === 'cover' ? 'front' : panelName;
+          selectedTemplateThumb = selectedTemplatePanels[key] || null;
+        } else {
+          selectedTemplateThumb = null;
+        }
+
+        // After template+photos are drawn, overlay the text content
+        const overlayText = () => {
+          step2Active = false;
+          drawStep2Panel(W, H, fontFamily, panelName);
+          const url = canvas.toDataURL(fmt, 1.0);
+          urls.push({ label: labels[idx], dataURL: url });
+          idx++;
+          captureOne();
+        };
+
+        // Draw template + photos layer
+        step2Active = false;
+        if (panelName === 'cover')       drawCoverPanel(W, H, fontFamily, fullName, dates, overlayText);
+        else if (panelName === 'inside') drawInsidePanel(W, H, fontFamily, overlayText);
+        else                             drawBackPanel(W, H, fontFamily, overlayText);
       }
 
-      // Override toDataURL on this canvas during capture to get PNG at full quality
-      if (scale !== 1) {
-        canvas.toDataURL = function(type, quality) {
-          return origToDataURL.call(this, fmt, q);
-        };
-        const cleanup = resolve;
-        resolve = (v) => {
-          canvas.toDataURL = origToDataURL;
-          cleanup(v);
-        };
-      }
-
-      next();
+      captureOne();
     });
   }
 
@@ -2708,7 +2729,7 @@
     }
 
     submitBtn.disabled = true;
-    showStatus('processing', '<span class="spinner"></span> Capturing panels…');
+    showStatus('processing', '<span class="spinner"></span> Rendering panels…');
 
     try {
       const panels = await captureAllPanels(3); // 3× resolution for print quality
