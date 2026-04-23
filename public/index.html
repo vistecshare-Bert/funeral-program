@@ -1005,6 +1005,21 @@
       <canvas id="previewCanvas" width="640" height="1242"></canvas>
     </div>
     <div class="preview-hint">Updates as you fill in the form.<br/>Final PDF may differ slightly.</div>
+
+    <!-- Portrait calibration panel -->
+    <div id="portraitCalibration" style="display:none;margin-top:10px;background:#fff8e1;border:1px solid #f0d070;border-radius:6px;padding:10px 12px;font-size:11px;">
+      <div style="font-weight:700;color:#7a6000;margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px;">📐 Portrait Frame Calibration</div>
+      <div style="margin-bottom:6px;">
+        <label style="color:#555;font-weight:600;">Vertical Position — <span id="calCyVal">33%</span></label>
+        <input type="range" id="calCy" min="20" max="55" step="1" value="33" style="width:100%;accent-color:#c8a96e;" oninput="document.getElementById('calCyVal').textContent=this.value+'%';schedulePreview()" />
+      </div>
+      <div>
+        <label style="color:#555;font-weight:600;">Circle Size — <span id="calRVal">21%</span></label>
+        <input type="range" id="calR" min="10" max="40" step="1" value="21" style="width:100%;accent-color:#c8a96e;" oninput="document.getElementById('calRVal').textContent=this.value+'%';schedulePreview()" />
+      </div>
+      <div style="margin-top:8px;color:#7a6000;font-size:10px;">Drag sliders until the photo circle aligns with the template frame, then tell me the values.</div>
+    </div>
+    <button type="button" onclick="const p=document.getElementById('portraitCalibration');p.style.display=p.style.display==='none'?'block':'none';" style="margin-top:6px;width:100%;padding:5px;background:transparent;border:1px dashed #aaa;border-radius:4px;font-size:11px;color:#888;cursor:pointer;">📐 Portrait Calibration</button>
     <button type="button" id="fullscreenBtn" style="margin-top:8px;width:100%;padding:7px;background:#1a2740;color:#fff;border:none;border-radius:6px;font-size:13px;cursor:pointer;font-weight:600;">⛶ Full Screen Preview</button>
 
   </div>
@@ -1905,7 +1920,9 @@
       }
 
       // ── Default: circular portrait ────────────────────────────────
-      const cx = W/2, cy = H * 0.36, r = W * 0.26;
+      const calCy = parseInt(document.getElementById('calCy')?.value || '33') / 100;
+      const calR  = parseInt(document.getElementById('calR')?.value  || '21') / 100;
+      const cx = W/2, cy = H * calCy, r = W * calR;
 
       // Only draw the circle background if NO template is selected
       if (!selectedTemplateThumb) {
