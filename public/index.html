@@ -1772,11 +1772,12 @@
 
       const addSections = getContentSections('additionalSectionsList');
       const hasAdd = addSections.some(s => s.heading || s.content);
+      drawSectionHeader(document.getElementById('headingAdditional').value.trim() || 'Additional Message');
       if (hasAdd) {
-        drawSectionHeader(document.getElementById('headingAdditional').value.trim() || 'Additional Message');
         drawContentSections(addSections, bodySize);
+      } else {
+        drawBodyText('Additional message or closing note will appear here…', bodySize, '#bbb', true);
       }
-      // No placeholder shown for additional message
     }
   }
 
