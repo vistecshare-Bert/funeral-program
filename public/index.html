@@ -922,6 +922,12 @@
             </div>
             <div id="serviceOrderList"></div>
             <button type="button" class="add-service-btn" id="addServiceItemBtn">+ Add Item</button>
+            <div class="field" style="margin-top:12px;">
+              <label>Item Font Size — <span id="celFontSizeVal" style="font-weight:700;color:var(--gold);">21px</span></label>
+              <input type="range" id="celFontSize" min="10" max="36" step="1" value="21"
+                style="width:100%;accent-color:var(--gold);"
+                oninput="document.getElementById('celFontSizeVal').textContent=this.value+'px';drawPreview()" />
+            </div>
           </div>
         </div>
         <div class="card">
@@ -1578,7 +1584,7 @@
       y += Math.round(H * 0.018);
     }
 
-    // Returns any text that didn't fit (overflow)
+    // Returns any text that didn't fit (overflow), preserving paragraph breaks
     function drawBodyText(text, size, color, italic) {
       if (!text) return '';
       ctx.fillStyle = color || '#222222';
@@ -1592,21 +1598,38 @@
       const contentFont = contentFontMap[getRadio('contentFont')] || "'Times New Roman',Times,serif";
       ctx.font = `${italic ? 'italic ' : ''}${size}px ${contentFont}`;
       ctx.textAlign = 'left';
-      const words = text.split(/\s+/);
-      let line = '';
-      const lh = size * 1.6;
-      for (let i = 0; i < words.length; i++) {
-        const w = words[i];
-        const test = line ? line + ' ' + w : w;
-        if (ctx.measureText(test).width > maxW) {
-          if (y + size > H - pad) return words.slice(i).join(' ');
+      const lh       = size * 1.6;
+      const paraGap  = size * 0.9;
+      const lines    = text.split('\n');
+
+      for (let pi = 0; pi < lines.length; pi++) {
+        const para = lines[pi];
+        if (!para.trim()) {
+          // blank line = paragraph break
+          y += paraGap;
+          continue;
+        }
+        const words = para.split(/\s+/);
+        let line = '';
+        for (let i = 0; i < words.length; i++) {
+          const w    = words[i];
+          const test = line ? line + ' ' + w : w;
+          if (ctx.measureText(test).width > maxW) {
+            if (y + size > H - pad) {
+              const remaining = [words.slice(i).join(' '), ...lines.slice(pi + 1)].join('\n');
+              return remaining;
+            }
+            ctx.fillText(line, pad, y, maxW);
+            y += lh; line = w;
+          } else { line = test; }
+        }
+        if (line) {
+          if (y + size > H - pad) {
+            return [line, ...lines.slice(pi + 1)].join('\n');
+          }
           ctx.fillText(line, pad, y, maxW);
-          y += lh; line = w;
-        } else { line = test; }
-      }
-      if (line) {
-        if (y + size > H - pad) return line;
-        ctx.fillText(line, pad, y, maxW); y += lh;
+          y += lh;
+        }
       }
       y += size * 0.5;
       return '';
@@ -1688,7 +1711,7 @@
       // ── Left: Celebration of Life + Acknowledgements ──────────────
       drawSectionHeader(document.getElementById('headingCelebration').value.trim() || 'Celebration of Life');
       const rows = document.querySelectorAll('#serviceOrderList .service-row');
-      const itemSize = Math.round(W * 0.033);
+      const itemSize = parseInt(document.getElementById('celFontSize')?.value || '21');
       ctx.font = `${itemSize}px Arial, sans-serif`;
       const lh = itemSize * 1.75;
       rows.forEach(row => {
