@@ -2112,7 +2112,7 @@
     if (hasService) {
       const svcPx   = parseInt(document.getElementById('svcFontSize')?.value || '30');
       const lineGap = svcPx * 1.35;
-      let   svcY    = dateBottomY + svcPx * 2.0 + 50;
+      let   svcY    = dateBottomY + svcPx * 2.0;
 
       if (svcDate || svcTime) {
         const dtLine = [fmtServiceDate(svcDate), svcTime].filter(Boolean).join(' at ');
