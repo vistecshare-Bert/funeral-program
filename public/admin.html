@@ -172,6 +172,15 @@
         </div>
         <div class="grid-2" style="margin-top:14px">
           <div class="field">
+            <label>Front Cover Overlay <span style="color:var(--muted);font-weight:400">(optional — PNG flowers/decor drawn on top of photo)</span></label>
+            <div class="file-drop" id="thumbFrontOverlayDrop">
+              <div class="icon">🌸</div><div>Click to select PNG</div>
+              <div class="hint">PNG with transparent background</div>
+              <div class="chosen" id="thumbFrontOverlayChosen"></div>
+              <input type="file" id="thumbFrontOverlayInput" accept=".png" style="display:none" />
+            </div>
+          </div>
+          <div class="field">
             <label>Inside Panel Preview <span style="color:var(--muted);font-weight:400">(optional)</span></label>
             <div class="file-drop" id="thumbInsideDrop">
               <div class="icon">🖼️</div><div>Click to select image</div>
@@ -180,6 +189,8 @@
               <input type="file" id="thumbInsideInput" accept=".jpg,.jpeg,.png" style="display:none" />
             </div>
           </div>
+        </div>
+        <div class="grid-2" style="margin-top:14px">
           <div class="field">
             <label>Back Cover Preview <span style="color:var(--muted);font-weight:400">(optional)</span></label>
             <div class="file-drop" id="thumbBackDrop">
@@ -260,6 +271,16 @@
           </div>
         </div>
         <div>
+          <div class="panel-label">Front Overlay <span style="font-size:9px;color:#999;">(PNG)</span></div>
+          <div class="file-drop mini-drop" id="editFrontOverlayDrop">
+            <img class="current-thumb" id="editFrontOverlayCurrent" src="" style="display:none" />
+            <div class="icon" style="font-size:20px;">🌸</div>
+            <div style="font-size:11px;">Click to replace</div>
+            <div class="chosen" id="editFrontOverlayChosen" style="font-size:10px;"></div>
+            <input type="file" id="editFrontOverlayInput" accept=".png" style="display:none" />
+          </div>
+        </div>
+        <div>
           <div class="panel-label">Inside Panel</div>
           <div class="file-drop mini-drop" id="editInsideDrop">
             <img class="current-thumb" id="editInsideCurrent" src="" style="display:none" />
@@ -321,13 +342,15 @@
   wireFileDrop('pdfDrop',        'pdfInput',        'pdfChosen');
   wireFileDrop('thumbFrontDrop', 'thumbFrontInput', 'thumbFrontChosen');
   wireFileDrop('thumbInsideDrop','thumbInsideInput','thumbInsideChosen');
-  wireFileDrop('thumbBackDrop',  'thumbBackInput',  'thumbBackChosen');
+  wireFileDrop('thumbBackDrop',         'thumbBackInput',         'thumbBackChosen');
+  wireFileDrop('thumbFrontOverlayDrop', 'thumbFrontOverlayInput', 'thumbFrontOverlayChosen');
 
   // Wire edit modal drops
-  wireFileDrop('editPdfDrop',    'editPdfInput',    'editPdfChosen');
-  wireFileDrop('editFrontDrop',  'editFrontInput',  'editFrontChosen');
-  wireFileDrop('editInsideDrop', 'editInsideInput', 'editInsideChosen');
-  wireFileDrop('editBackDrop',   'editBackInput',   'editBackChosen');
+  wireFileDrop('editPdfDrop',          'editPdfInput',          'editPdfChosen');
+  wireFileDrop('editFrontDrop',        'editFrontInput',        'editFrontChosen');
+  wireFileDrop('editFrontOverlayDrop', 'editFrontOverlayInput', 'editFrontOverlayChosen');
+  wireFileDrop('editInsideDrop',       'editInsideInput',       'editInsideChosen');
+  wireFileDrop('editBackDrop',         'editBackInput',         'editBackChosen');
 
   // ── Upload form ──────────────────────────────────────────────────────
   const uploadMsg = document.getElementById('uploadMsg');
@@ -342,12 +365,14 @@
 
     const fd = new FormData();
     fd.append('name', name); fd.append('format', format); fd.append('templatePdf', pdf);
-    const tf = document.getElementById('thumbFrontInput').files[0];
-    const ti = document.getElementById('thumbInsideInput').files[0];
-    const tb = document.getElementById('thumbBackInput').files[0];
-    if (tf) fd.append('thumbnail_front', tf);
-    if (ti) fd.append('thumbnail_inside', ti);
-    if (tb) fd.append('thumbnail_back', tb);
+    const tf  = document.getElementById('thumbFrontInput').files[0];
+    const tfo = document.getElementById('thumbFrontOverlayInput').files[0];
+    const ti  = document.getElementById('thumbInsideInput').files[0];
+    const tb  = document.getElementById('thumbBackInput').files[0];
+    if (tf)  fd.append('thumbnail_front',         tf);
+    if (tfo) fd.append('thumbnail_front_overlay', tfo);
+    if (ti)  fd.append('thumbnail_inside',        ti);
+    if (tb)  fd.append('thumbnail_back',          tb);
 
     const btn = document.getElementById('uploadBtn');
     btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> Uploading…';
@@ -357,7 +382,7 @@
       if (data.success) {
         showUploadMsg('success', `✓ Template "${data.template.name}" uploaded successfully.`);
         document.getElementById('uploadForm').reset();
-        ['pdfChosen','thumbFrontChosen','thumbInsideChosen','thumbBackChosen'].forEach(id => document.getElementById(id).textContent = '');
+        ['pdfChosen','thumbFrontChosen','thumbFrontOverlayChosen','thumbInsideChosen','thumbBackChosen'].forEach(id => document.getElementById(id).textContent = '');
         loadTemplates();
       } else {
         showUploadMsg('error', data.error || 'Upload failed.');
@@ -383,14 +408,16 @@
     document.getElementById('editId').value      = t.id;
     document.getElementById('editName').value    = t.name;
     document.getElementById('editFormat').value  = t.format;
-    document.getElementById('editPdfChosen').textContent   = '';
-    document.getElementById('editFrontChosen').textContent = '';
-    document.getElementById('editInsideChosen').textContent= '';
-    document.getElementById('editBackChosen').textContent  = '';
-    document.getElementById('editPdfInput').value   = '';
-    document.getElementById('editFrontInput').value = '';
-    document.getElementById('editInsideInput').value= '';
-    document.getElementById('editBackInput').value  = '';
+    document.getElementById('editPdfChosen').textContent          = '';
+    document.getElementById('editFrontChosen').textContent        = '';
+    document.getElementById('editFrontOverlayChosen').textContent = '';
+    document.getElementById('editInsideChosen').textContent       = '';
+    document.getElementById('editBackChosen').textContent         = '';
+    document.getElementById('editPdfInput').value          = '';
+    document.getElementById('editFrontInput').value        = '';
+    document.getElementById('editFrontOverlayInput').value = '';
+    document.getElementById('editInsideInput').value       = '';
+    document.getElementById('editBackInput').value         = '';
     editMsg.style.display = 'none';
 
     // Show current thumbnails
@@ -399,9 +426,10 @@
       if (url) { img.src = url; img.style.display = 'block'; }
       else { img.style.display = 'none'; }
     };
-    showThumb('editFrontCurrent',  t.thumbnail_front  || t.thumbnail || '');
-    showThumb('editInsideCurrent', t.thumbnail_inside || '');
-    showThumb('editBackCurrent',   t.thumbnail_back   || '');
+    showThumb('editFrontCurrent',        t.thumbnail_front         || t.thumbnail || '');
+    showThumb('editFrontOverlayCurrent', t.thumbnail_front_overlay || '');
+    showThumb('editInsideCurrent',       t.thumbnail_inside        || '');
+    showThumb('editBackCurrent',         t.thumbnail_back          || '');
 
     modal.classList.add('open');
   }
@@ -421,14 +449,16 @@
     const fd = new FormData();
     fd.append('name', name);
     fd.append('format', format);
-    const pdf    = document.getElementById('editPdfInput').files[0];
-    const front  = document.getElementById('editFrontInput').files[0];
-    const inside = document.getElementById('editInsideInput').files[0];
-    const back   = document.getElementById('editBackInput').files[0];
-    if (pdf)    fd.append('templatePdf',      pdf);
-    if (front)  fd.append('thumbnail_front',  front);
-    if (inside) fd.append('thumbnail_inside', inside);
-    if (back)   fd.append('thumbnail_back',   back);
+    const pdf           = document.getElementById('editPdfInput').files[0];
+    const front         = document.getElementById('editFrontInput').files[0];
+    const frontOverlay  = document.getElementById('editFrontOverlayInput').files[0];
+    const inside        = document.getElementById('editInsideInput').files[0];
+    const back          = document.getElementById('editBackInput').files[0];
+    if (pdf)          fd.append('templatePdf',             pdf);
+    if (front)        fd.append('thumbnail_front',         front);
+    if (frontOverlay) fd.append('thumbnail_front_overlay', frontOverlay);
+    if (inside)       fd.append('thumbnail_inside',        inside);
+    if (back)         fd.append('thumbnail_back',          back);
 
     editSaveBtn.disabled = true; editSaveBtn.innerHTML = '<span class="spinner"></span> Saving…';
     try {

@@ -139,16 +139,18 @@ pix.save(sys.argv[2])
 });
 
 app.post('/admin/upload-template', templateUpload.fields([
-  { name: 'templatePdf',      maxCount: 1 },
-  { name: 'thumbnail_front',  maxCount: 1 },
-  { name: 'thumbnail_inside', maxCount: 1 },
-  { name: 'thumbnail_back',   maxCount: 1 }
+  { name: 'templatePdf',             maxCount: 1 },
+  { name: 'thumbnail_front',         maxCount: 1 },
+  { name: 'thumbnail_front_overlay', maxCount: 1 },
+  { name: 'thumbnail_inside',        maxCount: 1 },
+  { name: 'thumbnail_back',          maxCount: 1 }
 ]), (req, res) => {
   try {
-    const pdfFile         = (req.files['templatePdf']      || [])[0];
-    const thumbFrontFile  = (req.files['thumbnail_front']  || [])[0];
-    const thumbInsideFile = (req.files['thumbnail_inside'] || [])[0];
-    const thumbBackFile   = (req.files['thumbnail_back']   || [])[0];
+    const pdfFile              = (req.files['templatePdf']             || [])[0];
+    const thumbFrontFile       = (req.files['thumbnail_front']         || [])[0];
+    const thumbFrontOverlay    = (req.files['thumbnail_front_overlay'] || [])[0];
+    const thumbInsideFile      = (req.files['thumbnail_inside']        || [])[0];
+    const thumbBackFile        = (req.files['thumbnail_back']          || [])[0];
 
     if (!pdfFile) return res.status(400).json({ success: false, error: 'PDF file is required.' });
 
@@ -162,9 +164,10 @@ app.post('/admin/upload-template', templateUpload.fields([
       name:             name.trim(),
       filename:         pdfFile.filename,
       format,
-      thumbnail_front:  thumbFrontFile  ? `/template-thumbs/${thumbFrontFile.filename}`  : null,
-      thumbnail_inside: thumbInsideFile ? `/template-thumbs/${thumbInsideFile.filename}` : null,
-      thumbnail_back:   thumbBackFile   ? `/template-thumbs/${thumbBackFile.filename}`   : null,
+      thumbnail_front:         thumbFrontFile    ? `/template-thumbs/${thumbFrontFile.filename}`    : null,
+      thumbnail_front_overlay: thumbFrontOverlay ? `/template-thumbs/${thumbFrontOverlay.filename}` : null,
+      thumbnail_inside:        thumbInsideFile   ? `/template-thumbs/${thumbInsideFile.filename}`   : null,
+      thumbnail_back:          thumbBackFile     ? `/template-thumbs/${thumbBackFile.filename}`     : null,
       uploadedAt:       new Date().toISOString().split('T')[0]
     };
     meta.push(entry);
@@ -177,22 +180,25 @@ app.post('/admin/upload-template', templateUpload.fields([
 });
 
 app.post('/admin/templates/:id/thumbnails', templateUpload.fields([
-  { name: 'thumbnail_front',  maxCount: 1 },
-  { name: 'thumbnail_inside', maxCount: 1 },
-  { name: 'thumbnail_back',   maxCount: 1 }
+  { name: 'thumbnail_front',         maxCount: 1 },
+  { name: 'thumbnail_front_overlay', maxCount: 1 },
+  { name: 'thumbnail_inside',        maxCount: 1 },
+  { name: 'thumbnail_back',          maxCount: 1 }
 ]), (req, res) => {
   try {
     const meta = readMeta();
     const entry = meta.find(t => t.id === req.params.id);
     if (!entry) return res.status(404).json({ success: false, error: 'Template not found.' });
 
-    const frontFile  = (req.files['thumbnail_front']  || [])[0];
-    const insideFile = (req.files['thumbnail_inside'] || [])[0];
-    const backFile   = (req.files['thumbnail_back']   || [])[0];
+    const frontFile        = (req.files['thumbnail_front']         || [])[0];
+    const frontOverlayFile = (req.files['thumbnail_front_overlay'] || [])[0];
+    const insideFile       = (req.files['thumbnail_inside']        || [])[0];
+    const backFile         = (req.files['thumbnail_back']          || [])[0];
 
-    if (frontFile)  entry.thumbnail_front  = `/template-thumbs/${frontFile.filename}`;
-    if (insideFile) entry.thumbnail_inside = `/template-thumbs/${insideFile.filename}`;
-    if (backFile)   entry.thumbnail_back   = `/template-thumbs/${backFile.filename}`;
+    if (frontFile)        entry.thumbnail_front         = `/template-thumbs/${frontFile.filename}`;
+    if (frontOverlayFile) entry.thumbnail_front_overlay = `/template-thumbs/${frontOverlayFile.filename}`;
+    if (insideFile)       entry.thumbnail_inside        = `/template-thumbs/${insideFile.filename}`;
+    if (backFile)         entry.thumbnail_back          = `/template-thumbs/${backFile.filename}`;
 
     writeMeta(meta);
     res.json({ success: true });
@@ -203,10 +209,11 @@ app.post('/admin/templates/:id/thumbnails', templateUpload.fields([
 
 // Edit template — name, format, optional PDF replacement, optional new thumbnails
 app.post('/admin/templates/:id/edit', templateUpload.fields([
-  { name: 'templatePdf',      maxCount: 1 },
-  { name: 'thumbnail_front',  maxCount: 1 },
-  { name: 'thumbnail_inside', maxCount: 1 },
-  { name: 'thumbnail_back',   maxCount: 1 }
+  { name: 'templatePdf',             maxCount: 1 },
+  { name: 'thumbnail_front',         maxCount: 1 },
+  { name: 'thumbnail_front_overlay', maxCount: 1 },
+  { name: 'thumbnail_inside',        maxCount: 1 },
+  { name: 'thumbnail_back',          maxCount: 1 }
 ]), (req, res) => {
   try {
     const meta  = readMeta();
@@ -226,12 +233,14 @@ app.post('/admin/templates/:id/edit', templateUpload.fields([
     }
 
     // Replace thumbnails if provided
-    const frontFile  = (req.files['thumbnail_front']  || [])[0];
-    const insideFile = (req.files['thumbnail_inside'] || [])[0];
-    const backFile   = (req.files['thumbnail_back']   || [])[0];
-    if (frontFile)  { if (entry.thumbnail_front)  { const p = path.join(__dirname, entry.thumbnail_front.replace(/^\//,'')); if (fs.existsSync(p)) fs.unlinkSync(p); } entry.thumbnail_front  = `/template-thumbs/${frontFile.filename}`;  }
-    if (insideFile) { if (entry.thumbnail_inside) { const p = path.join(__dirname, entry.thumbnail_inside.replace(/^\//,'')); if (fs.existsSync(p)) fs.unlinkSync(p); } entry.thumbnail_inside = `/template-thumbs/${insideFile.filename}`; }
-    if (backFile)   { if (entry.thumbnail_back)   { const p = path.join(__dirname, entry.thumbnail_back.replace(/^\//,'')); if (fs.existsSync(p)) fs.unlinkSync(p); } entry.thumbnail_back   = `/template-thumbs/${backFile.filename}`;  }
+    const frontFile        = (req.files['thumbnail_front']         || [])[0];
+    const frontOverlayFile = (req.files['thumbnail_front_overlay'] || [])[0];
+    const insideFile       = (req.files['thumbnail_inside']        || [])[0];
+    const backFile         = (req.files['thumbnail_back']          || [])[0];
+    if (frontFile)        { if (entry.thumbnail_front)         { const p = path.join(__dirname, entry.thumbnail_front.replace(/^\//,'')); if (fs.existsSync(p)) fs.unlinkSync(p); }         entry.thumbnail_front         = `/template-thumbs/${frontFile.filename}`;        }
+    if (frontOverlayFile) { if (entry.thumbnail_front_overlay) { const p = path.join(__dirname, entry.thumbnail_front_overlay.replace(/^\//,'')); if (fs.existsSync(p)) fs.unlinkSync(p); } entry.thumbnail_front_overlay = `/template-thumbs/${frontOverlayFile.filename}`; }
+    if (insideFile)       { if (entry.thumbnail_inside)        { const p = path.join(__dirname, entry.thumbnail_inside.replace(/^\//,'')); if (fs.existsSync(p)) fs.unlinkSync(p); }        entry.thumbnail_inside        = `/template-thumbs/${insideFile.filename}`;       }
+    if (backFile)         { if (entry.thumbnail_back)          { const p = path.join(__dirname, entry.thumbnail_back.replace(/^\//,'')); if (fs.existsSync(p)) fs.unlinkSync(p); }          entry.thumbnail_back          = `/template-thumbs/${backFile.filename}`;         }
 
     writeMeta(meta);
     res.json({ success: true, template: entry });
@@ -251,7 +260,7 @@ app.delete('/admin/templates/:id', (req, res) => {
     const pdfPath = path.join(__dirname, 'templates', entry.filename);
     if (fs.existsSync(pdfPath)) fs.unlinkSync(pdfPath);
     // Delete panel thumbnails
-    for (const field of ['thumbnail_front', 'thumbnail_inside', 'thumbnail_back', 'thumbnail']) {
+    for (const field of ['thumbnail_front', 'thumbnail_front_overlay', 'thumbnail_inside', 'thumbnail_back', 'thumbnail']) {
       if (entry[field]) {
         const thumbPath = path.join(__dirname, entry[field].replace(/^\//, ''));
         if (fs.existsSync(thumbPath)) fs.unlinkSync(thumbPath);

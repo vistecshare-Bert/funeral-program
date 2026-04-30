@@ -1415,7 +1415,7 @@
       }
 
       list.forEach(t => {
-        [t.thumbnail_front, t.thumbnail_inside, t.thumbnail_back,
+        [t.thumbnail_front, t.thumbnail_front_overlay, t.thumbnail_inside, t.thumbnail_back,
          t.thumbnail, t.thumbnail_full].filter(Boolean).forEach(url => {
           if (!templateThumbImgCache[url]) {
             const img = new Image();
@@ -1456,10 +1456,11 @@
           selectedTemplateId   = t.id === '__none__' ? null : t.id;
           selectedTemplateName = t.id === '__none__' ? null : (t.name || '');
           selectedTemplatePanels = t.id === '__none__' ? null : {
-            front:  t.thumbnail_front  || t.thumbnail || null,
-            inside: t.thumbnail_inside || t.thumbnail || null,
-            back:   t.thumbnail_back   || t.thumbnail || null,
-            _full:  t.thumbnail_full   || null,
+            front:         t.thumbnail_front         || t.thumbnail || null,
+            frontOverlay:  t.thumbnail_front_overlay || null,
+            inside:        t.thumbnail_inside        || t.thumbnail || null,
+            back:          t.thumbnail_back          || t.thumbnail || null,
+            _full:         t.thumbnail_full          || null,
           };
           selectedTemplateThumb = selectedTemplatePanels ? selectedTemplatePanels.front : null;
           // Show the appropriate calibration sub-panel
@@ -1891,6 +1892,26 @@
     img.src = thumbURL;
   }
 
+  // ── Template overlay (drawn on top of photo) ─────────────────────
+  function drawTemplateOverlay(W, H, overlayURL, cb) {
+    function render(img) {
+      ctx.save();
+      const ratio = img.width / img.height;
+      const zRatio = W / H;
+      let sx, sy, sw, sh;
+      if (ratio > zRatio) { sh = img.height; sw = sh*zRatio; sx=(img.width-sw)/2; sy=0; }
+      else                { sw = img.width; sh = sw/zRatio; sx=0; sy=(img.height-sh)/2; }
+      ctx.drawImage(img, sx, sy, sw, sh, 0, 0, W, H);
+      ctx.restore();
+      cb && cb();
+    }
+    if (templateThumbImgCache[overlayURL]) { render(templateThumbImgCache[overlayURL]); return; }
+    const img = new Image();
+    img.onload  = () => { templateThumbImgCache[overlayURL] = img; render(img); };
+    img.onerror = () => { cb && cb(); };
+    img.src = overlayURL;
+  }
+
   // ── Photo grid (gallery) ──────────────────────────────────────────
   // Returns { startX, startY, cellSize, gap } for photo placement
   function drawPhotoGrid(W, H, cols, rows, padX, padY, gap, borderColor) {
@@ -1982,17 +2003,19 @@
         return; // skip default circle logic below
       }
 
-      // ── Skin Tone: circular portrait using its own calibration sliders ──
+      // ── Skin Tone: photo behind overlay ──────────────────────────────
       if (isSkinTone) {
         const stCx = parseInt(document.getElementById('calStCx')?.value || '50') / 100;
         const stCy = parseInt(document.getElementById('calStCy')?.value || '28') / 100;
         const stR  = parseInt(document.getElementById('calStR')?.value  || '22') / 100;
         const scx = W * stCx, scy = H * stCy, sr = W * stR;
+        const overlayURL = selectedTemplatePanels && selectedTemplatePanels.frontOverlay;
+        const afterOverlay = () => { drawCoverText(W, H, font, name, dates); onDone && onDone(); };
+        const afterPhoto   = () => overlayURL ? drawTemplateOverlay(W, H, overlayURL, afterOverlay) : afterOverlay();
         if (portraitDataURL) {
-          drawCirclePhoto(scx, scy, sr, portraitDataURL, () => { drawCoverText(W, H, font, name, dates); onDone && onDone(); });
+          drawCirclePhoto(scx, scy, sr, portraitDataURL, afterPhoto);
         } else {
-          drawCoverText(W, H, font, name, dates);
-          onDone && onDone();
+          afterPhoto();
         }
         return;
       }
