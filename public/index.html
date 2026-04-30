@@ -1045,8 +1045,8 @@
           <input type="range" id="calStCy" min="10" max="60" step="1" value="28" style="width:100%;accent-color:#c8a96e;" oninput="document.getElementById('calStCyVal').textContent=this.value+'%';schedulePreview()" />
         </div>
         <div>
-          <label style="color:#555;font-weight:600;">Circle Size — <span id="calStRVal">22%</span></label>
-          <input type="range" id="calStR" min="8" max="40" step="1" value="22" style="width:100%;accent-color:#c8a96e;" oninput="document.getElementById('calStRVal').textContent=this.value+'%';schedulePreview()" />
+          <label style="color:#555;font-weight:600;">Size — <span id="calStRVal">36%</span></label>
+          <input type="range" id="calStR" min="8" max="50" step="1" value="36" style="width:100%;accent-color:#c8a96e;" oninput="document.getElementById('calStRVal').textContent=this.value+'%';schedulePreview()" />
         </div>
       </div>
 
@@ -2082,7 +2082,7 @@
       if (isSkinTone) {
         const stCx = parseInt(document.getElementById('calStCx')?.value || '50') / 100;
         const stCy = parseInt(document.getElementById('calStCy')?.value || '28') / 100;
-        const stR  = parseInt(document.getElementById('calStR')?.value  || '22') / 100;
+        const stR  = parseInt(document.getElementById('calStR')?.value  || '36') / 100;
         const scx = W * stCx, scy = H * stCy, sr = W * stR;
         const overlayURL = selectedTemplatePanels && selectedTemplatePanels.frontOverlay;
         const afterOverlay = () => { drawCoverText(W, H, font, name, dates); onDone && onDone(); };
