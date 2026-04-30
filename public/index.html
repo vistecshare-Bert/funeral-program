@@ -2246,10 +2246,13 @@
       // ── Top: Dynamic photo grid (slots 0–9) ───────────────────────
       const isBlackTrifoldInside = selectedTemplateName &&
         selectedTemplateName.toLowerCase().includes('black trifold');
-      // Black Trifold: full-width photo area below the decorative header
-      const gStartX  = isBlackTrifoldInside ? W * 0.05 + 20 : W * 0.08;
-      const leftW    = isBlackTrifoldInside ? W * 0.90 - 49 : W * 0.46 + 50;
-      const gStartY  = isBlackTrifoldInside ? Math.round(H * 0.22) : 60;
+      const isSkinToneInside = selectedTemplateName &&
+        selectedTemplateName.toLowerCase().includes('skin tone');
+      const useFullWidthGallery = isBlackTrifoldInside || isSkinToneInside;
+      // Black Trifold / Skin Tone: full-width photo area below the decorative header
+      const gStartX  = useFullWidthGallery ? W * 0.05 + 20 : W * 0.08;
+      const leftW    = useFullWidthGallery ? W * 0.90 - 49 : W * 0.46 + 50;
+      const gStartY  = useFullWidthGallery ? Math.round(H * 0.22) : 60;
       const photoAreaH = H * 0.73 - gStartY - 35;
       const gap = 10;
 
