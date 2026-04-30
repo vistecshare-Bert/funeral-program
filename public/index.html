@@ -2043,6 +2043,8 @@
     // ── Black Trifold: white text on left side ─────────────────────
     const isBlackTrifold = selectedTemplateName &&
       selectedTemplateName.toLowerCase().includes('black trifold');
+    const isSkinToneCover = selectedTemplateName &&
+      selectedTemplateName.toLowerCase().includes('skin tone');
 
     if (isBlackTrifold) {
       const lx = W * 0.25;   // centre of left text column
@@ -2204,7 +2206,7 @@
 
     if (hasService) {
       const svcPx   = parseInt(document.getElementById('svcFontSize')?.value || '30');
-      const lineGap = svcPx * 1.35;
+      const lineGap = svcPx * (isSkinToneCover ? 1.5 : 1.35);
       let   svcY    = dateBottomY + svcPx * 2.0;
 
       if (svcDate || svcTime) {
@@ -2252,7 +2254,9 @@
       // Black Trifold / Skin Tone: full-width photo area below the decorative header
       const gStartX  = useFullWidthGallery ? W * 0.05 + 20 : W * 0.08;
       const leftW    = useFullWidthGallery ? W * 0.90 - 49 : W * 0.46 + 50;
-      const gStartY  = useFullWidthGallery ? Math.round(H * 0.22) : 60;
+      const gStartY  = isBlackTrifoldInside ? Math.round(H * 0.22)
+                     : isSkinToneInside     ? Math.round(H * 0.22) - 100
+                     : 60;
       const photoAreaH = H * 0.73 - gStartY - 35;
       const gap = 10;
 
