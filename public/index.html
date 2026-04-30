@@ -1164,6 +1164,7 @@
   let portraitDataURL = null;
   let portraitOffsetX = 0.5;
   let portraitOffsetY = 0.5;
+  let skinToneOverlayOffsetY = 0.43; // fractional Y position of flower overlay
 
   portraitZone.addEventListener('click', e => {
     if (e.target === portraitClear) return;
@@ -1514,6 +1515,47 @@
   let previewTimer = null;
   onFinalRitesChange(); // init hidden field — must run after previewTimer is declared
   let photoImgCache = {};
+
+  // ── Canvas drag: reposition Skin Tone flower overlay ─────────────
+  canvas.addEventListener('mousedown', e => {
+    if (!selectedTemplateName || !selectedTemplateName.toLowerCase().includes('skin tone')) return;
+    const overlayURL = selectedTemplatePanels && selectedTemplatePanels.frontOverlay;
+    if (!overlayURL) return;
+    const rect   = canvas.getBoundingClientRect();
+    const scaleY = canvas.height / rect.height;
+    const hitY   = (e.clientY - rect.top) * scaleY;
+    const ovH    = Math.round(canvas.height * 0.09);
+    const ovTop  = Math.round(canvas.height * skinToneOverlayOffsetY);
+    const ovBot  = ovTop + ovH;
+    if (hitY < ovTop - 20 || hitY > ovBot + 20) return; // not in overlay zone
+    e.preventDefault();
+    canvas.style.cursor = 'grabbing';
+    const startClientY = e.clientY;
+    const startOffset  = skinToneOverlayOffsetY;
+    const onMove = mv => {
+      const dy = (mv.clientY - startClientY) / rect.height;
+      skinToneOverlayOffsetY = Math.min(0.70, Math.max(0.25, startOffset + dy));
+      schedulePreview();
+    };
+    const onUp = () => {
+      canvas.style.cursor = '';
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('mouseup', onUp);
+    };
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onUp);
+  });
+  canvas.addEventListener('mousemove', e => {
+    if (!selectedTemplateName || !selectedTemplateName.toLowerCase().includes('skin tone')) return;
+    const overlayURL = selectedTemplatePanels && selectedTemplatePanels.frontOverlay;
+    if (!overlayURL) return;
+    const rect   = canvas.getBoundingClientRect();
+    const scaleY = canvas.height / rect.height;
+    const hitY   = (e.clientY - rect.top) * scaleY;
+    const ovH    = Math.round(canvas.height * 0.09);
+    const ovTop  = Math.round(canvas.height * skinToneOverlayOffsetY);
+    canvas.style.cursor = (hitY >= ovTop - 20 && hitY <= ovTop + ovH + 20) ? 'grab' : '';
+  });
 
   // Preload praying hands image for step 2 left panel
   let prayingHandsImg = null;
@@ -1872,6 +1914,36 @@
     img.src = dataURL;
   }
 
+  // ── Square photo clip with gold border ───────────────────────────
+  function drawSquarePhoto(cx, cy, r, dataURL, offsetX, offsetY, cb) {
+    function render(img) {
+      const x = cx - r, y = cy - r, s = r * 2, rad = 14;
+      const ox = offsetX ?? 0.5, oy = offsetY ?? 0.5;
+      function rrPath() {
+        ctx.beginPath();
+        ctx.moveTo(x+rad,y); ctx.lineTo(x+s-rad,y); ctx.quadraticCurveTo(x+s,y,x+s,y+rad);
+        ctx.lineTo(x+s,y+s-rad); ctx.quadraticCurveTo(x+s,y+s,x+s-rad,y+s);
+        ctx.lineTo(x+rad,y+s); ctx.quadraticCurveTo(x,y+s,x,y+s-rad);
+        ctx.lineTo(x,y+rad); ctx.quadraticCurveTo(x,y,x+rad,y); ctx.closePath();
+      }
+      ctx.save(); rrPath(); ctx.clip();
+      const ratio = img.width / img.height;
+      let sx, sy, sw, sh;
+      if (ratio > 1) { sh = img.height; sw = sh; sx = (img.width - sw) * ox; sy = 0; }
+      else           { sw = img.width;  sh = sw; sx = 0; sy = (img.height - sh) * oy; }
+      ctx.drawImage(img, sx, sy, sw, sh, x, y, s, s);
+      ctx.restore();
+      ctx.save(); rrPath();
+      ctx.strokeStyle = '#c8a96e'; ctx.lineWidth = 5; ctx.stroke();
+      ctx.restore();
+      cb && cb();
+    }
+    if (photoImgCache[dataURL]) { render(photoImgCache[dataURL]); return; }
+    const img = new Image();
+    img.onload = () => { photoImgCache[dataURL] = img; render(img); cb && cb(); };
+    img.src = dataURL;
+  }
+
   // ── Template thumbnail as background ─────────────────────────────
   function drawTemplateBg(W, H, thumbURL, cb) {
     function render(img) {
@@ -2006,7 +2078,7 @@
         return; // skip default circle logic below
       }
 
-      // ── Skin Tone: photo behind overlay ──────────────────────────────
+      // ── Skin Tone: square photo + draggable flower overlay ───────────
       if (isSkinTone) {
         const stCx = parseInt(document.getElementById('calStCx')?.value || '50') / 100;
         const stCy = parseInt(document.getElementById('calStCy')?.value || '28') / 100;
@@ -2014,11 +2086,13 @@
         const scx = W * stCx, scy = H * stCy, sr = W * stR;
         const overlayURL = selectedTemplatePanels && selectedTemplatePanels.frontOverlay;
         const afterOverlay = () => { drawCoverText(W, H, font, name, dates); onDone && onDone(); };
-        // Draw overlay between photo oval and "In Loving Memories of" text
-        const ovY = Math.round(H * 0.40), ovH = Math.round(H * 0.14);
-        const afterPhoto   = () => overlayURL ? drawTemplateOverlay(W, H, overlayURL, afterOverlay, 0, ovY, W, ovH) : afterOverlay();
+        const ovH = Math.round(H * 0.09);
+        const ovY = Math.round(H * skinToneOverlayOffsetY);
+        const afterPhoto = () => overlayURL
+          ? drawTemplateOverlay(W, H, overlayURL, afterOverlay, 0, ovY, W, ovH)
+          : afterOverlay();
         if (portraitDataURL) {
-          drawCirclePhoto(scx, scy, sr, portraitDataURL, afterPhoto);
+          drawSquarePhoto(scx, scy, sr, portraitDataURL, portraitOffsetX, portraitOffsetY, afterPhoto);
         } else {
           afterPhoto();
         }
