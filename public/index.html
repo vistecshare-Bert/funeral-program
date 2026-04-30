@@ -1893,15 +1893,18 @@
   }
 
   // ── Template overlay (drawn on top of photo) ─────────────────────
-  function drawTemplateOverlay(W, H, overlayURL, cb) {
+  // dx/dy/dw/dh: destination rect on canvas (defaults to full canvas)
+  function drawTemplateOverlay(W, H, overlayURL, cb, dx, dy, dw, dh) {
     function render(img) {
       ctx.save();
-      const ratio = img.width / img.height;
-      const zRatio = W / H;
+      const destX = dx ?? 0, destY = dy ?? 0, destW = dw ?? W, destH = dh ?? H;
+      // Scale image to fill destination rect maintaining aspect ratio (cover)
+      const ratio  = img.width / img.height;
+      const cRatio = destW / destH;
       let sx, sy, sw, sh;
-      if (ratio > zRatio) { sh = img.height; sw = sh*zRatio; sx=(img.width-sw)/2; sy=0; }
-      else                { sw = img.width; sh = sw/zRatio; sx=0; sy=(img.height-sh)/2; }
-      ctx.drawImage(img, sx, sy, sw, sh, 0, 0, W, H);
+      if (ratio > cRatio) { sh = img.height; sw = sh * cRatio; sx = (img.width - sw) / 2; sy = 0; }
+      else                { sw = img.width;  sh = sw / cRatio; sx = 0; sy = (img.height - sh) / 2; }
+      ctx.drawImage(img, sx, sy, sw, sh, destX, destY, destW, destH);
       ctx.restore();
       cb && cb();
     }
@@ -2011,7 +2014,9 @@
         const scx = W * stCx, scy = H * stCy, sr = W * stR;
         const overlayURL = selectedTemplatePanels && selectedTemplatePanels.frontOverlay;
         const afterOverlay = () => { drawCoverText(W, H, font, name, dates); onDone && onDone(); };
-        const afterPhoto   = () => overlayURL ? drawTemplateOverlay(W, H, overlayURL, afterOverlay) : afterOverlay();
+        // Draw overlay at bottom 38% of canvas, full width
+        const ovH = Math.round(H * 0.38), ovY = H - ovH;
+        const afterPhoto   = () => overlayURL ? drawTemplateOverlay(W, H, overlayURL, afterOverlay, 0, ovY, W, ovH) : afterOverlay();
         if (portraitDataURL) {
           drawCirclePhoto(scx, scy, sr, portraitDataURL, afterPhoto);
         } else {
