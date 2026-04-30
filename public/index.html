@@ -1012,47 +1012,13 @@
     </div>
     <div class="preview-hint">Updates as you fill in the form.<br/>Final PDF may differ slightly.</div>
 
-    <!-- Portrait calibration panel -->
-    <div id="portraitCalibration" style="display:none;margin-top:10px;background:#fff8e1;border:1px solid #f0d070;border-radius:6px;padding:10px 12px;font-size:11px;">
-      <div style="font-weight:700;color:#7a6000;margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px;">📐 Portrait Frame Calibration</div>
-
-      <!-- Circle template (Cloud Off White etc.) -->
-      <div id="calCirclePanel" style="display:none;">
-        <div style="font-size:10px;color:#7a6000;margin-bottom:6px;font-weight:600;">⬤ Circle frame (Cloud Off White)</div>
-        <div style="margin-bottom:4px;">
-          <label style="color:#555;font-weight:600;">Horizontal Center — <span id="calCxVal">50%</span></label>
-          <input type="range" id="calCx" min="20" max="80" step="1" value="50" style="width:100%;accent-color:#c8a96e;" oninput="document.getElementById('calCxVal').textContent=this.value+'%';schedulePreview()" />
-        </div>
-        <div style="margin-bottom:4px;">
-          <label style="color:#555;font-weight:600;">Vertical Center — <span id="calCyVal">39%</span></label>
-          <input type="range" id="calCy" min="20" max="60" step="1" value="39" style="width:100%;accent-color:#c8a96e;" oninput="document.getElementById('calCyVal').textContent=this.value+'%';schedulePreview()" />
-        </div>
-        <div>
-          <label style="color:#555;font-weight:600;">Circle Size — <span id="calRVal">21%</span></label>
-          <input type="range" id="calR" min="8" max="35" step="1" value="21" style="width:100%;accent-color:#c8a96e;" oninput="document.getElementById('calRVal').textContent=this.value+'%';schedulePreview()" />
-        </div>
-      </div>
-
-      <!-- Circle template (Skin Tone) -->
-      <div id="calSkinTonePanel" style="display:none;">
-        <div style="font-size:10px;color:#7a6000;margin-bottom:6px;font-weight:600;">⬤ Circle frame (Skin Tone)</div>
-        <div style="margin-bottom:4px;">
-          <label style="color:#555;font-weight:600;">Horizontal Center — <span id="calStCxVal">50%</span></label>
-          <input type="range" id="calStCx" min="20" max="80" step="1" value="50" style="width:100%;accent-color:#c8a96e;" oninput="document.getElementById('calStCxVal').textContent=this.value+'%';schedulePreview()" />
-        </div>
-        <div style="margin-bottom:4px;">
-          <label style="color:#555;font-weight:600;">Vertical Center — <span id="calStCyVal">28%</span></label>
-          <input type="range" id="calStCy" min="10" max="60" step="1" value="28" style="width:100%;accent-color:#c8a96e;" oninput="document.getElementById('calStCyVal').textContent=this.value+'%';schedulePreview()" />
-        </div>
-        <div>
-          <label style="color:#555;font-weight:600;">Size — <span id="calStRVal">36%</span></label>
-          <input type="range" id="calStR" min="8" max="50" step="1" value="36" style="width:100%;accent-color:#c8a96e;" oninput="document.getElementById('calStRVal').textContent=this.value+'%';schedulePreview()" />
-        </div>
-      </div>
-
-      <div style="margin-top:8px;color:#7a6000;font-size:10px;">Drag sliders until the photo aligns with the template frame, then tell me the values.</div>
-    </div>
-    <button type="button" onclick="const p=document.getElementById('portraitCalibration');p.style.display=p.style.display==='none'?'block':'none';" style="margin-top:6px;width:100%;padding:5px;background:transparent;border:1px dashed #aaa;border-radius:4px;font-size:11px;color:#888;cursor:pointer;">📐 Portrait Calibration</button>
+    <!-- Hidden calibration inputs — values used by canvas, not shown in UI -->
+    <input type="hidden" id="calCx" value="50" />
+    <input type="hidden" id="calCy" value="39" />
+    <input type="hidden" id="calR"  value="21" />
+    <input type="hidden" id="calStCx" value="50" />
+    <input type="hidden" id="calStCy" value="28" />
+    <input type="hidden" id="calStR"  value="36" />
     <button type="button" id="fullscreenBtn" style="margin-top:8px;width:100%;padding:7px;background:#1a2740;color:#fff;border:none;border-radius:6px;font-size:13px;cursor:pointer;font-weight:600;">⛶ Full Screen Preview</button>
 
   </div>
@@ -1464,17 +1430,8 @@
             _full:         t.thumbnail_full          || null,
           };
           selectedTemplateThumb = selectedTemplatePanels ? selectedTemplatePanels.front : null;
-          // Show the appropriate calibration sub-panel
-          const _isST = selectedTemplateName && selectedTemplateName.toLowerCase().includes('skin tone');
-          const _isCW = selectedTemplateName && selectedTemplateName.toLowerCase().includes('cloud off white');
-          const _calCircle   = document.getElementById('calCirclePanel');
-          const _calSkinTone = document.getElementById('calSkinTonePanel');
-          if (_calCircle)   _calCircle.style.display   = _isCW ? 'block' : 'none';
-          if (_calSkinTone) _calSkinTone.style.display = _isST ? 'block' : 'none';
-          // Auto-open calibration panel for templates that need portrait alignment
-          const _calWrap = document.getElementById('portraitCalibration');
-          if (_calWrap) _calWrap.style.display = (_isST || _isCW) ? 'block' : 'none';
           // Per-template service info font size defaults
+          const _isST = selectedTemplateName && selectedTemplateName.toLowerCase().includes('skin tone');
           const _svcSlider = document.getElementById('svcFontSize');
           const _svcVal    = document.getElementById('svcFontSizeVal');
           if (_svcSlider) {
