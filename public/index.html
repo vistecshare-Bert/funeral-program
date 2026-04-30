@@ -1024,12 +1024,12 @@
           <input type="range" id="calCx" min="20" max="80" step="1" value="50" style="width:100%;accent-color:#c8a96e;" oninput="document.getElementById('calCxVal').textContent=this.value+'%';schedulePreview()" />
         </div>
         <div style="margin-bottom:4px;">
-          <label style="color:#555;font-weight:600;">Vertical Center — <span id="calCyVal">40%</span></label>
-          <input type="range" id="calCy" min="20" max="60" step="1" value="40" style="width:100%;accent-color:#c8a96e;" oninput="document.getElementById('calCyVal').textContent=this.value+'%';schedulePreview()" />
+          <label style="color:#555;font-weight:600;">Vertical Center — <span id="calCyVal">38%</span></label>
+          <input type="range" id="calCy" min="20" max="60" step="1" value="38" style="width:100%;accent-color:#c8a96e;" oninput="document.getElementById('calCyVal').textContent=this.value+'%';schedulePreview()" />
         </div>
         <div>
-          <label style="color:#555;font-weight:600;">Circle Size — <span id="calRVal">26%</span></label>
-          <input type="range" id="calR" min="10" max="45" step="1" value="26" style="width:100%;accent-color:#c8a96e;" oninput="document.getElementById('calRVal').textContent=this.value+'%';schedulePreview()" />
+          <label style="color:#555;font-weight:600;">Circle Size — <span id="calRVal">20%</span></label>
+          <input type="range" id="calR" min="8" max="35" step="1" value="20" style="width:100%;accent-color:#c8a96e;" oninput="document.getElementById('calRVal').textContent=this.value+'%';schedulePreview()" />
         </div>
       </div>
 
@@ -1955,8 +1955,8 @@
 
       // ── Default: circular portrait ────────────────────────────────
       const calCx = parseInt(document.getElementById('calCx')?.value || '50') / 100;
-      const calCy = parseInt(document.getElementById('calCy')?.value || '40') / 100;
-      const calR  = parseInt(document.getElementById('calR')?.value  || '26') / 100;
+      const calCy = parseInt(document.getElementById('calCy')?.value || '38') / 100;
+      const calR  = parseInt(document.getElementById('calR')?.value  || '20') / 100;
       const cx = W * calCx, cy = H * calCy, r = W * calR;
 
       // Only draw the circle background if NO template is selected
