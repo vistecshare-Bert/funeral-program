@@ -1029,28 +1029,7 @@
         </div>
       </div>
 
-      <!-- Rectangle template (Black Trifold) -->
-      <div id="calRectPanel" style="margin-top:8px;display:none;">
-        <div style="font-size:10px;color:#7a6000;margin-bottom:6px;font-weight:600;">▬ Rectangle frame (Black Trifold)</div>
-        <div style="margin-bottom:4px;">
-          <label style="color:#555;font-weight:600;">Left offset — <span id="calRxVal">49%</span></label>
-          <input type="range" id="calRx" min="30" max="70" step="1" value="49" style="width:100%;accent-color:#c8a96e;" oninput="document.getElementById('calRxVal').textContent=this.value+'%';schedulePreview()" />
-        </div>
-        <div style="margin-bottom:4px;">
-          <label style="color:#555;font-weight:600;">Top offset — <span id="calRyVal">14%</span></label>
-          <input type="range" id="calRy" min="5" max="35" step="1" value="14" style="width:100%;accent-color:#c8a96e;" oninput="document.getElementById('calRyVal').textContent=this.value+'%';schedulePreview()" />
-        </div>
-        <div style="margin-bottom:4px;">
-          <label style="color:#555;font-weight:600;">Width — <span id="calRwVal">47%</span></label>
-          <input type="range" id="calRw" min="20" max="65" step="1" value="47" style="width:100%;accent-color:#c8a96e;" oninput="document.getElementById('calRwVal').textContent=this.value+'%';schedulePreview()" />
-        </div>
-        <div>
-          <label style="color:#555;font-weight:600;">Height — <span id="calRhVal">72%</span></label>
-          <input type="range" id="calRh" min="30" max="90" step="1" value="72" style="width:100%;accent-color:#c8a96e;" oninput="document.getElementById('calRhVal').textContent=this.value+'%';schedulePreview()" />
-        </div>
-      </div>
-
-      <div style="margin-top:8px;color:#7a6000;font-size:10px;">Drag sliders until the photo aligns with the template frame, then tell me the values.</div>
+<div style="margin-top:8px;color:#7a6000;font-size:10px;">Drag sliders until the photo aligns with the template frame, then tell me the values.</div>
     </div>
     <button type="button" onclick="const p=document.getElementById('portraitCalibration');p.style.display=p.style.display==='none'?'block':'none';" style="margin-top:6px;width:100%;padding:5px;background:transparent;border:1px dashed #aaa;border-radius:4px;font-size:11px;color:#888;cursor:pointer;">📐 Portrait Calibration</button>
     <button type="button" id="fullscreenBtn" style="margin-top:8px;width:100%;padding:7px;background:#1a2740;color:#fff;border:none;border-radius:6px;font-size:13px;cursor:pointer;font-weight:600;">⛶ Full Screen Preview</button>
@@ -1462,12 +1441,6 @@
             _full:  t.thumbnail_full   || null,
           };
           selectedTemplateThumb = selectedTemplatePanels ? selectedTemplatePanels.front : null;
-          // Show the appropriate calibration sub-panel
-          const isBT = selectedTemplateName && selectedTemplateName.toLowerCase().includes('black trifold');
-          const circlePanel = document.getElementById('calCirclePanel');
-          const rectPanel   = document.getElementById('calRectPanel');
-          if (circlePanel) circlePanel.style.display = isBT ? 'none' : 'block';
-          if (rectPanel)   rectPanel.style.display   = isBT ? 'block' : 'none';
           schedulePreview();
         });
         return div;
@@ -1932,10 +1905,7 @@
       if (isBlackTrifold) {
         // ── Rectangular portrait zone for Black Trifold ──────────────
         // Position matches the grey box in the template (right-centre area)
-        const rx = W * (parseInt(document.getElementById('calRx')?.value || '49') / 100);
-        const ry = H * (parseInt(document.getElementById('calRy')?.value || '14') / 100);
-        const rw = W * (parseInt(document.getElementById('calRw')?.value || '47') / 100);
-        const rh = H * (parseInt(document.getElementById('calRh')?.value || '72') / 100);
+        const rx = W * 0.52 - 20, ry = H * 0.22, rw = W * 0.39 + 40, rh = H * 0.49 - 10;
         const rad = 30;
 
         if (portraitDataURL) {
