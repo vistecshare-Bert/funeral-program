@@ -1474,6 +1474,14 @@
           // Auto-open calibration panel for templates that need portrait alignment
           const _calWrap = document.getElementById('portraitCalibration');
           if (_calWrap) _calWrap.style.display = (_isST || _isCW) ? 'block' : 'none';
+          // Per-template service info font size defaults
+          const _svcSlider = document.getElementById('svcFontSize');
+          const _svcVal    = document.getElementById('svcFontSizeVal');
+          if (_svcSlider) {
+            const _svcDefault = _isST ? '34' : '30';
+            _svcSlider.value = _svcDefault;
+            if (_svcVal) _svcVal.textContent = _svcDefault + 'px';
+          }
           schedulePreview();
         });
         return div;
