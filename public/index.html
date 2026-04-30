@@ -1041,12 +1041,12 @@
           <input type="range" id="calStCx" min="20" max="80" step="1" value="50" style="width:100%;accent-color:#c8a96e;" oninput="document.getElementById('calStCxVal').textContent=this.value+'%';schedulePreview()" />
         </div>
         <div style="margin-bottom:4px;">
-          <label style="color:#555;font-weight:600;">Vertical Center — <span id="calStCyVal">35%</span></label>
-          <input type="range" id="calStCy" min="20" max="60" step="1" value="35" style="width:100%;accent-color:#c8a96e;" oninput="document.getElementById('calStCyVal').textContent=this.value+'%';schedulePreview()" />
+          <label style="color:#555;font-weight:600;">Vertical Center — <span id="calStCyVal">28%</span></label>
+          <input type="range" id="calStCy" min="10" max="60" step="1" value="28" style="width:100%;accent-color:#c8a96e;" oninput="document.getElementById('calStCyVal').textContent=this.value+'%';schedulePreview()" />
         </div>
         <div>
           <label style="color:#555;font-weight:600;">Circle Size — <span id="calStRVal">22%</span></label>
-          <input type="range" id="calStR" min="8" max="35" step="1" value="22" style="width:100%;accent-color:#c8a96e;" oninput="document.getElementById('calStRVal').textContent=this.value+'%';schedulePreview()" />
+          <input type="range" id="calStR" min="8" max="40" step="1" value="22" style="width:100%;accent-color:#c8a96e;" oninput="document.getElementById('calStRVal').textContent=this.value+'%';schedulePreview()" />
         </div>
       </div>
 
@@ -1469,6 +1469,9 @@
           const _calSkinTone = document.getElementById('calSkinTonePanel');
           if (_calCircle)   _calCircle.style.display   = _isCW ? 'block' : 'none';
           if (_calSkinTone) _calSkinTone.style.display = _isST ? 'block' : 'none';
+          // Auto-open calibration panel for templates that need portrait alignment
+          const _calWrap = document.getElementById('portraitCalibration');
+          if (_calWrap) _calWrap.style.display = (_isST || _isCW) ? 'block' : 'none';
           schedulePreview();
         });
         return div;
@@ -1982,7 +1985,7 @@
       // ── Skin Tone: circular portrait using its own calibration sliders ──
       if (isSkinTone) {
         const stCx = parseInt(document.getElementById('calStCx')?.value || '50') / 100;
-        const stCy = parseInt(document.getElementById('calStCy')?.value || '35') / 100;
+        const stCy = parseInt(document.getElementById('calStCy')?.value || '28') / 100;
         const stR  = parseInt(document.getElementById('calStR')?.value  || '22') / 100;
         const scx = W * stCx, scy = H * stCy, sr = W * stR;
         if (portraitDataURL) {
