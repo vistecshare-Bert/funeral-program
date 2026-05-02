@@ -3149,7 +3149,7 @@
     showStatus('processing', '<span class="spinner"></span> Rendering panels…');
 
     try {
-      const panels = await captureAllPanels(3); // 3× resolution for print quality
+      const panels = await captureAllPanels(2); // 2× resolution — good quality, reasonable file size
 
       showStatus('processing', '<span class="spinner"></span> Building PDF…');
 
