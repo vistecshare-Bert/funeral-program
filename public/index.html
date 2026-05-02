@@ -476,6 +476,7 @@
     @keyframes spin { to { transform: rotate(360deg); } }
   </style>
 </head>
+<script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
 <body>
 
 <header>
@@ -3149,27 +3150,40 @@
     showStatus('processing', '<span class="spinner"></span> Rendering panels…');
 
     try {
-      const panels = await captureAllPanels(2); // 2× resolution — good quality, reasonable file size
+      const panels = await captureAllPanels(2);
 
       showStatus('processing', '<span class="spinner"></span> Building PDF…');
 
-      const resp = await fetch('/generate-canvas', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ panels })
-      });
-      const data = await resp.json();
+      // Build PDF entirely in the browser — no server round-trip
+      const { PDFDocument } = PDFLib;
+      const pdfDoc = await PDFDocument.create();
 
-      if (data.success) {
-        showStatus('success', `<strong>✓ Program generated successfully!</strong>
-          <div class="download-links">
-            <a href="${data.pdfPath}" class="download-btn" download>⬇ Download PDF</a>
-          </div>`);
-      } else {
-        showStatus('error', `<strong>Generation failed:</strong> ${escHtml(data.error || 'Unknown error.')}`);
+      for (const panel of panels) {
+        const isPng = panel.dataURL.startsWith('data:image/png');
+        const b64   = panel.dataURL.replace(/^data:image\/\w+;base64,/, '');
+        const bytes = Uint8Array.from(atob(b64), c => c.charCodeAt(0));
+        const img   = isPng ? await pdfDoc.embedPng(bytes) : await pdfDoc.embedJpg(bytes);
+        const { width, height } = img.scale(1);
+        const page = pdfDoc.addPage([width, height]);
+        page.drawImage(img, { x: 0, y: 0, width, height });
       }
+
+      const pdfBytes = await pdfDoc.save();
+      const blob     = new Blob([pdfBytes], { type: 'application/pdf' });
+      const url      = URL.createObjectURL(blob);
+
+      const firstName = getVal('firstName') || 'program';
+      const lastName  = getVal('lastName')  || '';
+      const filename  = `${firstName}-${lastName}-funeral-program.pdf`.replace(/\s+/g, '-').toLowerCase();
+
+      const a = document.createElement('a');
+      a.href = url; a.download = filename;
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(url), 10000);
+
+      showStatus('success', `<strong>✓ Program generated!</strong> Your download should start automatically.`);
     } catch (err) {
-      showStatus('error', `<strong>Network error:</strong> ${escHtml(err.message)}`);
+      showStatus('error', `<strong>Generation failed:</strong> ${escHtml(err.message)}`);
     } finally {
       submitBtn.disabled = false;
     }
