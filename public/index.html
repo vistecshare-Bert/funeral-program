@@ -2846,14 +2846,13 @@
   }
   window.addContentSection = addContentSection;
 
-  // Load decorations then seed sections
+  // Load decorations then restore or seed sections
   fetch('/decorations').then(r => r.json()).then(list => {
     decorationList = list;
-    addContentSection('obituarySectionsList',  'inside');
-    addContentSection('additionalSectionsList', 'back');
+    restoreOrInitSections();
   }).catch(() => {
-    addContentSection('obituarySectionsList',  'inside');
-    addContentSection('additionalSectionsList', 'back');
+    decorationList = [];
+    restoreOrInitSections();
   });
 
   // ── Celebration of Life order-of-service builder ─────────────────────
@@ -2885,8 +2884,6 @@
   });
 
   // Refresh step 2 canvas as user types
-  document.getElementById('obituaryText').addEventListener('input', () => { obituaryOverflow = null; if (step2Active) schedulePreview(); });
-  document.getElementById('additionalMessage').addEventListener('input', () => { if (step2Active) schedulePreview(); });
   document.getElementById('acknowledgements').addEventListener('input', () => { if (step2Active) schedulePreview(); });
   document.getElementById('serviceOrderList').addEventListener('input', () => { if (step2Active) schedulePreview(); });
 
@@ -2895,97 +2892,244 @@
     el.addEventListener('change', () => { if (step2Active) schedulePreview(); });
   });
 
+  // ── Form data persistence ────────────────────────────────────────────────
+  const FORM_KEY = 'vistec_funeral_form';
+
+  function saveFormData() {
+    try {
+      const data = {};
+      // Text / date inputs
+      ['firstName','lastName','dateOfBirth','dateOfDeath',
+       'serviceDate','serviceTime','serviceLocation','serviceAddress',
+       'serviceCityState','officiant'].forEach(name => {
+        const el = document.querySelector(`[name="${name}"]`);
+        if (el) data[name] = el.value;
+      });
+      // Select + its "other" textarea
+      const frs = document.getElementById('finalRitesSelect');
+      if (frs) data.finalRitesSelect = frs.value;
+      const fro = document.getElementById('finalRitesOther');
+      if (fro) data.finalRitesOther = fro.value;
+      // Acknowledgements
+      const ack = document.getElementById('acknowledgements');
+      if (ack) data.acknowledgements = ack.value;
+      // Radio groups
+      ['fontFamily','nameFontWeight','dateFontFamily','dateFontStyle',
+       'headingStyle','headingFont','contentFont'].forEach(name => {
+        const el = document.querySelector(`input[name="${name}"]:checked`);
+        if (el) data[name] = el.value;
+      });
+      // Sliders
+      ['nameFontSize','dateFontSize','svcFontSize','headingSize'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) data[id] = el.value;
+      });
+      // Dynamic content sections
+      data.obituarySections   = getContentSections('obituarySectionsList');
+      data.additionalSections = getContentSections('additionalSectionsList');
+      // Order of service rows
+      data.serviceOrder = Array.from(
+        document.querySelectorAll('#serviceOrderList .service-row')
+      ).map(row => {
+        const inputs = row.querySelectorAll('input');
+        return { event: inputs[0]?.value || '', person: inputs[1]?.value || '' };
+      });
+      localStorage.setItem(FORM_KEY, JSON.stringify(data));
+    } catch(e) {}
+  }
+
+  let _saveTimer = null;
+  function scheduleSave() {
+    clearTimeout(_saveTimer);
+    _saveTimer = setTimeout(saveFormData, 600);
+  }
+
+  function applySectionDecoration(listId, decorationUrl) {
+    const sections = document.querySelectorAll(`#${listId} .content-section`);
+    const div = sections[sections.length - 1];
+    if (!div || !decorationUrl) return;
+    div.dataset.decoration = decorationUrl;
+    const picker = div.querySelector('.decoration-picker');
+    if (!picker) return;
+    picker.querySelectorAll('.decoration-thumb,.decoration-none').forEach(el => el.classList.remove('selected'));
+    const thumb = picker.querySelector(`img[src="${decorationUrl}"]`);
+    if (thumb) thumb.classList.add('selected');
+  }
+
+  function restoreOrInitSections() {
+    try {
+      const raw = localStorage.getItem(FORM_KEY);
+      if (raw) {
+        const data = JSON.parse(raw);
+        if (data.obituarySections && data.obituarySections.length > 0) {
+          data.obituarySections.forEach(s => {
+            addContentSection('obituarySectionsList', 'inside', s.heading, s.content);
+            if (s.decoration) applySectionDecoration('obituarySectionsList', s.decoration);
+          });
+        } else {
+          addContentSection('obituarySectionsList', 'inside');
+        }
+        if (data.additionalSections && data.additionalSections.length > 0) {
+          data.additionalSections.forEach(s => {
+            addContentSection('additionalSectionsList', 'back', s.heading, s.content);
+            if (s.decoration) applySectionDecoration('additionalSectionsList', s.decoration);
+          });
+        } else {
+          addContentSection('additionalSectionsList', 'back');
+        }
+        return;
+      }
+    } catch(e) {}
+    // No saved data — create blank defaults
+    addContentSection('obituarySectionsList',  'inside');
+    addContentSection('additionalSectionsList', 'back');
+  }
+
+  function restoreFormData() {
+    try {
+      const raw = localStorage.getItem(FORM_KEY);
+      if (!raw) return;
+      const data = JSON.parse(raw);
+      // Text / date inputs
+      ['firstName','lastName','dateOfBirth','dateOfDeath',
+       'serviceDate','serviceTime','serviceLocation','serviceAddress',
+       'serviceCityState','officiant'].forEach(name => {
+        const el = document.querySelector(`[name="${name}"]`);
+        if (el && data[name] != null) el.value = data[name];
+      });
+      // Select + finalRitesOther
+      if (data.finalRitesSelect != null) {
+        const frs = document.getElementById('finalRitesSelect');
+        if (frs) { frs.value = data.finalRitesSelect; onFinalRitesChange(); }
+      }
+      if (data.finalRitesOther != null) {
+        const fro = document.getElementById('finalRitesOther');
+        if (fro) fro.value = data.finalRitesOther;
+      }
+      // Acknowledgements
+      if (data.acknowledgements != null) {
+        const ack = document.getElementById('acknowledgements');
+        if (ack) ack.value = data.acknowledgements;
+      }
+      // Radio groups
+      ['fontFamily','nameFontWeight','dateFontFamily','dateFontStyle',
+       'headingStyle','headingFont','contentFont'].forEach(name => {
+        if (data[name] == null) return;
+        const el = document.querySelector(`input[name="${name}"][value="${data[name]}"]`);
+        if (!el) return;
+        el.checked = true;
+        const group = el.closest('.radio-group');
+        if (group) {
+          group.querySelectorAll('.radio-option').forEach(o => o.classList.remove('selected'));
+          el.closest('.radio-option')?.classList.add('selected');
+        }
+      });
+      // Sliders
+      ['nameFontSize','dateFontSize','svcFontSize','headingSize'].forEach(id => {
+        if (data[id] == null) return;
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.value = data[id];
+        const valEl = document.getElementById(id + 'Val');
+        if (valEl) valEl.textContent = data[id] + 'px';
+      });
+      // Service order rows (replace defaults if saved)
+      if (data.serviceOrder && data.serviceOrder.length > 0) {
+        serviceOrderList.innerHTML = '';
+        data.serviceOrder.forEach(({ event = '', person = '' }) => addServiceRow(event, person));
+      }
+    } catch(e) {}
+  }
+
+  // Wire save to all form input/change events + periodic backup save
+  document.getElementById('programForm').addEventListener('input',  scheduleSave);
+  document.getElementById('programForm').addEventListener('change', scheduleSave);
+  setInterval(saveFormData, 3000); // catches removes/decoration picks not covered by input event
+
+  // Restore all simple fields now (sections restored inside restoreOrInitSections)
+  restoreFormData();
+  schedulePreview();
+
   // ── Form submit ──────────────────────────────────────────────────────
   const form      = document.getElementById('programForm');
   const submitBtn = document.getElementById('submitBtn');
   const statusMsg = document.getElementById('statusMsg');
 
-  // Capture 3 composited panels (template + photos + text overlay) for PDF.
+  // Capture 2 wide pages matching the live preview exactly.
+  // Reuses snapshotPanel (same as fullscreen preview) so output is identical.
+  //   Page 1 — template side:  back | inside | cover  (3 panels wide)
+  //   Page 2 — content side:   cover | inside | back  (3 panels wide, white bg)
   function captureAllPanels(scale = 1) {
     return new Promise(resolve => {
-      const savedStep2 = step2Active;
-      const savedPanel = activePanel;
-      const savedThumb = selectedTemplateThumb;
+      const origStep2 = step2Active;
+      const origPanel = activePanel;
       const origW = canvas.width;
       const origH = canvas.height;
 
-      if (scale !== 1) {
-        canvas.width  = origW * scale;
-        canvas.height = origH * scale;
+      // Upscale canvas temporarily for print quality
+      canvas.width  = origW * scale;
+      canvas.height = origH * scale;
+
+      const W = canvas.width;
+      const H = canvas.height;
+
+      function composePage(urls, bgColor, cb) {
+        const tmp = document.createElement('canvas');
+        tmp.width  = W * 3;
+        tmp.height = H;
+        const tctx = tmp.getContext('2d');
+        tctx.imageSmoothingEnabled = true;
+        tctx.imageSmoothingQuality = 'high';
+        tctx.fillStyle = bgColor;
+        tctx.fillRect(0, 0, tmp.width, tmp.height);
+        let loaded = 0;
+        urls.forEach((url, i) => {
+          const img = new Image();
+          img.onload = () => {
+            tctx.drawImage(img, i * W, 0, W, H);
+            if (++loaded === urls.length) cb(tmp.toDataURL('image/jpeg', 0.93));
+          };
+          img.src = url;
+        });
       }
 
-      const fmt = 'image/png';
-      const urls = [];
-      const panelNames = ['cover', 'inside', 'back'];
-      const labels     = ['Front Cover', 'Inside', 'Back Cover'];
-
-      const fontMap = {
-        times:     "'Times New Roman',Times,serif",
-        serif:     'Georgia, serif',
-        sans:      'Arial, sans-serif',
-        garamond:  "'Garamond','Book Antiqua',Georgia,serif",
-        palatino:  "'Palatino Linotype','Palatino',Georgia,serif",
-        trebuchet: "'Trebuchet MS',Arial,sans-serif",
-        century:   "'Century Gothic','Futura',Arial,sans-serif",
-        cursive:   "'Dancing Script','Great Vibes',cursive",
-      };
-      const fontFamily = fontMap[getRadio('fontFamily')] || "'Dancing Script','Great Vibes',cursive";
-      const firstName  = getVal('firstName');
-      const lastName   = getVal('lastName');
-      const dob        = fmtDate(getVal('dateOfBirth'));
-      const dod        = fmtDate(getVal('dateOfDeath'));
-      const fullName   = [firstName, lastName].filter(Boolean).join(' ') || 'Full Name';
-      const dates      = (dob || dod) ? `${dob || '?'} — ${dod || '?'}` : '';
-
-      obituaryOverflow = null; // recompute fresh for inside→back overflow
-
-      let idx = 0;
-
-      function captureOne() {
-        if (idx >= panelNames.length) {
-          // Restore everything
-          canvas.width        = origW;
-          canvas.height       = origH;
-          step2Active         = savedStep2;
-          activePanel         = savedPanel;
-          selectedTemplateThumb = savedThumb;
-          schedulePreview();
-          resolve(urls);
-          return;
-        }
-
-        const panelName = panelNames[idx];
-        const W = canvas.width, H = canvas.height;
-        ctx.clearRect(0, 0, W, H);
-        ctx.imageSmoothingEnabled = true;
-        ctx.imageSmoothingQuality = 'high';
-
-        // Set the correct template thumbnail for this panel
-        if (selectedTemplatePanels) {
-          const key = panelName === 'cover' ? 'front' : panelName;
-          selectedTemplateThumb = selectedTemplatePanels[key] || null;
-        } else {
-          selectedTemplateThumb = null;
-        }
-
-        // After template+photos are drawn, overlay the text content
-        const overlayText = () => {
-          step2Active = false;
-          drawStep2Panel(W, H, fontFamily, panelName);
-          const url = canvas.toDataURL(fmt, 1.0);
-          urls.push({ label: labels[idx], dataURL: url });
-          idx++;
-          captureOne();
-        };
-
-        // Draw template + photos layer
-        step2Active = false;
-        if (panelName === 'cover')       drawCoverPanel(W, H, fontFamily, fullName, dates, overlayText);
-        else if (panelName === 'inside') drawInsidePanel(W, H, fontFamily, overlayText);
-        else                             drawBackPanel(W, H, fontFamily, overlayText);
+      function restore() {
+        canvas.width  = origW;
+        canvas.height = origH;
+        step2Active   = origStep2;
+        activePanel   = origPanel;
+        schedulePreview();
       }
 
-      captureOne();
+      // Step 1: render 3 template panels (back | inside | cover)
+      step2Active = false;
+      obituaryOverflow = null;
+      snapshotPanel('back', t0 => {
+        snapshotPanel('inside', t1 => {
+          snapshotPanel('cover', t2 => {
+
+            // Step 2: render 3 content panels (cover | inside | back)
+            step2Active = true;
+            obituaryOverflow = null;
+            snapshotPanel('cover', c0 => {
+              snapshotPanel('inside', c1 => {
+                snapshotPanel('back', c2 => {
+                  restore();
+                  composePage([t0, t1, t2], '#1a1a1a', page1 => {
+                    composePage([c0, c1, c2], '#ffffff', page2 => {
+                      resolve([
+                        { label: 'Template Side', dataURL: page1 },
+                        { label: 'Content Side',  dataURL: page2 },
+                      ]);
+                    });
+                  });
+                });
+              });
+            });
+
+          });
+        });
+      });
     });
   }
 

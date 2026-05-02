@@ -14,7 +14,7 @@ const PORT = process.env.PORT || 3000;
 const OUTPUT_DIR = process.env.OUTPUT_DIR || './outputs';
 const PYTHON_PATH = process.env.PYTHON_PATH || 'python3';
 
-app.use(express.json());
+app.use(express.json({ limit: '300mb' }));
 app.use(express.static('public'));
 app.use('/frames', express.static(path.join(__dirname, 'frames')));
 app.use('/template-thumbs', express.static(path.join(__dirname, 'template-thumbs')));
