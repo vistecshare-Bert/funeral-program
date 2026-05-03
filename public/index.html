@@ -3158,14 +3158,17 @@
       const { PDFDocument } = PDFLib;
       const pdfDoc = await PDFDocument.create();
 
+      // 11×17 trifold: each page is one flat side = 17" × 11" landscape at 72pt/in
+      const PAGE_W = 17 * 72; // 1224pt
+      const PAGE_H = 11 * 72; //  792pt
+
       for (const panel of panels) {
         const isPng = panel.dataURL.startsWith('data:image/png');
         const b64   = panel.dataURL.replace(/^data:image\/\w+;base64,/, '');
         const bytes = Uint8Array.from(atob(b64), c => c.charCodeAt(0));
         const img   = isPng ? await pdfDoc.embedPng(bytes) : await pdfDoc.embedJpg(bytes);
-        const { width, height } = img.scale(1);
-        const page = pdfDoc.addPage([width, height]);
-        page.drawImage(img, { x: 0, y: 0, width, height });
+        const page  = pdfDoc.addPage([PAGE_W, PAGE_H]);
+        page.drawImage(img, { x: 0, y: 0, width: PAGE_W, height: PAGE_H });
       }
 
       const pdfBytes = await pdfDoc.save();
