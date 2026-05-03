@@ -3057,27 +3057,80 @@
   const statusMsg = document.getElementById('statusMsg');
 
   // Capture 2 wide pages matching the live preview exactly.
-  // Reuses snapshotPanel (same as fullscreen preview) so output is identical.
   //   Page 1 — template side:  back | inside | cover  (3 panels wide)
   //   Page 2 — content side:   cover | inside | back  (3 panels wide, white bg)
+  //
+  // ctx.scale(scale,scale) keeps draw calls in original logical coordinates so
+  // absolute font sizes (slider values) render proportionally larger, matching preview.
   function captureAllPanels(scale = 1) {
     return new Promise(resolve => {
       const origStep2 = step2Active;
       const origPanel = activePanel;
+      const origThumb = selectedTemplateThumb;
       const origW = canvas.width;
       const origH = canvas.height;
 
-      // Upscale canvas temporarily for print quality
+      // Resize canvas buffer to scaled dimensions, then apply context scale
+      // so all drawing functions work in original logical coordinate space.
       canvas.width  = origW * scale;
       canvas.height = origH * scale;
+      if (scale !== 1) ctx.scale(scale, scale);
 
-      const W = canvas.width;
-      const H = canvas.height;
+      // Draw functions receive original logical dimensions — ctx.scale handles the rest
+      const W = origW;
+      const H = origH;
+
+      const fontMap = {
+        times:     "'Times New Roman',Times,serif",
+        serif:     'Georgia, serif',
+        sans:      'Arial, sans-serif',
+        garamond:  "'Garamond','Book Antiqua',Georgia,serif",
+        palatino:  "'Palatino Linotype','Palatino',Georgia,serif",
+        trebuchet: "'Trebuchet MS',Arial,sans-serif",
+        century:   "'Century Gothic','Futura',Arial,sans-serif",
+        cursive:   "'Dancing Script','Great Vibes',cursive",
+      };
+      const fontFamily = fontMap[getRadio('fontFamily')] || "'Dancing Script','Great Vibes',cursive";
+      const firstName  = getVal('firstName');
+      const lastName   = getVal('lastName');
+      const dob        = fmtDate(getVal('dateOfBirth'));
+      const dod        = fmtDate(getVal('dateOfDeath'));
+      const fullName   = [firstName, lastName].filter(Boolean).join(' ') || 'Full Name';
+      const dates      = (dob || dod) ? `${dob || '?'} — ${dod || '?'}` : '';
+
+      function clearPanel() {
+        ctx.clearRect(0, 0, W, H);
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
+      }
+
+      function setThumb(panelName) {
+        if (selectedTemplatePanels) {
+          const key = panelName === 'cover' ? 'front' : panelName;
+          selectedTemplateThumb = selectedTemplatePanels[key] || null;
+        } else {
+          selectedTemplateThumb = null;
+        }
+      }
+
+      function snap() { return canvas.toDataURL('image/jpeg', 0.93); }
+
+      function restore() {
+        // Resizing canvas resets transform automatically
+        canvas.width  = origW;
+        canvas.height = origH;
+        step2Active   = origStep2;
+        activePanel   = origPanel;
+        selectedTemplateThumb = origThumb;
+        schedulePreview();
+      }
 
       function composePage(urls, bgColor, cb) {
+        const PW = origW * scale;
+        const PH = origH * scale;
         const tmp = document.createElement('canvas');
-        tmp.width  = W * 3;
-        tmp.height = H;
+        tmp.width  = PW * 3;
+        tmp.height = PH;
         const tctx = tmp.getContext('2d');
         tctx.imageSmoothingEnabled = true;
         tctx.imageSmoothingQuality = 'high';
@@ -3087,47 +3140,55 @@
         urls.forEach((url, i) => {
           const img = new Image();
           img.onload = () => {
-            tctx.drawImage(img, i * W, 0, W, H);
-            if (++loaded === urls.length) cb(tmp.toDataURL('image/jpeg', 0.93));
+            tctx.drawImage(img, i * PW, 0, PW, PH);
+            if (++loaded === 3) cb(tmp.toDataURL('image/jpeg', 0.93));
           };
           img.src = url;
         });
       }
 
-      function restore() {
-        canvas.width  = origW;
-        canvas.height = origH;
-        step2Active   = origStep2;
-        activePanel   = origPanel;
-        schedulePreview();
-      }
-
-      // Step 1: render 3 template panels (back | inside | cover)
+      // ── Phase 1: template panels (back | inside | cover) ──────────────
       step2Active = false;
       obituaryOverflow = null;
-      snapshotPanel('back', t0 => {
-        snapshotPanel('inside', t1 => {
-          snapshotPanel('cover', t2 => {
 
-            // Step 2: render 3 content panels (cover | inside | back)
+      clearPanel(); setThumb('back');
+      drawBackPanel(W, H, fontFamily, () => {
+        const t0 = snap();
+
+        clearPanel(); setThumb('inside');
+        drawInsidePanel(W, H, fontFamily, () => {
+          const t1 = snap();
+
+          clearPanel(); setThumb('cover');
+          drawCoverPanel(W, H, fontFamily, fullName, dates, () => {
+            const t2 = snap();
+
+            // ── Phase 2: content panels (cover | inside | back) ───────────
             step2Active = true;
             obituaryOverflow = null;
-            snapshotPanel('cover', c0 => {
-              snapshotPanel('inside', c1 => {
-                snapshotPanel('back', c2 => {
-                  restore();
-                  composePage([t0, t1, t2], '#1a1a1a', page1 => {
-                    composePage([c0, c1, c2], '#ffffff', page2 => {
-                      resolve([
-                        { label: 'Template Side', dataURL: page1 },
-                        { label: 'Content Side',  dataURL: page2 },
-                      ]);
-                    });
-                  });
-                });
+
+            clearPanel(); selectedTemplateThumb = null;
+            drawWhiteBg(W, H); drawStep2Panel(W, H, fontFamily, 'cover');
+            const c0 = snap();
+
+            clearPanel(); selectedTemplateThumb = null;
+            drawWhiteBg(W, H); drawStep2Panel(W, H, fontFamily, 'inside');
+            const c1 = snap();
+
+            clearPanel(); selectedTemplateThumb = null;
+            drawWhiteBg(W, H); drawStep2Panel(W, H, fontFamily, 'back');
+            const c2 = snap();
+
+            restore();
+
+            composePage([t0, t1, t2], '#1a1a1a', page1 => {
+              composePage([c0, c1, c2], '#ffffff', page2 => {
+                resolve([
+                  { label: 'Template Side', dataURL: page1 },
+                  { label: 'Content Side',  dataURL: page2 },
+                ]);
               });
             });
-
           });
         });
       });
