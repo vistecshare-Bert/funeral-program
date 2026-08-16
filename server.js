@@ -4,15 +4,37 @@ const multer = require('multer');
 const { v4: uuidv4 } = require('uuid');
 const path = require('path');
 const fs = require('fs');
+const crypto = require('crypto');
 const { execFile } = require('child_process');
 const { PDFDocument } = require('pdf-lib');
 
 const { validatePhotos } = require('./src/validator');
+const auth = require('./src/auth');
 
 const app = express();
+app.set('trust proxy', 1); // behind Traefik/nginx — needed for req.secure to reflect X-Forwarded-Proto
 const PORT = process.env.PORT || 3000;
 const OUTPUT_DIR = process.env.OUTPUT_DIR || './outputs';
 const PYTHON_PATH = process.env.PYTHON_PATH || 'python3';
+
+// Auto-provision secrets on first run so there's no manual setup step
+const ENV_PATH = path.join(__dirname, '.env');
+function ensureEnvVar(key, generate) {
+  if (process.env[key]) return process.env[key];
+  const value = generate();
+  process.env[key] = value;
+  try {
+    const existing = fs.existsSync(ENV_PATH) ? fs.readFileSync(ENV_PATH, 'utf8') : '';
+    const sep = existing && !existing.endsWith('\n') ? '\n' : '';
+    fs.writeFileSync(ENV_PATH, `${existing}${sep}${key}=${value}\n`);
+  } catch (e) {
+    console.warn(`Could not persist ${key} to .env:`, e.message);
+  }
+  console.log(`Generated new ${key} (first run) — see .env`);
+  return value;
+}
+const SESSION_SECRET = ensureEnvVar('SESSION_SECRET', () => crypto.randomBytes(32).toString('hex'));
+const ADMIN_SIGNUP_CODE = ensureEnvVar('ADMIN_SIGNUP_CODE', () => crypto.randomBytes(4).toString('hex'));
 
 app.use(express.json({ limit: '300mb' }));
 app.use(express.static('public'));
@@ -84,8 +106,71 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-app.get('/admin', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'admin.html'));
+app.get('/admin', auth.requireAuth(SESSION_SECRET), (req, res) => {
+  res.sendFile(path.join(__dirname, 'private', 'admin.html'));
+});
+
+app.get('/login', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'login.html'));
+});
+
+app.get('/signup', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'signup.html'));
+});
+
+app.post('/login', express.urlencoded({ extended: true }), (req, res) => {
+  const { username, password } = req.body || {};
+  if (!username || !password) {
+    return res.status(400).json({ success: false, error: 'Username and password are required.' });
+  }
+  const user = auth.findUser(username);
+  if (!user || !auth.verifyPassword(password, user.salt, user.hash)) {
+    return res.status(401).json({ success: false, error: 'Invalid username or password.' });
+  }
+  const token = auth.createSessionToken(SESSION_SECRET, user.username);
+  res.cookie(auth.COOKIE_NAME, token, {
+    httpOnly: true,
+    sameSite: 'lax',
+    secure: req.secure,
+    maxAge: 7 * 24 * 60 * 60 * 1000,
+    path: '/'
+  });
+  res.json({ success: true });
+});
+
+app.post('/signup', express.urlencoded({ extended: true }), (req, res) => {
+  const { username, password, confirmPassword, signupCode } = req.body || {};
+  if (!username || !password || !confirmPassword) {
+    return res.status(400).json({ success: false, error: 'All fields are required.' });
+  }
+  if (signupCode !== ADMIN_SIGNUP_CODE) {
+    return res.status(403).json({ success: false, error: 'Invalid signup code. Ask an existing admin for the code.' });
+  }
+  if (password.length < 8) {
+    return res.status(400).json({ success: false, error: 'Password must be at least 8 characters.' });
+  }
+  if (password !== confirmPassword) {
+    return res.status(400).json({ success: false, error: 'Passwords do not match.' });
+  }
+  try {
+    const user = auth.createUser(username.trim(), password);
+    const token = auth.createSessionToken(SESSION_SECRET, user.username);
+    res.cookie(auth.COOKIE_NAME, token, {
+      httpOnly: true,
+      sameSite: 'lax',
+      secure: req.secure,
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+      path: '/'
+    });
+    res.json({ success: true });
+  } catch (err) {
+    res.status(400).json({ success: false, error: err.message });
+  }
+});
+
+app.post('/logout', (req, res) => {
+  res.clearCookie(auth.COOKIE_NAME, { path: '/' });
+  res.json({ success: true });
 });
 
 app.get('/health', (req, res) => {
@@ -138,7 +223,7 @@ pix.save(sys.argv[2])
   });
 });
 
-app.post('/admin/upload-template', templateUpload.fields([
+app.post('/admin/upload-template', auth.requireAuth(SESSION_SECRET), templateUpload.fields([
   { name: 'templatePdf',             maxCount: 1 },
   { name: 'thumbnail_front',         maxCount: 1 },
   { name: 'thumbnail_front_overlay', maxCount: 1 },
@@ -179,7 +264,7 @@ app.post('/admin/upload-template', templateUpload.fields([
   }
 });
 
-app.post('/admin/templates/:id/thumbnails', templateUpload.fields([
+app.post('/admin/templates/:id/thumbnails', auth.requireAuth(SESSION_SECRET), templateUpload.fields([
   { name: 'thumbnail_front',         maxCount: 1 },
   { name: 'thumbnail_front_overlay', maxCount: 1 },
   { name: 'thumbnail_inside',        maxCount: 1 },
@@ -208,7 +293,7 @@ app.post('/admin/templates/:id/thumbnails', templateUpload.fields([
 });
 
 // Edit template — name, format, optional PDF replacement, optional new thumbnails
-app.post('/admin/templates/:id/edit', templateUpload.fields([
+app.post('/admin/templates/:id/edit', auth.requireAuth(SESSION_SECRET), templateUpload.fields([
   { name: 'templatePdf',             maxCount: 1 },
   { name: 'thumbnail_front',         maxCount: 1 },
   { name: 'thumbnail_front_overlay', maxCount: 1 },
@@ -249,7 +334,7 @@ app.post('/admin/templates/:id/edit', templateUpload.fields([
   }
 });
 
-app.delete('/admin/templates/:id', (req, res) => {
+app.delete('/admin/templates/:id', auth.requireAuth(SESSION_SECRET), (req, res) => {
   try {
     const meta    = readMeta();
     const idx     = meta.findIndex(t => t.id === req.params.id);

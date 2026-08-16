@@ -121,7 +121,10 @@
     <div class="logo">Vistec GraphX — Template Manager</div>
     <div class="subtitle">Staff Admin — Upload &amp; manage program templates</div>
   </div>
-  <a href="/">← Back to Program Form</a>
+  <div style="display:flex;align-items:center;gap:20px;">
+    <a href="/">← Back to Program Form</a>
+    <a href="#" id="logoutLink">Log Out</a>
+  </div>
 </header>
 
 <div class="container">
@@ -378,6 +381,7 @@
     btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> Uploading…';
     try {
       const resp = await fetch('/admin/upload-template', { method: 'POST', body: fd });
+      if (resp.status === 401) { location.href = '/login'; return; }
       const data = await resp.json();
       if (data.success) {
         showUploadMsg('success', `✓ Template "${data.template.name}" uploaded successfully.`);
@@ -463,6 +467,7 @@
     editSaveBtn.disabled = true; editSaveBtn.innerHTML = '<span class="spinner"></span> Saving…';
     try {
       const resp = await fetch(`/admin/templates/${id}/edit`, { method: 'POST', body: fd });
+      if (resp.status === 401) { location.href = '/login'; return; }
       const data = await resp.json();
       if (data.success) {
         showEditMsg('success', '✓ Template updated successfully.');
@@ -529,6 +534,7 @@
     if (!confirm(`Delete template "${name}"? This cannot be undone.`)) return;
     try {
       const resp = await fetch(`/admin/templates/${id}`, { method: 'DELETE' });
+      if (resp.status === 401) { location.href = '/login'; return; }
       const data = await resp.json();
       if (data.success) loadTemplates();
       else alert('Delete failed: ' + data.error);
@@ -536,6 +542,12 @@
       alert('Network error: ' + err.message);
     }
   }
+
+  document.getElementById('logoutLink').addEventListener('click', async (e) => {
+    e.preventDefault();
+    await fetch('/logout', { method: 'POST' });
+    location.href = '/login';
+  });
 
   loadTemplates();
 })();
