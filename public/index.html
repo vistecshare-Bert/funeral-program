@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Vistec GraphX — Funeral Program Generator</title>
-  <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600;700&family=Great+Vibes&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600;700&family=Great+Vibes&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet" />
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -474,6 +474,93 @@
       margin-right: 7px; vertical-align: middle;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Landing / Homepage ──────────────────────────────────── */
+    .hidden { display: none !important; }
+
+    .landing {
+      min-height: calc(100vh - 73px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 70px 24px;
+      background:
+        radial-gradient(ellipse at top, rgba(200,169,110,0.14), transparent 60%),
+        var(--navy);
+      color: var(--white);
+      text-align: center;
+    }
+    .landing-inner { max-width: 720px; }
+    .landing-eyebrow {
+      font-size: 12px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--gold);
+      font-weight: 600;
+      margin-bottom: 20px;
+    }
+    .landing-title {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: clamp(34px, 6vw, 58px);
+      line-height: 1.15;
+      font-weight: 700;
+      margin-bottom: 20px;
+    }
+    .landing-title em { color: var(--gold); font-style: normal; }
+    .landing-divider {
+      width: 60px;
+      height: 2px;
+      background: var(--gold);
+      margin: 0 auto 30px;
+      opacity: 0.7;
+    }
+    .landing-sub {
+      font-size: 17px;
+      line-height: 1.65;
+      color: rgba(255,255,255,0.75);
+      max-width: 540px;
+      margin: 0 auto 40px;
+    }
+    .landing-cta {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--gold);
+      color: var(--navy);
+      font-size: 16px;
+      font-weight: 700;
+      padding: 17px 38px;
+      border: none;
+      border-radius: 999px;
+      cursor: pointer;
+      box-shadow: 0 8px 24px rgba(200,169,110,0.35);
+      transition: transform 0.18s ease, box-shadow 0.18s ease;
+    }
+    .landing-cta:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 32px rgba(200,169,110,0.45);
+    }
+    .landing-cta .arrow { display: inline-block; transition: transform 0.18s ease; }
+    .landing-cta:hover .arrow { transform: translateX(4px); }
+    .landing-features {
+      display: flex;
+      gap: 36px;
+      justify-content: center;
+      margin-top: 60px;
+      flex-wrap: wrap;
+    }
+    .landing-feature {
+      max-width: 170px;
+      font-size: 13px;
+      line-height: 1.5;
+      color: rgba(255,255,255,0.65);
+    }
+    .landing-feature .icon { font-size: 24px; margin-bottom: 10px; display: block; }
+    .landing-feature .label { color: var(--white); font-weight: 600; margin-bottom: 4px; display: block; }
+    @media (max-width: 600px) {
+      .landing { padding: 50px 20px; }
+      .landing-features { gap: 26px; margin-top: 44px; }
+    }
   </style>
 </head>
 <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
@@ -487,7 +574,36 @@
   <a href="/admin" target="_blank" style="color:var(--gold);font-size:13px;font-weight:600;text-decoration:none;margin-left:auto;">⚙ Manage Templates</a>
 </header>
 
-<div class="page-body">
+<div class="landing" id="landingView">
+  <div class="landing-inner">
+    <div class="landing-eyebrow">Vistec GraphX</div>
+    <h1 class="landing-title">Create a Lasting <em>Tribute</em>,<br>in Minutes</h1>
+    <div class="landing-divider"></div>
+    <p class="landing-sub">Fill in a few details, choose a template, and generate a beautiful, print-ready funeral program — no design work required.</p>
+    <button type="button" class="landing-cta" id="startProgramBtn">
+      Start Your Funeral Program <span class="arrow">→</span>
+    </button>
+    <div class="landing-features">
+      <div class="landing-feature"><span class="icon">🗂️</span><span class="label">Elegant Templates</span>Choose from professionally designed layouts</div>
+      <div class="landing-feature"><span class="icon">📸</span><span class="label">Custom Photos</span>Add portraits and gallery images with frames</div>
+      <div class="landing-feature"><span class="icon">🖨️</span><span class="label">Print-Ready PDF</span>Download a finished program instantly</div>
+    </div>
+  </div>
+</div>
+<script>
+  window.addEventListener('DOMContentLoaded', function () {
+    var startBtn = document.getElementById('startProgramBtn');
+    if (startBtn) {
+      startBtn.addEventListener('click', function () {
+        document.getElementById('landingView').classList.add('hidden');
+        document.getElementById('appView').classList.remove('hidden');
+        window.scrollTo({ top: 0, behavior: 'instant' });
+      });
+    }
+  });
+</script>
+
+<div class="page-body hidden" id="appView">
 
   <!-- ── FORM COLUMN ─────────────────────────────────────────── -->
   <div class="form-col">
